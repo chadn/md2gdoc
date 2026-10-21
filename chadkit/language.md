@@ -16,8 +16,8 @@ model (`chadkit model` says where it is).
 | `push` | Markdown file to Doc: replace the whole Doc with the file's content, same link | - | - | domain |
 | `pull` | Doc to markdown file: export the Doc as markdown and normalize it | - | download, fetch | domain |
 | `sync` | Pull, three-way merge against the snapshot, then push; the only command that writes both sides | - | - | domain |
-| `normalizer` | Reversible rewrite applied to both sides before any comparison, undoing Google's export noise | - | cleaner, formatter | domain |
+| `normalizer` | Reversible rewrite applied to both sides before any comparison, undoing Google's export noise | - | cleaner | domain |
 | `snapshot` | Normalized content at the last successful sync, kept in the state file; the merge base | - | baseline, cache | domain |
-| `state file` | JSON next to the markdown file: Doc id, link, Drive `version`, snapshot | - | sidecar, frontmatter | domain |
+| `state file` | JSON next to the markdown file: Doc id, link, Drive `version`, snapshot | - | sidecar | domain |
 | `api-edited` | Conflict-marker label for the markdown side, the side the script writes; `local` was ruled out | - | ours | domain |
 | `hand-edited` | Conflict-marker label for changes made in the Google Docs UI; `doc` was ruled out | - | remote, theirs | domain |

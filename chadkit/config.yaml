@@ -18,9 +18,8 @@ chadkit-version: 0.7.0
 #     prefix: ADR
 #   - path: chadkit/decisions/
 
-# overrides:
-#   - Existing BACKLOG.md remains authoritative for project tasks.
-#   - Domain term is Customer, not Member.
+overrides:
+  - Greenfield: every artifact reads as native to this repository and cites no other project's records.
 
 # Settings by workflow name; the CLI checks only the entries it knows. The QA
 # gate (see the model's Workflows section; `chadkit model` says where) reads these three.

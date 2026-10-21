@@ -16,3 +16,14 @@ Every change is independently examined before it lands, and what the examination
 as evidence rather than fixed silently. The evidence has two uses: it stops defects reaching
 adopters, and it shows where the checks themselves fall short, so the checks improve from their own
 record.
+
+## PG-04 - Round-trip fidelity is tested, not assumed
+
+What Google's converter keeps and changes is pinned by `fixtures/`: the normalizer must satisfy
+normalize(out) == normalize(in) for every pair. What the converter loses (fenced code) is documented so a user
+knows what not to put in a synced file.
+
+## Review
+
+1. Does whole-document replace (PD-001) still hold once comments or suggestions in the Doc matter to someone?
+2. Is the task list still the right first test case, or has a resume or report become the real driver?
