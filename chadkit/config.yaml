@@ -1,0 +1,32 @@
+# chadkit/config.yaml
+#
+# Declares deviations from ChadKit defaults; leave the rest commented out.
+# See "The project config" in the ChadKit model (`chadkit model` says where) for the full shape.
+
+chadkit-version: 0.7.0
+
+# Omit paths that use ChadKit defaults.
+# paths:
+#   tasks: BACKLOG.md
+#   task_archive: archive/completed-project-tasks.md
+
+# Only needed when more than one decision container exists.
+# decisions:
+#   - path: docs/adr/
+#     schema: docs/adr/README.md
+#     scope: architecture
+#     prefix: ADR
+#   - path: chadkit/decisions/
+
+# overrides:
+#   - Existing BACKLOG.md remains authoritative for project tasks.
+#   - Domain term is Customer, not Member.
+
+# Settings by workflow name; the CLI checks only the entries it knows. The QA
+# gate (see the model's Workflows section; `chadkit model` says where) reads these three.
+# workflows:
+#   qa-gate:
+#     checks: scripts/gate-checks.sh
+#     paths:
+#       - src/parser.py
+#     since: main
