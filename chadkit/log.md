@@ -15,3 +15,10 @@
 - Related: PT-001, PT-002
 - Tags: #qa-gate
 
+### PLR-20261021-03 t_qa [PT-006,PT-010,PG-03] Full gate on the QA gate adoption
+
+- Date: 2026-10-21
+- Summary: 7 confirmed, 0 refuted, 0 declined; judge and reviewer claude-fable-5-1, full tier; gate user-ck@f95f135; session 2a707704-fea6-44bc-80be-8bbbde1bdf6f. Double-loop: adopting the two-tier gate now is right, since every artifact so far is a claim; tiers off would fit only once the sync script dominates. Applied: the scope sentence says what the line count leaves out and names the sync script apart from the gate script; History no longer copies the revision; the Agent section and the squash sentence, both restatements of the shared file, removed; the doctor exception reworded to match the code; tests located under tests/ in Checks and in PT-006; the long-line awk counts characters under LC_ALL=C instead of bytes; QA review restored to the Avoid column and verified added as an alias. Verdict, judged by claude-fable-5-1: Verification 82 (gate-checks.sh passed, validate clean, doctor 2 excused notes; findings 1-4, 6, 7 confirmed, 5 unverified); Validation, task intent 90 (local file, script, config block, language rows all present per PT-010; History added a second revision copy unasked); Validation, goals PG-03 85 (gate adopted with record, trailer and doctor audit; finding 1 misstated which commits it covers); Consistency 88 (derived from smb-reports' local file, config and script, trimmed; departed in finding 1's work files, finding 3's empty Agent section, finding 7's dropped Avoid); Score 85
+- Related: PT-010
+- Tags: #qa-gate
+

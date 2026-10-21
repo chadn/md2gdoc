@@ -9,3 +9,4 @@
 - [ ] PT-007 [PG-01] [needs:PT-006] Add `sync`: three-way merge on normalized lines, `api-edited`/`hand-edited` conflict markers with exit 2, Drive `version` push guard with normalized-export comparison, re-pull after push; borrow per PT-002.md "What the review changes in the plan".
 - [?] PT-008 [PG-01] [needs:PT-007] First real sync: pick the first real task list file and sync it with a Doc the script created. Waiting: which file?
 - [ ] PT-009 [PG-01] [needs:PT-007] Replace whole-document push with targeted Docs API `batchUpdate` edits so comments and formatting on untouched paragraphs survive (PD-001 option C'); first verify a checkbox state can be set by request.
+- [x] PT-010 [PG-03] [#qa-gate] Adopt the QA gate: local `chadkit/workflows/qa-gate.md` following the shared user-ck procedure, `scripts/gate-checks.sh`, the config block, and the gate rows in language.md. Completed: 2026-10-21

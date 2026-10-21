@@ -10,6 +10,7 @@ model (`chadkit model` says where it is).
 | `scope` | Values of the Scope column itself; each value used in this table gets a row like these | - | - | scope |
 | `tag` | Task and log record tags; the one scope value tooling interprets - tag rows drive the undefined-tag checks and `language check` tag matching | - | - | scope |
 | `domain` | Terms of the project's own subject matter | - | - | scope |
+| `project-management` | General methodology terms the project has adopted | - | - | scope |
 | `#spike` | A task whose deliverable is knowledge or direction, not a change to materials; closes by promotion into tasks, a log record, a decision, or a goal edit (see Promotion in the ChadKit model, `chadkit model` says where) | - | research, investigation, discovery, planning | tag |
 | `#migration` | Adoption of ChadKit into a repository that already has history to consolidate | - | adoption, brownfield, import, onboarding | tag |
 | `native Doc` | A Google Docs document (`application/vnd.google-apps.document`), not a `.md` file stored in Drive | - | Google file | domain |
@@ -21,3 +22,9 @@ model (`chadkit model` says where it is).
 | `state file` | JSON next to the markdown file: Doc id, link, Drive `version`, snapshot | - | sidecar | domain |
 | `api-edited` | Conflict-marker label for the markdown side, the side the script writes; `local` was ruled out | - | ours | domain |
 | `hand-edited` | Conflict-marker label for changes made in the Google Docs UI; `doc` was ruled out | - | remote, theirs | domain |
+| `#qa-gate` | Work on the QA gate and the evidence it produces: its workflow, script, doctor audit, and every `t_qa` a gated run writes | - | #review-gate | tag |
+| QA gate | The independent adversarial examination a change takes before it lands, and the record it leaves; `chadkit/workflows/qa-gate.md` | gate | review gate, QA review, code review gate | project-management |
+| light gate | The QA gate's tier for a minor change: the doer's session manages, one reviewer on a cheap language model verifies and answers one validation line; which changes take it is decided by the rules in `chadkit/workflows/qa-gate.md`, never by choice | - | quick review, small gate, lite gate | project-management |
+| full gate | The QA gate's tier for a significant change: a judge validates against all goals and the standing questions before the reviewer's findings, on the strongest language model, with a verdict; which changes take it is decided by the rules in `chadkit/workflows/qa-gate.md`, never by choice | - | big gate, deep review, heavy gate | project-management |
+| verification | Checking that work was built right: it meets the quality bar and conventions; the reviewer's job in the QA gate | verified | - | project-management |
+| validation | Checking that the right work was built: it does the task's intent under the goals; the judge's job in the QA gate | validated | - | project-management |
