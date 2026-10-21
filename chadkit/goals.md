@@ -2,13 +2,14 @@
 
 ## PG-01 - Two-way sync of one markdown file with one native Google Doc
 
-Either side may add a line, edit it, or tick a task done; `sync` reconciles both without losing either side's
-change. A true conflict is shown with markers and stops the push; it is never resolved silently.
+Either side may add a line, edit it, or tick a task done, and gets its change back after a sync. A true conflict
+is shown and stops the sync; it is never resolved silently. The text on either side is never lost: what a sync
+replaces stays restorable from that side's history.
 
-## PG-02 - Reusable by any project
+## PG-02 - Adoptable by any project, person, or agent
 
-One Python file with no repository-specific conventions. `--help` and in-file comments are enough to set it up and
-run it. It can run unattended: git hook, cron, CI, no LLM in the loop.
+One file that any project can take as is, that a person or an agent can set up and run from its own help alone,
+that asks for the least access to Google the job needs, and that runs unattended and deterministically.
 
 ## PG-03 - Quality assured, audited, and improving
 
@@ -17,13 +18,7 @@ as evidence rather than fixed silently. The evidence has two uses: it stops defe
 adopters, and it shows where the checks themselves fall short, so the checks improve from their own
 record.
 
-## PG-04 - Round-trip fidelity is tested, not assumed
+## PG-04 - Markdown fidelity is proven and documented
 
-What Google's converter keeps and changes is pinned by `fixtures/`: the normalizer must satisfy
-normalize(out) == normalize(in) for every pair. What the converter loses (fenced code) is documented so a user
-knows what not to put in a synced file.
-
-## Review
-
-1. Does whole-document replace (PD-001) still hold once comments or suggestions in the Doc matter to someone?
-2. Is the task list still the right first test case, or has a resume or report become the real driver?
+As many markdown features as possible survive the round trip. Which ones do is proven by fixtures, not assumed,
+and which ones do not is written where a user looks before syncing a file.

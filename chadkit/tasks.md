@@ -10,3 +10,4 @@
 - [?] PT-008 [PG-01] [needs:PT-007] First real sync: pick the first real task list file and sync it with a Doc the script created. Waiting: which file?
 - [ ] PT-009 [PG-01] [needs:PT-007] Replace whole-document push with targeted Docs API `batchUpdate` edits so comments and formatting on untouched paragraphs survive (PD-001 option C'); first verify a checkbox state can be set by request.
 - [x] PT-010 [PG-03] [#qa-gate] Adopt the QA gate: local `chadkit/workflows/qa-gate.md` following the shared user-ck procedure, `scripts/gate-checks.sh`, the config block, and the gate rows in language.md. Completed: 2026-10-21
+- [x] PT-011 [PG-03,PG-01,PG-02,PG-04] Rewrite the goals as direction only: adopters named in PG-02, data safety in PG-01, PG-04 aspirational to match the README, Review section dropped in favour of PT-009 under PD-001. Completed: 2026-10-21

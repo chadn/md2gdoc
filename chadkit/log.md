@@ -22,3 +22,10 @@
 - Related: PT-010
 - Tags: #qa-gate
 
+### PLR-20261021-04 t_qa [PD-001,PG-02,PT-011,PG-01,PG-04,PG-03,PLR-20261021-02] Full gate on the goals rewrite
+
+- Date: 2026-10-21
+- Summary: 6 confirmed, 0 refuted, 1 declined; judge and reviewer claude-fable-5-1, full tier; gate user-ck@f95f135; session 2a707704-fea6-44bc-80be-8bbbde1bdf6f. Double-loop: direction-only is the right shape; every removed mechanism still lives in the task, decision, or fixture that commits to it. Applied: the data-safety sentence now says what is protected (the text on either side) and what restores it (that side's history), which keeps it consistent with PD-001's first consequence; deterministically restored to PG-02 so PD-001's rejection of the connector paths rests on a goal again; PT-011 cites PG-01, PG-02, PG-04; the standing questions moved with the goals (PG-01 asks about restoring what a sync replaced, PG-02's beneficiary names project, person, or agent); PD-001's trigger widened to formatting and its double colon removed; Review question 2 was removed because it named drivers outside this repository, recorded here. Declined: its own help and fixtures as residual mechanism words in PG-02 and PG-04 (they match the standing questions and the owner's wording). Verdict, judged by claude-fable-5-1: Verification 85 (validate clean, language check 0 findings, long-line and em-dash scan clean on added lines, hunks in scope; findings 2, 3, 4, 5 confirmed against goals.md, PD-001 and qa-gate.md; finding 1 suspected); Validation, task intent 80 (all five PT-011 items present; the data-safety sentence present but ambiguous, finding 1; nothing added unasked); Validation, goals PG-03 80 (acts on PLR-20261021-02's declined README finding; task should also cite PG-01, PG-02, PG-04, finding 3); Consistency 78 (reuses the model's goal-edit promotion and keeps goal ids; departs from PD-001's Context by dropping determinism, finding 2, and leaves the standing questions behind the goals, finding 4); Score 80
+- Related: PT-011
+- Tags: #qa-gate
+
