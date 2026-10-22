@@ -30,6 +30,8 @@ workflows:
     # Where a change can alter what the tool promises or how the gate works; the rest is caught by the
     # line count (the shared qa-gate workflow, Tiers).
     paths:
+      - README.md
+      - docs/features.md
       - chadkit/goals.md
       - chadkit/decisions/
       - chadkit/workflows/qa-gate.md

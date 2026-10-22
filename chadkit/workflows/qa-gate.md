@@ -7,7 +7,8 @@ this file holds only this repository's parts, the shared file's Local list. Thre
 ## Which commits take it
 
 - Any commit touching a path where a change can alter what the tool promises or how the gate itself works: the
-  goals, the decision records, the gate workflow and its script. The list lives in one place,
+  README and the feature list, which adopters read; the goals, the decision records, the gate workflow and its
+  script. The list lives in one place,
   `workflows.qa-gate.paths` in `chadkit/config.yaml`, so `chadkit doctor` names a commit on them that carries no
   trailer. Everything else, the sync script, its tests and the fixtures, is caught by the line count, which leaves
   out `chadkit/tasks.md`, `chadkit/log.md` and `chadkit/work/` (the shared file, Tiers).

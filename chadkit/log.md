@@ -29,3 +29,10 @@
 - Related: PT-011
 - Tags: #qa-gate
 
+### PLR-20261021-05 t_qa [PT-012,PG-02,PG-03,PG-01,PD-001,PG-04,PT-002,PT-010] Full gate on the docs folder
+
+- Date: 2026-10-21
+- Summary: 8 confirmed, 0 refuted, 1 unverified; judge and reviewer claude-fable-5-1, full tier; gate user-ck@f95f135; session 2a707704-fea6-44bc-80be-8bbbde1bdf6f. Double-loop: the docs shape is the right preparation; design.md is the builder's single source. Applied: PT-012 cites PG-02 and PG-03 as well; features.md's tested status now applies to every converter row a fixture pair proves and built means exists without a test; evidence citations corrected (headings, italic, list start, escapes, raw HTML); design.md pointers resolve and the merge rules gained the delete-versus-edit conflict and the recovery statement PG-01 rests on; setup.md no longer attributes the Cloud project to PD-001, calls the drive scope restricted per Google, and says --help is not yet written; the last our wording and a sidecar in similar.md replaced; double blank line, Owner column forms and a README article fixed. Left: ours and theirs in design.md's merge bullet are diff3's own terms. Unverified by the gate: the scratch Docs are trashed (Chad did it; Drive not reachable from the gate). Verdict, judged by claude-fable-5-1: Verification 78 (validate and doctor clean; findings 2-8 confirmed against the tree, 9 unverified); Validation, task intent 88 (every item of the PT-012 line present: four docs, fixtures under tests/, LICENSE, gate paths; nothing unasked); Validation, goals PG-04 72 (features.md exists where a user looks, but finding 2 left proven by a fixture unanswerable and finding 3 mis-cited the proof; PG-02 would score 85 once added, finding 1); Consistency 85 (follows PT-002's promotion and PT-010's local-file shape; moved blocks match HEAD byte for byte except the intended edits); Score 79
+- Related: PT-012
+- Tags: #qa-gate
+

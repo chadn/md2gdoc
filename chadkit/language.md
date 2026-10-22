@@ -13,6 +13,7 @@ model (`chadkit model` says where it is).
 | `project-management` | General methodology terms the project has adopted | - | - | scope |
 | `#spike` | A task whose deliverable is knowledge or direction, not a change to materials; closes by promotion into tasks, a log record, a decision, or a goal edit (see Promotion in the ChadKit model, `chadkit model` says where) | - | research, investigation, discovery, planning | tag |
 | `#migration` | Adoption of ChadKit into a repository that already has history to consolidate | - | adoption, brownfield, import, onboarding | tag |
+| `#docs` | Work on the documents under `docs/` and the README: the feature list, the similar-solutions list, and what a user reads before syncing | - | documentation (as a tag) | tag |
 | `native Doc` | A Google Docs document (`application/vnd.google-apps.document`), not a `.md` file stored in Drive | - | Google file | domain |
 | `push` | Markdown file to Doc: replace the whole Doc with the file's content, same link | - | - | domain |
 | `pull` | Doc to markdown file: export the Doc as markdown and normalize it | - | download, fetch | domain |

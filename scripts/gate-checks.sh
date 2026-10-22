@@ -5,7 +5,7 @@
 #            health note except a task waiting on a human and an already-landed commit
 #            with no QA-Gate trailer; `chadkit language check` on the changed Markdown
 #            (printed, never failing); the script's tests (tests/test_*.py) when the
-#            change touches a .py file or fixtures/; and over added lines in .md, .py
+#            change touches a .py file or tests/; and over added lines in .md, .py
 #            and .sh files, no line past 120 characters (table rows, URLs, the log and
 #            the task lines excepted) and no em dash. Prints the session id the t_qa
 #            record and the Session: trailer carry.
@@ -65,7 +65,7 @@ else
     echo "== chadkit language check: no changed Markdown"
 fi
 
-if printf '%s\n' "$changed" | grep -qE '\.py$|^fixtures/'; then
+if printf '%s\n' "$changed" | grep -qE '\.py$|^tests/'; then
     if ls tests/test_*.py >/dev/null 2>&1; then
         run python3 -m unittest discover -s tests -p 'test_*.py'
     else

@@ -10,9 +10,16 @@ Tool for 2-way sync between md files and google docs.
 
 ## Layout
 
-- `fixtures/` - round-trip fixtures through Google's converter; the normalizer's test cases.
+The tool is one file, [md2gdoc.py](md2gdoc.py), at the root (PT-006 writes it); `scripts/` is repository
+maintenance, not the tool.
+
+- [docs/design.md](docs/design.md) - how the script works: API calls, normalizer, merge, push guard
+- [docs/features.md](docs/features.md) - every known feature and its status
+- [docs/similar.md](docs/similar.md) - what else does this, platform paths and tools on GitHub
+- [docs/setup.md](docs/setup.md) - one-time Google Cloud and OAuth setup
+- [tests/fixtures/](tests/fixtures/) - round-trip fixtures through Google's converter; the normalizer's test cases
 
 ## Process
 
-Following [chadkit.com](https://chadkit.com), see [chadkit/](chadkit/)
-
+Following [chadkit.com](https://chadkit.com), see [chadkit/](chadkit/) for more, like
+[chadkit/tasks](chadkit/tasks.md) for the `PT-NNN` task list.
