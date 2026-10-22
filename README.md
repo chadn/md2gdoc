@@ -8,6 +8,9 @@ Tool for 2-way sync between md files and google docs.
 - Attempts to support as many markdown features as possible, especially project mgmt ones like todo lists,
   documenting both the supported and the unsupported ones
 
+Not to be confused with [benstein/md2gdoc](https://github.com/benstein/md2gdoc), a one-way uploader of the same
+name; [docs/similar.md](docs/similar.md) says how the two differ and coexist.
+
 ## Layout
 
 - [md2gdoc.py](md2gdoc.py) - the main tool (this is really all you need)

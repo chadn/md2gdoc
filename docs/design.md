@@ -126,6 +126,12 @@ c. Hybrid: b for small diffs, a when the diff is large or b fails. Needs b first
 
 ## Borrowed pieces and what the tool review settled
 
+- From benstein/md2gdoc (PT-017, [similar.md](similar.md)), for PT-006: *account profiles*, `--account NAME` with
+  one token file per name under one client, as the account-selection half of the secondary-account option;
+  setup steps printed by the script itself when the client file is missing; `supportsAllDrives=True` on the
+  create so a folder on a shared drive works. Kept apart from that tool: no `~/.config/md2gdoc/` and no `md2gdoc`
+  command on PATH, so a machine with both has no file in common.
+
 - In-place update is proven in the wild: gdoc ships `files.update` with a `text/markdown` body on the same Doc id
   (`gdoc/api/drive.py:176-200`) and its 20-star user base depends on the link surviving. Item 1 under "What is not
   proven" drops from a design risk to a confirmation step on the first scratch run.
