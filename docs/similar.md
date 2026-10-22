@@ -24,7 +24,8 @@ in the account. This project is the third row.
 
 Three open-source markdown to Google Docs tools, each cloned and read against one rubric on 2026-10-21 (PT-002),
 compared with what this project builds ("This project"). All three are single-maintainer alpha projects; none handles
-checkboxes.
+checkboxes. A fourth, [benstein/md2gdoc](https://github.com/benstein/md2gdoc) (the same name; one-way markdown to
+Doc through the same Drive importer, `drive.file`, multi-account), is PT-017's to review and add here.
 
 | Feature                    | [gdoc-sync](https://github.com/MattHandzel/gdoc-sync) (MattHandzel)                       | [md-gdoc](https://github.com/MattFisher/md-gdoc) (MattFisher)                            | [gdoc](https://github.com/LucaDeLeo/gdoc) (LucaDeLeo)                                     | This project                                                                            |
 | -------------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
