@@ -1,0 +1,18 @@
+re-read at 2026-10-22T21:27:55+00:00: version 15 modifiedTime 2026-10-22T21:26:03.433Z
+export holds the steps probe's inserted line: False | italic/bold heading: '# **Nested checkboxes**'
+revision 1 2026-10-22T20:53:58.506Z
+revision 3 2026-10-22T20:54:01.827Z
+revision 4 2026-10-22T20:54:02.916Z
+revision 6 2026-10-22T20:56:05.348Z
+revision 7 2026-10-22T20:56:21.966Z
+revision 9 2026-10-22T21:26:15.598Z
+re-read: version 17 headRevisionId absent modifiedTime 2026-10-22T21:26:15.624Z
+re-read at 2026-10-22T21:30:04+00:00: version 17 modifiedTime 2026-10-22T21:26:15.624Z
+export holds the steps probe's inserted line: False | italic/bold heading: '# **Nested checkboxes**'
+revision 1 2026-10-22T20:53:58.506Z
+revision 3 2026-10-22T20:54:01.827Z
+revision 4 2026-10-22T20:54:02.916Z
+revision 6 2026-10-22T20:56:05.348Z
+revision 7 2026-10-22T20:56:21.966Z
+revision 9 2026-10-22T21:26:15.598Z
+the line holding 'plain bullet under' exports as '      - **plain bullet under** a checkbox  '

@@ -31,8 +31,12 @@ repository's conventions. The first proof is a scratch Doc, not a real list.
    ([chadkit/work/PT-004.md](../chadkit/work/PT-004.md)) for API edits: a Docs API `batchUpdate`, style-only or
    `insertText`, moved neither `version` nor `modifiedTime` within about 30 seconds, although it wrote a
    revision; `files.update` moved `version` at once. So a matching `version` does not prove the Doc unchanged,
-   and the export comparison cannot be skipped on its word. The UI edit, the case the guard exists for, is
-   PT-018's reading on the kept probe Doc; PT-007 settles the guard's shape once it is in.
+   and the export comparison cannot be skipped on its word. The UI edit, the case the guard exists for, was read
+   by PT-018 the same day: one cosmetic edit in the Docs UI (a bolded phrase) moved `version` from 10 to 15
+   within about 100 seconds and to 17 three minutes later, with `modifiedTime` following in two steps, so a UI
+   edit does move it, late and by several steps. Settled: `version` is a changed-since signal that may lag, never
+   an unchanged proof; the guard compares the export (PT-006), and PT-007 may use a moved `version` only as a
+   reason to look sooner.
 3. How the Docs UI exports a checkbox nested under a checkbox at deeper levels (one level exported at 6 spaces).
    Settled 2026-10-22 by fixture 08 (PT-004): a child's indent is its parent's content column, 6 under a
    checkbox, 2 under a bullet, 3 under an ordered item, at every depth, and the normalizer's relative levels

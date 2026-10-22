@@ -9,7 +9,8 @@ the fixture's .out.md, then records what moves the Drive `version`: two exports,
 insertText, and a files.update with the same content, read back at once. `probe.py <root> steps <docId>` repeats
 the edits on an existing Doc with a pause after each, since `version` lags the edit. The Doc is kept, so a person
 can make a cosmetic edit in the Docs UI and run `probe.py <root> version <docId>` to read the version after it;
-`probe.py <root> inspect <docId>` also prints the export's state and the revision list. Prints one line per step. Reuses <root>/token.json; never opens a browser (run PT-003's probe for that).
+`probe.py <root> inspect <docId> [text]` also prints the export's state, the revision list, and the exported
+line holding `text`. Prints one line per step. Reuses <root>/token.json; never opens a browser (run PT-003's probe for that).
 """
 import datetime, io, sys, time
 from pathlib import Path
@@ -58,6 +59,9 @@ if MODE in ("version", "inspect"):
     revs = drive.revisions().list(fileId=doc_id, fields="revisions(id,modifiedTime)").execute()
     for r in revs.get("revisions", []):
         print("revision", r["id"], r["modifiedTime"])
+    if len(sys.argv) > 4:
+        line = next((l for l in exp.split("\n") if sys.argv[4] in l), "(line not found)")
+        print(f"the line holding {sys.argv[4]!r} exports as {line!r}")
     sys.exit()
 
 md = FIXTURE.with_suffix(".in.md").read_text()
