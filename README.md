@@ -11,6 +11,7 @@ Tool for 2-way sync between md files and google docs.
 ## Layout
 
 - [md2gdoc.py](md2gdoc.py) - the main tool (this is really all you need)
+- [PRIVACY.md](PRIVACY.md) - privacy policy; the link the OAuth consent screen points at
 - [chadkit/](chadkit/) - project mgmt from [chadkit.com](https://chadkit.com)
 	- [tasks.md](chadkit/tasks.md) - for the `PT-NNN` task list.
 	- [language.md](chadkit/language.md) - for defining terms used in this repo.

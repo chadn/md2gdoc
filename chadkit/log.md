@@ -63,3 +63,10 @@
 - Related: PT-013,PT-015,PD-001
 - Tags: #qa-gate
 
+### PLR-20261022-02 t_qa [PG-02,PT-006,PT-003,PD-001,PT-004,PT-009] Full gate on PT-003: the OAuth client, setup.md, the privacy policy
+
+- Date: 2026-10-22
+- Summary: 12 confirmed, 0 refuted, 1 declined, 1 noted; judge and reviewer claude-fable-5-1, full tier (gate path README.md, 355 lines); gate user-ck@f95f135; session 2a707704-fea6-44bc-80be-8bbbde1bdf6f. Double-loop: the right thing as scoped for the recommended path and PRIVACY.md; the other setups documented auth paths the script has no option for, which PG-02 would have paid for. Confirmed and applied: the secondary-account and service-account setups now say the script requests drive.file only and that they need a script option no task owns, with the features.md idea row pointing at them; the brand-verification sentence names the display name too; PRIVACY.md says the state file lives in the repository and goes where it is pushed, and drops the open-with route; the probe's evidence is recorded in chadkit/work/PT-003.md with its script under chadkit/work/PT-003/, and design.md marks in-place update proven; the desktop-client feature row is built, with token caching owned by PT-006; an adopter is told to point the privacy link at a public page, the consent notice does not block Continue, and the greyed-out claim is dated as observed; the client-secret To verify is settled from Google's OAuth setup page; the April 2025 date cites its thread; the tiers sentence says the warning shows to every user; the other-setups intro no longer promises steps for every row; the three setup names are italic only where defined. Declined: the language check's Download on the client JSON, not a Doc. Noted: PT-003's line gained the Docs API in its closing commit, at no cost and for PD-001 option C'. Verdict, judged by claude-fable-5-1 on the staged tree before the fixes: Verification 72; Validation, task intent 80; Validation, goals PG-02 70; Consistency 68; Score 72.
+- Related: PT-003,PT-004,PT-006,PT-009,PD-001
+- Tags: #qa-gate
+

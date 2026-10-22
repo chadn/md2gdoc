@@ -43,9 +43,9 @@ Converter rows describe what Google's markdown import and export do, which the s
 | Feature | Status | Owner / evidence |
 | --- | --- | --- |
 | Single Python file with PEP 723 inline dependencies; `uv run` installs them | built | [md2gdoc.py](../md2gdoc.py) carries the header; no command runs under `uv` yet (PT-006) |
-| OAuth desktop client, `drive.file` scope only, token cached after one browser login | planned | PT-003 |
+| OAuth desktop client, `drive.file` scope only, token cached after one browser login | built | PT-003 made the client and proved it on both APIs ([chadkit/work/PT-003.md](../chadkit/work/PT-003.md)); the script's own token caching is PT-006 |
 | Credentials and token kept out of git | tested | `.gitignore`; the gate's checks run on every commit |
-| Open a Doc a human created by hand | idea | needs the broader `drive` scope; `setup.md` "Limits worth knowing" |
+| Open a Doc a human created by hand | idea | needs the `drive` scope on a secondary account or a service account, and a script option to request either; [setup.md](setup.md) "Other setups" |
 | Runs unattended: git hook, cron, CI | planned | PT-006 |
 | Exit codes documented: 0 ok, 2 conflict, others per `--help` | planned | PT-006 |
 

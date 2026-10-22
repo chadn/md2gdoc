@@ -24,7 +24,8 @@ repository's conventions. The first proof is a scratch Doc, not a real list.
 
 1. `files.update` with a `text/markdown` media body replaces a native Doc's content in place and keeps its id and
    link. Google's upload guide lists Markdown as an import format for both create and update, and the gdoc project
-   relies on it (see `similar.md`); still confirm on a scratch Doc.
+   relies on it (see [similar.md](similar.md)); still confirm on a scratch Doc. Proven 2026-10-22 by PT-003's probe
+   ([chadkit/work/PT-003.md](../chadkit/work/PT-003.md)): same id and link, version 4 to 7.
 2. The Drive `version` integer from `files.get` moves on every UI edit, including cosmetic ones, so it is a safe
    but noisy push guard; pair it with an export equality check.
 3. How the Docs UI exports a checkbox nested under a checkbox at deeper levels (one level exported at 6 spaces).
