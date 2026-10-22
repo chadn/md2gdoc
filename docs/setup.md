@@ -29,6 +29,22 @@ the end. The CLI's `--help` will repeat the short form once PT-006 writes it.
 The first command that needs Google opens a browser once (`InstalledAppFlow.run_local_server`), then the cached
 `token.json` refreshes itself. No further human step unless the token is revoked.
 
+## Two kinds of Google access
+
+Two different credentials touch this project's Docs; do not confuse them.
+
+- **The Google Drive connector on a claude.ai account.** Authorised once in claude.ai settings; Anthropic holds the
+  OAuth grant and every Claude session on that account gets Drive tools from it. Nothing is stored in this
+  repository or on disk. This is what created the Docs behind `tests/fixtures/` and what a spike uses to probe
+  Google's converter without any setup. It cannot replace a Doc's content in place, exists only inside a Claude
+  session, and carries whatever scope was granted at claude.ai.
+- **The script's own OAuth client**, the steps above. Needed for everything from PT-004 onward: in-place update
+  on one link, unattended runs with no Claude involved, and the narrow `drive.file` scope. Its `client_secret.json`
+  and `token.json` live next to the script and stay out of git.
+
+A Doc the connector created is invisible to the script under `drive.file`, and the reverse; each path sees only
+what it made.
+
 ## Limits worth knowing
 
 - A Doc created by hand in the Docs UI is outside `drive.file`. Let the script create the Doc with `init`, or use

@@ -13,3 +13,4 @@
 - [x] PT-011 [PG-03,PG-01,PG-02,PG-04] Rewrite the goals as direction only: adopters named in PG-02, data safety in PG-01, PG-04 aspirational to match the README, Review section dropped in favour of PT-009 under PD-001. Completed: 2026-10-21
 - [x] PT-012 [PG-04,PG-02,PG-03] [#docs] Create docs/: features.md (every known feature with its status), similar.md, setup.md, design.md (moved from PT-002.md); fixtures/ moves under tests/; LICENSE; gate paths. Completed: 2026-10-21
 - [ ] PT-013 [PG-04] [#spike] Code blocks, single backtick and triple backtick: find a treatment better than not possible; candidates and edge cases in PT-013.md. Close by promotion.
+- [x] PT-014 [PG-02] [#docs] Document the two kinds of Google access in docs/setup.md: the claude.ai Drive connector behind the fixtures versus the script's own OAuth client. Completed: 2026-10-21
