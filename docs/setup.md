@@ -20,21 +20,21 @@ Drive is visible to it.
    - Audience **External**, **Next**. **Internal** appears only for Google Workspace accounts; see
      [Internal app](#internal-app-for-a-google-workspace-account).
    - Your email as contact, **Next**, agree to the User Data Policy, **Continue**, **Create**.
-4. Check [Branding](https://console.cloud.google.com/auth/branding) has **App name**, **User support email** and
-   **Developer contact information** filled in, then **Save**. **Publish app** in step 6 stays greyed out until this
-   form is complete (observed 2026-10-22; Google's page does not say what un-greys it). Leave the logo empty: a
-   logo on a published external app triggers brand verification (Google's page lists the display name too; an
-   unverified app still shows its name, as the screen below does). Home
-   page and privacy policy links are required to submit for verification, not to publish; if you fill the
-   privacy link, point it at a public page, as this repository does with [PRIVACY.md](../PRIVACY.md) on GitHub.
-   **To verify:** whether the privacy link is part of what un-greys **Publish app**.
+4. Check [Branding](https://console.cloud.google.com/auth/branding) has **App name**, **User support email**,
+   **Developer contact information** and a **Privacy policy** link filled in, then **Save**. The privacy link must
+   be a public page; this repository's is [PRIVACY.md](../PRIVACY.md) at its GitHub URL. **Publish app** in step 6
+   stayed greyed out until the privacy link was saved, with the other three fields already filled (2026-10-22;
+   Google's pages do not say so, they list the link only as needed to submit for verification). Leave the logo
+   empty: a logo on a published external app triggers brand verification (Google's page lists the display name
+   too; an unverified app still shows its name on the consent screen).
 5. Add the scope: [Data Access](https://console.cloud.google.com/auth/scopes) > **Add or remove scopes** >
    **Manually add scopes** > paste `https://www.googleapis.com/auth/drive.file` > **Add to table** > **Update** >
    **Save**.
 6. Publish: [Audience](https://console.cloud.google.com/auth/audience) > **Publish app** > **Confirm**. Status becomes
-   **In production**, so the token does not expire weekly. If **Publish app** is greyed out, go back to step 4;
-   everything still works in Testing meanwhile, with the weekly login described under
-   [Testing status](#testing-status).
+   **In production**, so the token does not expire weekly. If **Publish app** is greyed out, go back to step 4,
+   save the Branding form, and reload the Audience page; everything still works in Testing meanwhile, with the
+   weekly login described under [Testing status](#testing-status). A token issued while in Testing keeps its
+   7-day expiry: delete `token.json` after publishing and sign in once more.
 7. Create the client: [Clients](https://console.cloud.google.com/auth/clients) > **Create client** > type
    **Desktop app** > **Create**. Download the JSON from the dialog right away and save it as `client_secret.json`
    next to [md2gdoc.py](../md2gdoc.py).
@@ -115,9 +115,9 @@ Skip step 6 and leave the app in **Testing**. It works for any account listed as
    will sign in with in step 8 > **Save**.
 2. Signing in with any other account fails with an access-denied error.
 
-Test users see this screen before the consent screen; **Continue** is the right button (seen 2026-10-22):
-
-![Google hasn't verified this app, an app that's currently being tested](images/consent-testing.png)
+Test users see a "Google hasn't verified this app" screen before the consent screen; **Continue** is the right
+button. Once the app is published that screen is gone and only two remain: the account picker and the consent
+screen (both seen 2026-10-22).
 
 Cost: Google ends a test user's authorization 7 days after consent, refresh token included, so step 8's browser
 login repeats every week. Fine for trying things out; not for unattended runs.
@@ -211,7 +211,8 @@ reverse.
 Every **To verify:** claim in this file, for whoever tests them. Remove a line once tested, and fix the text it
 points to if the test disagrees.
 
-- [Recommended setup](#recommended-setup) step 4: the privacy policy link is part of what un-greys **Publish app**.
+- [Recommended setup](#recommended-setup) step 6: the token issued on 2026-10-22 under In production still
+  refreshes after 2026-10-29, which is the 7-day mark.
 - [Service-account setup](#service-account-setup): updating a shared Doc counts against the owner's quota.
 - [Service-account setup](#service-account-setup): a personal Gmail account can share a Doc with a service account.
 

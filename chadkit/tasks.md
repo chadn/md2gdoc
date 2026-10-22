@@ -15,3 +15,4 @@
 - [x] PT-013 [PG-04] [#spike] Code blocks, single backtick and triple backtick: find a treatment better than not possible; candidates and edge cases in PT-013.md. Close by promotion. Completed: 2026-10-22
 - [x] PT-014 [PG-02] [#docs] Document the two kinds of Google access in docs/setup.md: the claude.ai Drive connector behind the fixtures versus the script's own OAuth client. Completed: 2026-10-21
 - [ ] PT-015 [PG-03,PG-04] [#qa-gate] Evidence-citation check in the gate script: every fixture docs/features.md cites exists and each tested converter row cites one; mis-cited evidence was confirmed twice (PLR-20261021-05, PLR-20261021-07).
+- [ ] PT-016 [PG-02] After 2026-10-29, prove the In-production token of 2026-10-22 still refreshes with no browser login (chadkit/work/PT-003/probe.py), then close the To verify line in docs/setup.md and record the result in PT-003.md.
