@@ -2,4 +2,3 @@ client_secret.json
 token.json
 __pycache__/
 .pytest_cache/
-token-*.json

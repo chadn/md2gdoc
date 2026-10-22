@@ -1,0 +1,19 @@
+$ MD2GDOC_CONFIG_DIR=<scratch>/cfg uv run --script probe_connect.py   # cfg/default/ holds the client file and token
+connected; token scopes: ['https://www.googleapis.com/auth/drive.file']
+files.list under drive.file: ['md2gdoc PT-004 probe', 'md2gdoc PT-006 run', 'md2gdoc PT-006 run']
+$ MD2GDOC_CONFIG_DIR=<scratch>/cfg uv run --script md2gdoc.py status --scope drive <scratch>/scratch.md
+<scratch>/md/scratch.md: changed since the last sync
+md2gdoc: this profile logged in with --scope drive.file; another scope is another profile (--account), or delete its token.json to log in again
+exit 1
+$ MD2GDOC_CONFIG_DIR=<scratch>/cfg uv run --script md2gdoc.py status --account nobody <scratch>/scratch.md
+<scratch>/md/scratch.md: changed since the last sync
+md2gdoc: no <scratch>/cfg/nobody/client_secret.json; save the OAuth client's JSON there (see `--help` under setup)
+exit 1
+$ MD2GDOC_CONFIG_DIR=<scratch>/cfg MD2GDOC_ACCOUNT=nobody uv run --script md2gdoc.py status <scratch>/scratch.md
+<scratch>/md/scratch.md: changed since the last sync
+md2gdoc: no <scratch>/cfg/nobody/client_secret.json; save the OAuth client's JSON there (see `--help` under setup)
+exit 1
+$ MD2GDOC_CONFIG_DIR=<scratch>/cfg uv run --script md2gdoc.py status <scratch>/scratch.md   # connects, then the bogus Doc id
+<scratch>/md/scratch.md: changed since the last sync
+md2gdoc: Google error: <HttpError 404 when requesting https://www.googleapis.com/drive/v3/files/x/export?mimeType=text%2Fmarkdown returned "File not found: x.". Details: "[{'message': 'File not found: x.', 'domain': 'global', 'reason': 'notFound', 'location': 'fileId', 'locationType': 'parameter'}]">
+exit 1

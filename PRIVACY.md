@@ -10,9 +10,9 @@ Effective date: 2026-10-22.
 
 | What | Details |
 |---|---|
-| Scope | `https://www.googleapis.com/auth/drive.file` only |
+| Scope | `https://www.googleapis.com/auth/drive.file` by default; `https://www.googleapis.com/auth/drive` only for a profile you log in with `--scope drive`, to sync Docs the script did not create |
 | APIs | Google Drive API and Google Docs API |
-| Reach | Only Google Docs the script created. No other file in your Google Drive is visible to it. |
+| Reach | Under `drive.file`, only Google Docs the script created; no other file in your Google Drive is visible to it. Under `drive`, every file that Google account can open. |
 | Read | The content and basic metadata (id, title, version) of those Docs |
 | Written | The content of those Docs, replaced or edited to match your markdown files; new Docs the script creates |
 
@@ -29,8 +29,8 @@ On your own computer, or in a repository you keep there:
 
 | File | Contents |
 |---|---|
-| `client_secret.json` | The OAuth client from your own Google Cloud project |
-| `token.json` | Your OAuth token for the `drive.file` scope |
+| `client_secret.json`, in a profile folder under your config directory (`~/.config/md2gdoc`, `%APPDATA%\md2gdoc` on Windows, or the folder `MD2GDOC_CONFIG_DIR` names) | The OAuth client from your own Google Cloud project |
+| `token.json`, in the same folder | Your OAuth token for the scope you chose |
 | Your markdown files and the script's state file beside them | Doc content, Doc ids, and a snapshot used for merging; both go wherever you push that repository |
 
 Data leaves your computer only in requests to Google's APIs, over HTTPS, and in your own pushes of that repository.
@@ -39,7 +39,7 @@ Deleting these files deletes everything md2gdoc has stored.
 ## Revoking access
 
 - Remove md2gdoc at [Google Account > Third-party apps & services](https://myaccount.google.com/connections).
-- Delete `token.json`.
+- Delete the profile's `token.json`.
 
 ## Google API Services User Data Policy
 

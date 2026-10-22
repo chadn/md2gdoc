@@ -43,11 +43,11 @@ Converter rows describe what Google's markdown import and export do, which the s
 | Feature | Status | Owner / evidence |
 | --- | --- | --- |
 | Single Python file with PEP 723 inline dependencies; `uv run` installs them | tested | every command of the real run in [chadkit/work/PT-006.md](../chadkit/work/PT-006.md) ran under `uv run --script` |
-| OAuth desktop client, `drive.file` scope only, token cached after one browser login | built | PT-003 made the client and proved it on both APIs ([chadkit/work/PT-003.md](../chadkit/work/PT-003.md)); the script reuses and refreshes the cached token (the real run in [chadkit/work/PT-006.md](../chadkit/work/PT-006.md)); its browser login is the same flow as PT-003's probe, not run from the script yet |
+| OAuth desktop client, `drive.file` by default or `drive` per profile, token cached after one browser login | built | PT-003 made the client and proved it on both APIs ([chadkit/work/PT-003.md](../chadkit/work/PT-003.md)); the script reuses and refreshes the cached token (the real run in [chadkit/work/PT-006.md](../chadkit/work/PT-006.md)); its browser login is the same flow as PT-003's probe, not run from the script yet |
 | Credentials and token kept out of git | tested | `.gitignore`; the gate's checks run on every commit |
-| Open a Doc a human created by hand | planned | PT-020 adds `--scope drive` per profile, PT-022 proves it with a second account; [setup.md](setup.md) "Other setups" |
+| Open a Doc a human created by hand | built | `--scope drive` at a profile's first login (PT-020), unproven until PT-022 runs it with a second account; [setup.md](setup.md) "Other setups" |
 | Runs unattended: git hook, cron | built | no browser once the token exists; no hook example yet; CI out of scope until a service-account path exists (PD-002) |
-| Config directory: client file and token per profile under `~/.config/md2gdoc` (`%APPDATA%` on Windows) | planned | PT-020 |
+| Config directory: client file and token per profile under `~/.config/md2gdoc` (`%APPDATA%` on Windows), `--account`, `MD2GDOC_ACCOUNT`, `MD2GDOC_CONFIG_DIR` | tested | `config_dir()`, `profile_dir()`, `token_scope()` in [tests/test_cli.py](../tests/test_cli.py); the live run in [chadkit/work/PT-020.md](../chadkit/work/PT-020.md) |
 | Windows, macOS and Linux, tests in CI on all three; CRLF kept; UTF-8 output | planned | PT-025 |
 | `--json` on every command for agents | planned | PT-026 |
 | Installable as the command `md2gdoc` with `uv tool install` from GitHub | planned | PT-021 |

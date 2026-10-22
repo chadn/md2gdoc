@@ -42,14 +42,17 @@ it created; nothing else in your Drive is visible to it. Uses 2 APIs
    7-day expiry: delete `token.json` after publishing and sign in once more.
 7. Create the client: [Clients](https://console.cloud.google.com/auth/clients) > **Create client** > type
    **Desktop app** > **Create**. Download the JSON from the dialog right away and save it as `client_secret.json`
-   next to [md2gdoc.py](../md2gdoc.py).
+   in the profile's folder: `~/.config/md2gdoc/default/` on macOS and Linux (under `$XDG_CONFIG_HOME` when that is
+   set), `%APPDATA%\md2gdoc\default\` on Windows. `MD2GDOC_CONFIG_DIR` overrides the config directory;
+   `--account NAME` or `MD2GDOC_ACCOUNT` picks a profile folder other than `default`.
 8. First run: the first command that needs Google opens a browser; sign in and allow. The consent screen names
    the one scope and may carry a notice about not seeing links to a Privacy Policy, which does not block
    **Continue**. The
-   token is cached in `token.json` and refreshes itself. Let the script create each Doc; `drive.file` cannot see
-   Docs made by hand.
+   token is cached in `token.json` beside the client file and refreshes itself. Let the script create each Doc;
+   `drive.file` cannot see Docs made by hand.
 
-`client_secret.json` and `token.json` stay out of git; [.gitignore](../.gitignore) lists both.
+`client_secret.json` and `token.json` live in the profile's folder, outside every repository; the state file beside
+the markdown is the only file the script writes into one.
 
 ## Why the recommended setup looks this way
 
@@ -66,9 +69,9 @@ it created; nothing else in your Drive is visible to it. Uses 2 APIs
 
 Each one trades the recommended setup's narrow reach for something it cannot do: open Docs made by hand, run
 without a consent screen, or skip publishing. The table compares every combination; the sections below give steps
-for the ones worth running. The script itself requests `drive.file` through the desktop flow and nothing else yet,
-so the secondary-account and service-account setups need a script option that no task owns (the `idea` row in
-[features.md](features.md)); their console steps are written down so that option has a path to follow.
+for the ones worth running. The script requests `drive.file` unless a profile's first login says `--scope drive`,
+which is the Secondary-account setup; the Service-account setup needs a script option that no task owns (PD-002
+keeps it documented, not implemented), and its console steps are written down so that option has a path to follow.
 
 | Setup | Docs reachable | Hand-made Docs | Verification | Consent screen | If `token.json` leaks |
 |---|---|---|---|---|---|
@@ -93,8 +96,11 @@ Differences from the Recommended setup:
    app**; click **Advanced** > **Go to md2gdoc (unsafe)**. Unverified apps are capped at 100 users for the project's
    lifetime, irrelevant for one person.
 4. Share each Doc to sync from your main account with the secondary account as **Editor**.
-5. Step 8: sign in as the secondary account, not your main one. A private browser window avoids picking the wrong
-   account.
+5. Step 7: save the JSON in a second profile's folder, for example `~/.config/md2gdoc/work/client_secret.json`.
+6. Step 8: run the first command with `--account work --scope drive` and sign in as the secondary account, not
+   your main one; a private browser window avoids picking the wrong account. The scope is remembered in that
+   profile's token, so afterwards `--account work`, or `MD2GDOC_ACCOUNT=work`, is enough. **To verify:** the whole
+   path, end to end with a second account.
 
 Side effects:
 
@@ -135,8 +141,8 @@ no token expiry; it reaches only Docs shared with its email.
 1. Do steps 1 and 2 of the Recommended setup; skip steps 3 to 8.
 2. [Service accounts](https://console.cloud.google.com/iam-admin/serviceaccounts) > **Create service account** >
    name `md2gdoc` > **Create and continue** > skip roles > **Done**.
-3. Open it > **Keys** > **Add key** > **Create new key** > **JSON**. Save the file next to
-   [md2gdoc.py](../md2gdoc.py) and add its name to [.gitignore](../.gitignore).
+3. Open it > **Keys** > **Add key** > **Create new key** > **JSON**. Save the file outside every repository, for
+   example in a profile's folder.
 4. Share each Doc with the service account's email (`md2gdoc@<project-id>.iam.gserviceaccount.com`) as **Editor**.
 
 Side effects:
@@ -194,7 +200,7 @@ Two different credentials touch this project's Docs; do not confuse them.
 | | Google Drive connector on claude.ai | The script's own OAuth client |
 |---|---|---|
 | Set up | Once, in claude.ai settings | The steps above |
-| Grant held by | Anthropic | `token.json` next to the script |
+| Grant held by | Anthropic | the profile's `token.json` |
 | Runs | Only inside a Claude session | Anywhere, unattended |
 | Updates a Doc in place | No; every write is a new file and link | Yes |
 | Used for | The Docs behind [tests/fixtures/](../tests/fixtures/); probing Google's converter in a spike | Everything the script does |
@@ -218,6 +224,8 @@ points to if the test disagrees.
 
 - [Recommended setup](#recommended-setup) step 6: the token issued on 2026-10-22 under In production still
   refreshes after 2026-10-29, which is the 7-day mark.
+- [Secondary-account setup](#secondary-account-setup): `--account NAME --scope drive` syncs a hand-made Doc shared
+  with a second account, end to end (PT-022).
 - [Service-account setup](#service-account-setup): updating a shared Doc counts against the owner's quota.
 - [Service-account setup](#service-account-setup): a personal Gmail account can share a Doc with a service account.
 

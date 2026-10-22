@@ -2,15 +2,19 @@
 
 import io
 import json
+import os
 import sys
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from md2gdoc import EXIT_MOVED, EXIT_OK, main, normalize, push_form, state_path  # noqa: E402
+from md2gdoc import (  # noqa: E402
+    EXIT_MOVED, EXIT_OK, SCOPE_URL, config_dir, main, normalize, profile_dir, push_form, state_path, token_scope,
+)
 
 FIXTURES = ROOT / "tests" / "fixtures"
 
@@ -66,7 +70,7 @@ class Commands(unittest.TestCase):
     def run_cmd(self, *argv):
         out, err = io.StringIO(), io.StringIO()
         with redirect_stdout(out), redirect_stderr(err):
-            code = main(list(argv), drive=lambda account: self.drive)
+            code = main(list(argv), drive=lambda account, scope: self.drive)
         return code, out.getvalue(), err.getvalue()
 
     def test_init_creates_the_doc_and_the_state_file(self):
@@ -185,7 +189,8 @@ class Commands(unittest.TestCase):
         with redirect_stdout(out), self.assertRaises(SystemExit) as e:
             main(["--help"])
         self.assertEqual(e.exception.code, 0)
-        for word in ("setup", "client_secret.json", "token.json", ".gdoc.json", "exit codes", "3  refused"):
+        for word in ("setup", "client_secret.json", "token.json", ".gdoc.json", "exit codes", "3  refused",
+                     "--account", "--scope", "MD2GDOC_CONFIG_DIR", "MD2GDOC_ACCOUNT", "%APPDATA%", "pip install"):
             self.assertIn(word, out.getvalue())
 
     def test_a_usage_error_exits_1_not_2(self):
@@ -200,6 +205,53 @@ class Commands(unittest.TestCase):
         with self.assertRaises(SystemExit) as e:
             self.run_cmd("status", str(self.md))
         self.assertIn("no state file", str(e.exception))
+
+
+class Profiles(unittest.TestCase):
+    """The config directory and the profile folder (PD-002), and which scope a run uses."""
+
+    def setUp(self):
+        self.env = {k: os.environ.pop(k, None)
+                    for k in ("MD2GDOC_CONFIG_DIR", "MD2GDOC_ACCOUNT", "XDG_CONFIG_HOME", "APPDATA")}
+
+    def tearDown(self):
+        for k, v in self.env.items():
+            os.environ.pop(k, None)
+            if v is not None:
+                os.environ[k] = v
+
+    def test_config_dir_is_the_override_then_xdg_then_the_home_default(self):
+        self.assertEqual(config_dir(), Path.home() / ".config" / "md2gdoc")
+        os.environ["XDG_CONFIG_HOME"] = "/xdg"
+        self.assertEqual(config_dir(), Path("/xdg/md2gdoc"))
+        os.environ["MD2GDOC_CONFIG_DIR"] = "/elsewhere"
+        self.assertEqual(config_dir(), Path("/elsewhere"))
+
+    def test_config_dir_on_windows_is_appdata(self):
+        os.environ["APPDATA"] = r"C:\Users\me\AppData\Roaming"
+        with patch.object(sys, "platform", "win32"):
+            self.assertEqual(config_dir(), Path(r"C:\Users\me\AppData\Roaming") / "md2gdoc")
+            os.environ["MD2GDOC_CONFIG_DIR"] = "/elsewhere"
+            self.assertEqual(config_dir(), Path("/elsewhere"))
+            del os.environ["MD2GDOC_CONFIG_DIR"], os.environ["APPDATA"]
+            self.assertEqual(config_dir(), Path.home() / ".config" / "md2gdoc")
+        self.assertEqual(config_dir(), Path.home() / ".config" / "md2gdoc")
+
+    def test_profile_dir_is_the_flag_then_the_variable_then_default(self):
+        os.environ["MD2GDOC_CONFIG_DIR"] = "/cfg"
+        self.assertEqual(profile_dir(None), Path("/cfg/default"))
+        os.environ["MD2GDOC_ACCOUNT"] = "work"
+        self.assertEqual(profile_dir(None), Path("/cfg/work"))
+        self.assertEqual(profile_dir("other"), Path("/cfg/other"))
+
+    def test_token_scope_is_the_tokens_else_the_request_else_drive_file(self):
+        self.assertEqual(token_scope(None, None), "drive.file")
+        self.assertEqual(token_scope(None, "drive"), "drive")
+        self.assertEqual(token_scope([SCOPE_URL + "drive"], None), "drive")
+        self.assertEqual(token_scope([SCOPE_URL + "drive"], "drive"), "drive")
+        with self.assertRaises(SystemExit) as e:
+            token_scope([SCOPE_URL + "drive.file"], "drive")
+        self.assertIn("logged in with --scope drive.file", str(e.exception))
 
 
 if __name__ == "__main__":

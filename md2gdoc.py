@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import difflib
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -253,8 +254,9 @@ def _run_line(line: str) -> bool:
 
 EXIT_OK, EXIT_ERROR, EXIT_CONFLICT, EXIT_MOVED = 0, 1, 2, 3
 STATE_SUFFIX = ".gdoc.json"
-SCOPES = ["https://www.googleapis.com/auth/drive.file"]
-HERE = Path(__file__).resolve().parent
+SCOPES = ("drive.file", "drive")  # the short names; a scope URL is SCOPE_URL + name
+SCOPE_URL = "https://www.googleapis.com/auth/"
+CLIENT_FILE, TOKEN_FILE = "client_secret.json", "token.json"
 
 HELP = f"""\
 Two-way sync between one markdown file and one native Google Doc. Either side may add, edit, or tick a line;
@@ -267,20 +269,30 @@ commands:
   push FILE      replace the Doc's content from FILE; refused when the Doc changed since the last sync
   status FILE    which side changed since the last sync
   --dry-run      on any command: say what would happen, change nothing (status: local side only, no network)
+  --account NAME on any command: the profile to use (default: $MD2GDOC_ACCOUNT, else `default`)
+  --scope NAME   on any command: `drive.file` (default) or `drive`; chosen at a profile's first login, then
+                 remembered in its token
 
-setup (once; the full walkthrough is docs/setup.md at github.com/chadn/md2gdoc):
+setup (once per profile; the full walkthrough is docs/setup.md at github.com/chadn/md2gdoc):
   1. a Google Cloud project with the Drive API enabled and an OAuth consent screen, scope
-     https://www.googleapis.com/auth/drive.file only, published (In production)
-  2. an OAuth client of type Desktop app, its JSON saved as client_secret.json next to this script
+     https://www.googleapis.com/auth/drive.file only (.../auth/drive for a `--scope drive` profile),
+     published (In production)
+  2. an OAuth client of type Desktop app, its JSON saved as {CLIENT_FILE} in the profile's folder (below)
   3. the first command that needs Google opens a browser once; the token is cached and refreshes itself
-  The script sees only the Docs it created (drive.file): let `init` make each Doc.
+  The script sees only the Docs it created (drive.file): let `init` make each Doc. To sync a Doc made by
+  hand, a second profile with `--scope drive`, best under a Google account that holds little else.
+  Run: `uv run --script md2gdoc.py ...`, or `pip install google-api-python-client google-auth-oauthlib
+  google-auth-httplib2` once and `python md2gdoc.py ...`.
 
 files:
   FILE{STATE_SUFFIX}       the state file next to FILE: Doc id, link, Drive version, the normalized snapshot of
                        what the Doc held after the last sync (the merge base) and of what FILE held; commit it,
                        so a clone syncs the same Doc
-  client_secret.json   the OAuth client, next to this script; never commit it
-  token.json           the cached token, next to this script; never commit it (--account NAME uses token-NAME.json)
+  <config>/NAME/       one folder per profile, NAME the account name, holding that profile's {CLIENT_FILE}
+                       (the OAuth client, from a Cloud project under that Google account) and {TOKEN_FILE} (the
+                       cached token, which remembers the scope); neither is ever in a repository
+  <config>             $MD2GDOC_CONFIG_DIR; else on Windows %APPDATA%\\md2gdoc; else $XDG_CONFIG_HOME/md2gdoc,
+                       else ~/.config/md2gdoc
 
 exit codes:
   0  done            1  usage, setup, or Google error      2  conflict, both sides changed one line (sync)
@@ -349,15 +361,43 @@ class Drive:
         return int(f["version"])
 
 
-def connect(account: str | None) -> Drive:
-    """The auth path: a cached token next to this script, else one browser login with the client file."""
+def config_dir() -> Path:
+    """The per-user directory holding the profiles (PD-002): an override, the platform's convention, else XDG."""
+    if override := os.environ.get("MD2GDOC_CONFIG_DIR"):
+        return Path(override)
+    if sys.platform == "win32" and os.environ.get("APPDATA"):
+        return Path(os.environ["APPDATA"]) / "md2gdoc"
+    return Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / "md2gdoc"
+
+
+def profile_dir(account: str | None) -> Path:
+    """The folder of one profile: `--account`, else $MD2GDOC_ACCOUNT, else `default`."""
+    return config_dir() / (account or os.environ.get("MD2GDOC_ACCOUNT") or "default")
+
+
+def token_scope(token_scopes: list[str] | None, requested: str | None) -> str:
+    """The scope a run uses: the token's when it has one, else the request, else `drive.file`.
+
+    A request that differs from the token's scope is an error, since a token is granted for one scope: the
+    profile keeps its scope for life, and another scope is another profile.
+    """
+    held = [u[len(SCOPE_URL):] for u in token_scopes or [] if u.startswith(SCOPE_URL)]
+    if held and requested and requested not in held:
+        raise SystemExit(f"md2gdoc: this profile logged in with --scope {held[0]}; another scope is another "
+                         f"profile (--account), or delete its {TOKEN_FILE} to log in again")
+    return held[0] if held else requested or SCOPES[0]
+
+
+def connect(account: str | None, scope: str | None = None) -> Drive:
+    """The auth path: the profile's cached token, else one browser login with its client file."""
     from google.auth.transport.requests import Request
     from google.oauth2.credentials import Credentials
     from google_auth_oauthlib.flow import InstalledAppFlow
 
-    token = HERE / (f"token-{account}.json" if account else "token.json")
-    client = HERE / "client_secret.json"
-    creds = Credentials.from_authorized_user_file(token, SCOPES) if token.exists() else None
+    profile = profile_dir(account)
+    token, client = profile / TOKEN_FILE, profile / CLIENT_FILE
+    creds = Credentials.from_authorized_user_file(token) if token.exists() else None
+    scopes = [SCOPE_URL + token_scope(creds.scopes if creds else None, scope)]
     if creds and creds.expired and creds.refresh_token:
         try:
             creds.refresh(Request())
@@ -366,8 +406,9 @@ def connect(account: str | None) -> Drive:
             print(f"md2gdoc: the token did not refresh ({e}); opening the browser", file=sys.stderr)
     if not creds or not creds.valid:
         if not client.exists():
-            raise SystemExit(f"md2gdoc: no {client}; see `--help` under setup")
-        creds = InstalledAppFlow.from_client_secrets_file(client, SCOPES).run_local_server(port=0)
+            raise SystemExit(f"md2gdoc: no {client}; save the OAuth client's JSON there (see `--help` under "
+                             f"setup)")
+        creds = InstalledAppFlow.from_client_secrets_file(client, scopes).run_local_server(port=0)
         token.write_text(creds.to_json())
     return Drive(creds)
 
@@ -381,7 +422,7 @@ def cmd_init(args, drive) -> int:
     if args.dry_run:
         print(f"would create Doc {name!r} from {md} ({len(text.splitlines())} lines) and write {state_path(md)}")
         return EXIT_OK
-    d = drive(args.account)
+    d = drive(args.account, args.scope)
     return _record(md, text, d.create(name, push_form(text), args.folder), d, "created")
 
 
@@ -393,7 +434,7 @@ def cmd_pull(args, drive) -> int:
         print(f"pull refused: {md} changed since the last sync; sync, or pull --force to overwrite it",
               file=sys.stderr)
         return EXIT_MOVED
-    d = drive(args.account)
+    d = drive(args.account, args.scope)
     new = normalize(d.export(state["doc_id"]), local)
     if args.dry_run:
         print(diff(local, new, f"{md} (local)", f"{md} (Doc)") or f"{md} already matches the Doc")
@@ -413,7 +454,7 @@ def cmd_push(args, drive) -> int:
     if local == state["local"]:
         print(f"nothing to push: {md} matches the last sync")
         return EXIT_OK
-    d = drive(args.account)
+    d = drive(args.account, args.scope)
     # The guard exports and compares every time: a matching Drive version is not proof (design.md, item 2).
     doc_text = normalize(d.export(state["doc_id"]), text)
     if doc_text != state["snapshot"]:
@@ -433,7 +474,7 @@ def cmd_status(args, drive) -> int:
     print(f"{md}: {'changed' if local != state['local'] else 'unchanged'} since the last sync")
     if args.dry_run:
         return EXIT_OK
-    d = drive(args.account)
+    d = drive(args.account, args.scope)
     doc_text = normalize(d.export(state["doc_id"]))
     version = d.version(state["doc_id"])
     print(f"Doc {state['link']}: {'changed' if doc_text != state['snapshot'] else 'unchanged'}"
@@ -470,7 +511,10 @@ def main(argv: list[str] | None = None, drive=connect) -> int:
         p = sub.add_parser(name, help=what)
         p.add_argument("file", help="the markdown file")
         p.add_argument("--dry-run", action="store_true", help="say what would happen; change nothing")
-        p.add_argument("--account", help="use token-NAME.json next to the script instead of token.json")
+        p.add_argument("--account", metavar="NAME",
+                       help="the profile to use (default: $MD2GDOC_ACCOUNT, else default)")
+        p.add_argument("--scope", choices=SCOPES, help="the Google scope for a profile's first login (default: "
+                       "drive.file); remembered in its token")
         if name == "init":
             p.add_argument("--name", help="the Doc's title (default: the file's name without .md)")
             p.add_argument("--folder", help="Drive folder id to create the Doc in")

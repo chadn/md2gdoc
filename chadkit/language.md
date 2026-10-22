@@ -24,6 +24,8 @@ model (`chadkit model` says where it is).
 | `api-edited` | Conflict-marker label for the markdown side, the side the script writes; `local` was ruled out | - | ours | domain |
 | `code run` | A Doc paragraph of monospace lines, one per code line, standing in for a fenced code block; a push sends one, a pull folds it back into a fence | - | monospace block, code paragraph | domain |
 | `push form` | The markdown the script sends to Google in place of the file: the file plus the rewrites that keep Google's import from losing content (code runs, entity indents); never written back to the file | - | wire format, upload form | domain |
+| `profile` | One folder under the config directory, named for a Google account, holding that account's `client_secret.json` and `token.json`; the token remembers the scope chosen at the first login; picked by `--account NAME` or `MD2GDOC_ACCOUNT`, else `default` | account profile | credentials set | domain |
+| `config directory` | The per-user folder holding every profile: `MD2GDOC_CONFIG_DIR`; else `%APPDATA%\md2gdoc` on Windows; else `$XDG_CONFIG_HOME/md2gdoc` or `~/.config/md2gdoc`; never inside a repository | - | settings folder, dotfolder | domain |
 | `hand-edited` | Conflict-marker label for changes made in the Google Docs UI; `doc` was ruled out | - | remote, theirs | domain |
 | `#qa-gate` | Work on the QA gate and the evidence it produces: its workflow, script, doctor audit, and every `t_qa` a gated run writes | - | #review-gate | tag |
 | QA gate | The independent adversarial examination a change takes before it lands, and the record it leaves; `chadkit/workflows/qa-gate.md` | gate | review gate, QA review, code review gate | project-management |

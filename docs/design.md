@@ -76,8 +76,9 @@ how far the current state has got; where the two differ, the end state wins and 
 
 - Subcommands: `init` (create the Doc from the markdown file, write the state file), `pull`, `push`, `sync`,
   `status`, each with `--dry-run`. `--help` must explain setup, files, and exit codes. Built by PT-006 except
-  `sync`; `--account NAME` picks a profile, today a token file next to the script, under PD-002 a folder in the
-  config directory (PT-020).
+  `sync`; `--account NAME` picks a profile, a folder under the config directory holding that account's client file
+  and token, `--scope` chooses `drive.file` or `drive` at the profile's first login and the token remembers it
+  (PD-002, PT-020).
 - State file next to the markdown (for example `tasks.md.gdoc.json`): Doc id, link, Drive `version` at last sync,
   the normalized snapshot of what the Doc held after the last sync (the merge base), and the normalized text the
   file held then (`local`, so a converter change in the Doc does not read as a local edit, PT-006). It is
