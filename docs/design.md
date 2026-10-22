@@ -27,8 +27,16 @@ repository's conventions. The first proof is a scratch Doc, not a real list.
    relies on it (see [similar.md](similar.md)); still confirm on a scratch Doc. Proven 2026-10-22 by PT-003's probe
    ([chadkit/work/PT-003.md](../chadkit/work/PT-003.md)): same id and link, version 4 to 7.
 2. The Drive `version` integer from `files.get` moves on every UI edit, including cosmetic ones, so it is a safe
-   but noisy push guard; pair it with an export equality check.
+   but noisy push guard; pair it with an export equality check. Probed 2026-10-22 by PT-004
+   ([chadkit/work/PT-004.md](../chadkit/work/PT-004.md)) for API edits: a Docs API `batchUpdate`, style-only or
+   `insertText`, moved neither `version` nor `modifiedTime` within about 30 seconds, although it wrote a
+   revision; `files.update` moved `version` at once. So a matching `version` does not prove the Doc unchanged,
+   and the export comparison cannot be skipped on its word. The UI edit, the case the guard exists for, is
+   PT-018's reading on the kept probe Doc; PT-007 settles the guard's shape once it is in.
 3. How the Docs UI exports a checkbox nested under a checkbox at deeper levels (one level exported at 6 spaces).
+   Settled 2026-10-22 by fixture 08 (PT-004): a child's indent is its parent's content column, 6 under a
+   checkbox, 2 under a bullet, 3 under an ordered item, at every depth, and the normalizer's relative levels
+   already read it back.
 
 ## Google API facts
 
@@ -64,7 +72,8 @@ repository's conventions. The first proof is a scratch Doc, not a real list.
   deliberate escape elsewhere in a line is dropped on pull); collapse an autolink `[url](url)` to `url`; make a
   table delimiter row `| --- |`; drop trailing whitespace on every line (hard breaks included); re-indent list
   items to 4 spaces per level, the level read from the item's indent relative to the open items above it
-  (export gives 2 for plain items, 6 for a nested checkbox); restore the final newline; join nothing (soft
+  (the export indents a child to its parent's content column: 2 under a bullet, 3 under an ordered item, 6
+  under a checkbox; fixture 08); restore the final newline; join nothing (soft
   line breaks are already joined by Docs, which is why the push form sends them as hard breaks). Fold a code
   run back into a fence: two or more consecutive lines that are each one code span, with optional leading
   whitespace outside the span and a hard break (two or more trailing spaces) after every line but the last,
@@ -97,8 +106,9 @@ repository's conventions. The first proof is a scratch Doc, not a real list.
 - True conflict (same line changed differently on both sides): keep both lines, marked
   `<<<<<<< api-edited` ... `=======` ... `>>>>>>> hand-edited`, exit code 2, no push.
 - Push guard: before `files.update`, re-read the Drive `version`; if it differs from the one pulled, export again
-  and compare normalized text to the snapshot; abort only if the content moved. Skip the push when the normalized
-  content is unchanged, so no empty revisions. Do not use `revisionId` (see `similar.md`).
+  and compare normalized text to the snapshot; abort only if the content moved. A matching `version` is not proof
+  on its own ("What is not proven", item 2); PT-007 decides whether to compare on every push. Skip the push when
+  the normalized content is unchanged, so no empty revisions. Do not use `revisionId` (see [similar.md](similar.md)).
 - After a successful push, pull once more and store the new `version` and snapshot.
 
 ## Whole-document replace: must every push replace the Doc?

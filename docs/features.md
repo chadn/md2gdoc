@@ -30,7 +30,7 @@ Converter rows describe what Google's markdown import and export do, which the s
 | A checkbox ticked on one side wins over an untouched box | planned | PT-007 |
 | A line deleted on one side and edited on the other is a conflict | planned | PT-007 |
 | Conflict markers `api-edited` / `hand-edited`, exit 2, no push | planned | PT-007 |
-| Push guard: Drive `version` plus normalized-export comparison; no `revisionId` | planned | PT-007 |
+| Push guard: Drive `version` plus normalized-export comparison; no `revisionId` | planned | PT-007; a matching `version` is not proof on its own ([chadkit/work/PT-004.md](../chadkit/work/PT-004.md)) |
 | Skip a push when normalized content is unchanged, so no empty revisions | planned | PT-007 |
 | Re-pull after a successful push and store the new `version` and snapshot | planned | PT-007 |
 | Targeted edits through the Docs API so comments and formatting on untouched text survive | planned | PT-009 |
@@ -78,4 +78,4 @@ What survives a round trip, file to Doc to file. `tests/fixtures/` holds the byt
 | `<details>` | not possible | its text merges into the next heading |
 | Images | idea | via `<img src>` in an HTML upload or `insertInlineImage`; not tested |
 | Comments and suggestions in the Doc | not possible | lost on a whole-document push; PT-009 is the remedy |
-| Nested checkbox under a checkbox at deeper levels | planned | PT-004 records how it exports |
+| Nested checkbox under a checkbox at deeper levels | tested | fixture 08: a child's indent is its parent's content column (6 under a checkbox, 2 under a bullet, 3 under an ordered item), and the normalizer reads levels relative to the open items |

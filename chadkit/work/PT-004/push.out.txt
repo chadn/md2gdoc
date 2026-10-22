@@ -1,0 +1,11 @@
+created 1zf4rPRnb4rS8qeOq5nD0tRlTkGUt9S3aNjLkvr0ffEA link https://docs.google.com/document/d/1zf4rPRnb4rS8qeOq5nD0tRlTkGUt9S3aNjLkvr0ffEA/edit?usp=drivesdk
+after create: version 5 headRevisionId absent modifiedTime 2026-10-22T20:53:58.784Z
+exported 414 bytes to nested-checkboxes.out.md
+after one export: version 5 headRevisionId absent modifiedTime 2026-10-22T20:53:58.784Z
+after a second export: version 6 headRevisionId absent modifiedTime 2026-10-22T20:53:58.784Z
+after a style-only batchUpdate (bold): version 6 headRevisionId absent modifiedTime 2026-10-22T20:53:58.784Z
+after an insertText batchUpdate: version 6 headRevisionId absent modifiedTime 2026-10-22T20:53:58.784Z
+after files.update with the original content: version 7 headRevisionId absent modifiedTime 2026-10-22T20:54:02.530Z
+export after the update equals the first export: True
+kept the Doc for a UI edit; trash it when done
+re-read a minute later: version 7 headRevisionId absent modifiedTime 2026-10-22T20:54:02.530Z

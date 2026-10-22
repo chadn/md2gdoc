@@ -1,0 +1,14 @@
+before: version 7 headRevisionId absent modifiedTime 2026-10-22T20:54:02.530Z
+nothing done, 15s later: version 7 headRevisionId absent modifiedTime 2026-10-22T20:54:02.530Z
+after an export, 15s later: version 7 headRevisionId absent modifiedTime 2026-10-22T20:54:02.530Z
+after a style-only batchUpdate (italic), 15s later: version 7 headRevisionId absent modifiedTime 2026-10-22T20:54:02.530Z
+after an insertText batchUpdate, 15s later: version 7 headRevisionId absent modifiedTime 2026-10-22T20:54:02.530Z
+after files.update with the original content, 15s later: version 8 headRevisionId absent modifiedTime 2026-10-22T20:56:21.583Z
+nothing done, 30s later: version 10 headRevisionId absent modifiedTime 2026-10-22T20:56:22.005Z
+re-read at 2026-10-22T20:57:26+00:00: version 10 modifiedTime 2026-10-22T20:56:22.005Z
+export holds the steps probe's inserted line: False | italic/bold heading: '# **Nested checkboxes**'
+revision 1 2026-10-22T20:53:58.506Z
+revision 3 2026-10-22T20:54:01.827Z
+revision 4 2026-10-22T20:54:02.916Z
+revision 6 2026-10-22T20:56:05.348Z
+revision 7 2026-10-22T20:56:21.966Z

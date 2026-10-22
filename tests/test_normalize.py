@@ -68,6 +68,13 @@ class TaskList(unittest.TestCase):
         self.assertEqual(normalize(fixture("04-task-list.after-ui-edit.out.md")), expected)
 
 
+class NestedCheckboxes(unittest.TestCase):
+    """Fixture 08: a child's indent in the export is its parent's content column, whatever the parent is."""
+
+    def test_pair(self):
+        self.assertEqual(normalize(fixture("08-nested-checkboxes.out.md")), fixture("08-nested-checkboxes.in.md"))
+
+
 class RawUploads(unittest.TestCase):
     """Fixtures 01 and 03 were uploaded raw, without the push form; what they lose is pinned here."""
 

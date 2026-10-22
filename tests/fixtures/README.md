@@ -1,4 +1,4 @@
-# Round-trip fixtures (PT-002 and PT-013, 2026-10-21)
+# Round-trip fixtures (PT-002 and PT-013, 2026-10-21; PT-004, 2026-10-22)
 
 Each `.in.*` file was uploaded to Google Drive with conversion to a native Google Doc; each `.out.md` is the
 `text/markdown` export of the resulting Doc, byte for byte. Use them as normalizer test cases: normalize(out) must
@@ -19,6 +19,8 @@ equal normalize(in) for pair 04 and, with the losses [tests/test_normalize.py](.
   (PT-005); same three files and equalities as 05.
 - 07-spans: backslashes and markdown characters inside code spans, and escapes outside them (PT-005). A pair:
   normalize(out) == normalize(in), and the test pins the one deliberate escape the normalizer drops.
+- 08-nested-checkboxes: checkboxes four levels deep, a plain bullet under a checkbox and the reverse, and a
+  checkbox under an ordered item (PT-004, through the script's own OAuth client). A pair: normalize(out) == in.
 
 Trailing double spaces on list lines are part of Google's export; keep them when copying. PT-013's probes went
 through the same converter and are kept as evidence, not test cases (recovered from the session transcript), under
