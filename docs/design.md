@@ -13,7 +13,8 @@ repository's conventions. The first proof is a scratch Doc, not a real list.
 ## What is proven (2026-10-21, through the Google Drive connector, same converter as the API)
 
 - Uploading `text/markdown` creates a native Doc. Checkboxes (`- [ ]`, `- [x]`), nested items, headings, bold,
-  italic, inline code, links, tables, footnotes, rules survive. Fenced code blocks do not.
+  italic, inline code, links, tables, footnotes, rules survive. A raw fenced code block does not; a code run
+  does (Push form, below; PT-013).
 - Exporting as `text/markdown` returns the content, including checkbox state and lines typed or ticked in the Docs
   UI, with deterministic noise (see Normalizer under Script design). A second round trip is stable.
 - Text typed in the Docs UI inherits the formatting of the text before it: T-004, typed after a bold line, came
@@ -59,7 +60,21 @@ repository's conventions. The first proof is a scratch Doc, not a real list.
   strip `**` wrapping a heading; unescape `\-`, `\[`, `\]`, `\#`, `\_`, `\<`, `\:`, `\*`; collapse an autolink
   `[url](url)` to `url`; drop two trailing spaces on list items; re-indent nested items to 4 spaces per level
   (export gives 2 for plain items, 6 for a nested checkbox); restore the final newline; join nothing (soft line
-  breaks are already joined by Docs, so keep one logical line per task).
+  breaks are already joined by Docs, so keep one logical line per task). Fold a code run back into a fence: two or
+  more consecutive lines that are each one code span, with optional leading whitespace outside the span and a
+  hard break (two or more trailing spaces) after every line but the last, become a backtick fence whose lines are
+  the spans' text (one pad space stripped from each end when both are present) with that leading whitespace kept;
+  a whitespace-only line inside the run is a blank code line, and a trailing blank line is dropped (the push form
+  adds one to a one-line block, so a lone span is never a run). The fence's info string and style are not in the
+  Doc: the n-th run takes the info string of the n-th fenced block in the local file when the counts match, else
+  none; a tilde fence comes back as a backtick fence.
+- Push form (applied to the file just before a push, never written back; fixture 05 `.in.md` is the reference):
+  a fenced or tilde-fenced block becomes a code run, one line per code line, each wrapped in one more backtick
+  than its longest backtick sequence and padded with a space on both ends when it starts or ends with a backtick,
+  lines joined by hard breaks (two trailing spaces); leading spaces become `&nbsp;` entities and leading tabs
+  `&#9;`, both outside the span, since Google's import strips real leading whitespace on a continuation line; a
+  blank code line becomes `&nbsp;` with the hard break, and a one-line block gets one appended. Trailing
+  whitespace inside a code line is lost (the export moves it outside the span). Everything else passes through.
 - Merge: three-way on normalized lines, base = snapshot, ours = local file, theirs = Doc export. Added lines on
   either side are kept; a line changed on one side only takes that change; a checkbox ticked on one side wins
   over an untouched box. A line deleted on one side and edited on the other is a conflict, not a silent delete.

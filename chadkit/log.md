@@ -36,3 +36,16 @@
 - Related: PT-012
 - Tags: #qa-gate
 
+### PLR-20261021-06 t_lesson [PT-013,PT-005] Code through Google's markdown converter
+
+- Date: 2026-10-21
+- Summary: A fenced block pushed as markdown comes back as plain paragraphs, but a code run (one code span per line, lines joined by hard breaks) imports as monospace and exports in the same shape, so the normalizer can fold it back into a fence; fixture 05 pins it. Real leading whitespace on a continuation line is stripped by the import and whitespace inside the span is moved outside by the export, so indentation travels as entities (nbsp, tab) in the push form. The language tag has no home in the Doc. HTML import of pre keeps indentation and comes back as code spans, but only with an html/body wrapper, and the HTML path loses lists and blockquotes (fixture 02), so it is not the push route. Markers to be stripped on pull are pointless once the code run works. The native Code block building block is UI only on paid Workspace editions, so candidate 4 cannot be tried on this account.
+- Related: PT-013, PT-005
+
+### PLR-20261021-07 t_qa [PT-005,PD-001,PT-013,PLR-20261021-05,PT-015,PG-04,PT-002] Full gate on the code-block spike
+
+- Date: 2026-10-21
+- Summary: 9 confirmed, 0 refuted, 0 declined, 1 unverified; judge and reviewer claude-fable-5-1, full tier; gate user-ck@f95f135; session 2a707704-fea6-44bc-80be-8bbbde1bdf6f. Double-loop: closing the spike with the code-run treatment, promoted into design, features, PT-005 and a lesson, was right as scoped; the gap was pre-spike truth left standing where a builder reads first. Applied: the fixture's first paragraph shortened under the line limit and the backtick line padded on both sides, then re-uploaded so the export has a clean hard break (the checks had run before the new files were staged); PD-001's code consequence amended with the date; design.md's survival sentence and similar.md's coverage cell updated; the fold rule now says two or more lines, a hard break of two or more spaces, pad stripping, the n-th-block rule for the info string, tilde fences restored as backtick, and the push form pads and adds a blank line to one-line blocks; the workaround row names its losses; trailing whitespace downgraded to idea and indented code cites round2; the README states 05's own equalities; the push term names the push form; PT-013.md records the kept Doc's link, the pad-space evidence and what fixture 02 does to lists. Unverified: the six trashed probes behind answers 2 to 9 and the list-item row. Second confirmation of mis-cited evidence (PLR-20261021-05): PT-015 makes the citation check deterministic. Verdict, judged by claude-fable-5-1 before the fixes: Verification 55 (validate and doctor clean, gate-checks.sh failed on the unstaged fixtures' line 3, fixture bytes verified, probes 1-6 unverifiable); Validation, task intent 88 (treatment found, candidates settled, promotion complete per the model's spike section; nothing unasked); Validation, goals PG-04 78 (fixture 05 proves the run; two statuses rested on no fixture); Consistency 70 (reuses PT-002's fixture and promotion shape; departed by leaving PD-001, design.md and similar.md stale and repeated PLR-20261021-05's mis-cited-evidence class); Score 69
+- Related: PT-013, PT-015
+- Tags: #qa-gate
+

@@ -15,13 +15,15 @@ model (`chadkit model` says where it is).
 | `#migration` | Adoption of ChadKit into a repository that already has history to consolidate | - | adoption, brownfield, import, onboarding | tag |
 | `#docs` | Work on the documents under `docs/` and the README: the feature list, the similar-solutions list, and what a user reads before syncing | - | documentation (as a tag) | tag |
 | `native Doc` | A Google Docs document (`application/vnd.google-apps.document`), not a `.md` file stored in Drive | - | Google file | domain |
-| `push` | Markdown file to Doc: replace the whole Doc with the file's content, same link | - | - | domain |
+| `push` | Markdown file to Doc: replace the whole Doc with the file's push form, same link | - | - | domain |
 | `pull` | Doc to markdown file: export the Doc as markdown and normalize it | - | download, fetch | domain |
 | `sync` | Pull, three-way merge against the snapshot, then push; the only command that writes both sides | - | - | domain |
 | `normalizer` | Reversible rewrite applied to both sides before any comparison, undoing Google's export noise | - | cleaner | domain |
 | `snapshot` | Normalized content at the last successful sync, kept in the state file; the merge base | - | baseline, cache | domain |
 | `state file` | JSON next to the markdown file: Doc id, link, Drive `version`, snapshot | - | sidecar | domain |
 | `api-edited` | Conflict-marker label for the markdown side, the side the script writes; `local` was ruled out | - | ours | domain |
+| `code run` | A Doc paragraph of monospace lines, one per code line, standing in for a fenced code block; a push sends one, a pull folds it back into a fence | - | monospace block, code paragraph | domain |
+| `push form` | The markdown the script sends to Google in place of the file: the file plus the rewrites that keep Google's import from losing content (code runs, entity indents); never written back to the file | - | wire format, upload form | domain |
 | `hand-edited` | Conflict-marker label for changes made in the Google Docs UI; `doc` was ruled out | - | remote, theirs | domain |
 | `#qa-gate` | Work on the QA gate and the evidence it produces: its workflow, script, doctor audit, and every `t_qa` a gated run writes | - | #review-gate | tag |
 | QA gate | The independent adversarial examination a change takes before it lands, and the record it leaves; `chadkit/workflows/qa-gate.md` | gate | review gate, QA review, code review gate | project-management |

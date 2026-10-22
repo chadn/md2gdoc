@@ -35,7 +35,8 @@ churns without content changes. Merge is three-way on normalized lines with a st
 
 - Comments, suggestions, images, and manual formatting added in the Doc are lost on the next push.
 - Version history gains one unnamed revision per push; no-op pushes are skipped to limit this.
-- Fenced code blocks do not survive the converter, so a synced file must not rely on them.
+- Fenced code blocks do not survive the converter as written. Amended 2026-10-21 (PT-013): the push sends them
+  as code runs, which do; `docs/features.md` lists what that loses.
 - Under `drive.file` the script sees only Docs it created; a hand-made Doc needs the broader `drive` scope.
 - C' stays open as a later upgrade (hybrid: targeted edits for small diffs); PT-009 is the remedy, to take up when
   comments, suggestions, or formatting in a Doc matter to someone.

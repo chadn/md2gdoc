@@ -56,7 +56,7 @@ What survives a round trip, file to Doc to file. `tests/fixtures/` holds the byt
 | --- | --- | --- |
 | Headings H1-H6 | built | fixtures 01, 03 pin H1-H3; H4-H6 seen in PT-002's import test, no fixture; export wraps headings in `**` |
 | Bold, italic, links | tested | fixture 01; fixture 03 shows `_italic_` comes back as `*italic*` |
-| Inline code (single backtick) | tested | fixture 01; survives as a monospace run, PT-013 checks the edge cases |
+| Inline code (single backtick) | tested | fixtures 01, 05: backticks inside, stars, tags, table cells, task lines all survive |
 | Nested bullet and numbered lists; a list starting at 5 keeps its start | tested | fixtures 01, 03 (the start at 5); nesting comes back at 2 spaces |
 | Checkboxes `- [ ]` / `- [x]`, including state ticked in the Docs UI | tested | fixture 04 |
 | Tables, including bold cells | tested | fixture 01 |
@@ -66,8 +66,13 @@ What survives a round trip, file to Doc to file. `tests/fixtures/` holds the byt
 | Escaped characters (`\-`, `\[`, `\#`, ...) | tested | fixture 03 for `\-`, fixture 04 for `\[` and `\#`; the normalizer unescapes |
 | Soft line breaks inside a paragraph | tested | fixture 03; joined into one line on export; keep one logical line per task |
 | Text typed in the Docs UI after a bold line | tested | fixture 04; it inherits bold, treated as noise unless local had it |
-| Fenced code blocks (triple backtick) | planned | PT-013; today fixture 01 shows the lines become plain paragraphs |
-| Indented code | planned | PT-013; today fixture 01 shows the indent is lost |
+| Fenced code blocks (triple backtick) | workaround | fixture 05: pushed as a code run (`design.md` "Push form"), PT-005 builds it; lost: the Doc shows monospace lines with no code background, the fence style, a trailing blank line |
+| Language tag on a fence | workaround | the Doc cannot hold it; kept from the local file, empty on a fresh pull (PT-013.md) |
+| Indentation, tabs, and blank lines inside a fenced block | tested | fixture 05; pushed as entities, come back as whitespace |
+| Trailing whitespace inside a code line | idea | fixture 05 line 27: the export moves a pad space outside the span; an entity was not tried |
+| Indented code (four spaces) | idea | fixture 01 `.round2.out.md`: the indent is lost on re-import; the normalizer could rewrite it to a fence |
+| Fenced code inside a list item | idea | a PT-013 probe kept the lines in the item; no fixture pins it |
+| Native Docs "Code block" building block | not possible | UI only, paid Workspace editions; no API request creates one |
 | Raw HTML inside markdown: inline styles such as colour | idea | fixture 01 shows the text survives; colour cannot show in a markdown export |
 | `<details>` | not possible | its text merges into the next heading |
 | Images | idea | via `<img src>` in an HTML upload or `insertInlineImage`; not tested |
