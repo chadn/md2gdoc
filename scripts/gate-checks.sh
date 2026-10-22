@@ -5,10 +5,13 @@
 #            health note except a task waiting on a human and an already-landed commit
 #            with no QA-Gate trailer; `chadkit language check` on the changed Markdown
 #            (printed, never failing); the script's tests (tests/test_*.py) when the
-#            change touches a .py file or tests/; and over added lines in .md, .py
-#            and .sh files, no line past 120 characters (table rows, URLs, the log and
-#            the task lines excepted) and no em dash. Prints the session id the t_qa
-#            record and the Session: trailer carry.
+#            change touches a .py file or tests/; over added lines in .md, .py and .sh
+#            files, no line past 120 characters (table rows, URLs, the log, the task
+#            lines and the evidence folders under chadkit/work/ excepted) and no em dash;
+#            and linked references: an added line of a .md file that names a tracked
+#            file or folder, in backticks or not, links to it (the log, the task lines,
+#            fenced blocks and the evidence folders excepted). Prints the session id the t_qa record and the
+#            Session: trailer carry.
 # REQUIRES:  The chadkit CLI, git, python3. Run from anywhere inside the repository.
 # CHANGES:   Nothing. Reads the tree and the git index only.
 #
@@ -76,11 +79,12 @@ else
 fi
 
 # Lines past 120 characters, in what a person reads or edits: added lines only, so old text is not judged; a
-# table row, a URL, the log and the task lines are exempt. Untracked files are not judged until staged. awk's
-# length() counts bytes on macOS, so under LC_ALL=C the UTF-8 continuation bytes are dropped first to count characters.
+# table row, a URL, the log, the task lines and a work folder's evidence files (exports kept byte for byte) are
+# exempt. Untracked files are not judged until staged. awk's length() counts bytes on macOS, so under LC_ALL=C the
+# UTF-8 continuation bytes are dropped first to count characters.
 long=$( git diff -U0 "$since" 2>/dev/null \
     | LC_ALL=C awk '/^\+\+\+ b\//{f=substr($0,7)}
-           /^\+[^+]/ && f ~ /\.(md|py|sh)$/ && f !~ /chadkit\/(log|tasks)\.md/ \
+           /^\+[^+]/ && f ~ /\.(md|py|sh)$/ && f !~ /chadkit\/(log|tasks)\.md/ && f !~ /chadkit\/work\/[^\/]+\// \
            && (t=$0) && gsub(/[\200-\277]/, "", t) >= 0 && length(t) > 121 \
            && $0 !~ /https?:\/\// && $0 !~ /^\+\|/ \
            {print f": "length(t)-1" chars: "substr($0,2,60)"..."}' \
@@ -106,6 +110,63 @@ if [ -n "$emdash" ]; then
     status=1
 else
     echo "== em dashes: none added"
+fi
+
+# Linked references: an added line of a .md file that names a file or folder of the repository links to it. A
+# reference is a run of path characters that, taken from the repository root or from the file's own folder, names
+# a tracked path (the index included), inside backticks or not; the text and target of a markdown link and a
+# reference-link definition are not references. The log, the task lines, lines inside a fenced block and a work
+# folder's evidence files are exempt.
+unlinked=$( git diff -U0 "$since" 2>/dev/null | python3 -c '
+import posixpath, re, subprocess, sys
+tracked = set(subprocess.run(["git", "ls-files"], capture_output=True, text=True).stdout.split("\n")) - {""}
+folders = {p[: i + 1] for p in tracked for i, ch in enumerate(p) if ch == "/"}
+exempt = re.compile(r"^chadkit/(log|tasks)\.md$|^chadkit/work/[^/]+/")
+link = re.compile(r"!?\[[^\]]*\]\([^)]*\)|<https?://[^>]*>")
+definition = re.compile(r"^[ \t]*\[[^\]]+\]:[ \t]*\S+")
+token = re.compile(r"[A-Za-z0-9_./-]+")
+fence = re.compile(r"^[ \t]*(`{3,}|~{3,})")
+path, lineno, fenced = None, 0, []
+for raw in sys.stdin:
+    line = raw.rstrip("\n")
+    if line.startswith("+++ b/"):
+        path = line[6:]
+        if not path.endswith(".md") or exempt.search(path):
+            path = None
+            continue
+        fenced, opener = [], None
+        for text in open(path, encoding="utf-8", errors="replace"):
+            fenced.append(opener is not None)
+            m = fence.match(text)
+            if m and opener is None:
+                opener = m.group(1)
+            elif m and m.group(1)[0] == opener[0] and len(m.group(1)) >= len(opener):
+                opener = None
+        continue
+    m = re.match(r"^@@ -\S+ \+(\d+)", line)
+    if m:
+        lineno = int(m.group(1))
+        continue
+    if path is None or not line.startswith("+"):
+        continue
+    n, lineno = lineno, lineno + 1
+    if n <= len(fenced) and fenced[n - 1]:
+        continue
+    folder = path.rsplit("/", 1)[0] + "/" if "/" in path else ""
+    for t in token.findall(link.sub(" ", definition.sub(" ", line[1:]))):
+        t = t.strip(".,:;")
+        if not re.search(r"[A-Za-z]", t):
+            continue
+        here = posixpath.normpath(folder + t) + ("/" if t.endswith("/") else "")
+        if t in tracked or t in folders or here in tracked or here in folders:
+            print(f"{path}:{n}: {t} is not a link")
+' | sort -u)
+if [ -n "$unlinked" ]; then
+    echo "== linked references: added lines name a file or folder without linking to it"
+    printf '%s\n' "$unlinked"
+    status=1
+else
+    echo "== linked references: every added reference is a link"
 fi
 
 if [ "$status" -ne 0 ]; then

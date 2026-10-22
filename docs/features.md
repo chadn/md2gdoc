@@ -24,8 +24,8 @@ Converter rows describe what Google's markdown import and export do, which the s
 | `--dry-run` on every command | planned | PT-006 |
 | `--help` that covers setup, files, and exit codes | planned | PT-006 |
 | State file next to the markdown file: Doc id, link, Drive `version`, snapshot | planned | PT-006 |
-| Normalizer: reverse Google's export noise so both sides compare | tested | `normalize()`, fixtures 04, 05, 06; rules in `design.md` |
-| Push form: rewrite the file for Google's import (code runs, hard breaks) | tested | `push_form()`, fixtures 05, 06; rules in `design.md` |
+| Normalizer: reverse Google's export noise so both sides compare | tested | `normalize()`, fixtures 04, 05, 06; rules in [design.md](design.md) |
+| Push form: rewrite the file for Google's import (code runs, hard breaks) | tested | `push_form()`, fixtures 05, 06; rules in [design.md](design.md) |
 | Three-way merge on normalized lines; added lines kept, one-sided edits taken | planned | PT-007 |
 | A checkbox ticked on one side wins over an untouched box | planned | PT-007 |
 | A line deleted on one side and edited on the other is a conflict | planned | PT-007 |
@@ -42,7 +42,7 @@ Converter rows describe what Google's markdown import and export do, which the s
 
 | Feature | Status | Owner / evidence |
 | --- | --- | --- |
-| Single Python file with PEP 723 inline dependencies; `uv run` installs them | built | `md2gdoc.py` carries the header; no command runs under `uv` yet (PT-006) |
+| Single Python file with PEP 723 inline dependencies; `uv run` installs them | built | [md2gdoc.py](../md2gdoc.py) carries the header; no command runs under `uv` yet (PT-006) |
 | OAuth desktop client, `drive.file` scope only, token cached after one browser login | planned | PT-003 |
 | Credentials and token kept out of git | tested | `.gitignore`; the gate's checks run on every commit |
 | Open a Doc a human created by hand | idea | needs the broader `drive` scope; `setup.md` "Limits worth knowing" |
@@ -67,12 +67,12 @@ What survives a round trip, file to Doc to file. `tests/fixtures/` holds the byt
 | Escaped characters (`\-`, `\[`, `\#`, ...) | workaround | fixtures 03, 04, 07; the normalizer unescapes outside code spans, so a deliberate escape there is dropped on pull unless it keeps a line from becoming a block |
 | Soft line breaks inside a paragraph or list item | workaround | fixture 06: pushed as hard breaks so the Doc keeps the file's lines; a hard break the file had comes back soft; raw, fixture 03 shows them joined |
 | Text typed in the Docs UI after a bold line | tested | fixture 04; it inherits bold, treated as noise unless local had it |
-| Fenced code blocks (triple backtick) | workaround | fixture 05: a fence at the left margin is pushed as a code run (`design.md` "Push form", built by PT-005); lost: the Doc shows monospace lines with no code background, the fence style, a trailing blank line |
+| Fenced code blocks (triple backtick) | workaround | fixture 05: a fence at the left margin is pushed as a code run ([design.md](design.md) "Push form", built by PT-005); lost: the Doc shows monospace lines with no code background, the fence style, a trailing blank line |
 | Language tag on a fence | workaround | fixture 05 tests: the Doc cannot hold it; kept from the local file, empty on a fresh pull |
 | Indentation, tabs, and blank lines inside a fenced block | tested | fixture 05; pushed as entities, come back as whitespace |
-| Trailing whitespace inside a code line | idea | fixture 05 line 27: the export moves a pad space outside the span; an entity was not tried |
-| Indented code (four spaces) | idea | fixture 01 `.round2.out.md`: the indent is lost on re-import; the normalizer could rewrite it to a fence |
-| Fenced code inside a list item | idea | sent as it is today and loses its shape; a PT-013 probe kept a code run's lines in the item; no fixture pins it |
+| Trailing whitespace inside a code line | idea | PT-013 [probe 4](../chadkit/work/PT-013/probe-4-whitespace-in-spans.out.md), "Trailing spaces inside code": the export moves them outside the span, so they are no longer code; an entity was not tried |
+| Indented code (four spaces) | idea | fixture 01 `.round2.out.md`: the indent is lost on re-import; the push form could rewrite it to a fence |
+| Fenced code inside a list item | idea | sent as it is today and loses its shape (PT-013 [probe 1](../chadkit/work/PT-013/probe-1-raw-fences.out.md), "Fenced in a list"); a code run inside the item keeps its lines ([probe 6](../chadkit/work/PT-013/probe-6-entities-and-lists.out.md)); no test pins it |
 | Native Docs "Code block" building block | not possible | UI only, paid Workspace editions; no API request creates one |
 | Raw HTML inside markdown: inline styles such as colour | idea | fixture 01 shows the text survives; colour cannot show in a markdown export |
 | `<details>` | not possible | its text merges into the next heading |

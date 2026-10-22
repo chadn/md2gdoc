@@ -75,9 +75,9 @@ repository's conventions. The first proof is a scratch Doc, not a real list.
   none; a tilde fence comes back as a backtick fence.
 - Push form (applied to the file just before a push, never written back; fixture 05 `.in.md` is the reference):
   a fenced or tilde-fenced block at the left margin (one indented under a list item is sent as it is and loses
-  its shape, the `idea` row in features.md) becomes a code run, one line per code line, each wrapped in one more
-  backtick than its longest backtick sequence and padded with a space on both ends when it starts or ends with a
-  backtick,
+  its shape, the `idea` row in [features.md](features.md)) becomes a code run, one line per code line, each
+  wrapped in one more backtick than its longest backtick sequence and padded with a space on both ends when it
+  starts or ends with a backtick,
   lines joined by hard breaks (two trailing spaces); leading spaces become `&nbsp;` entities and leading tabs
   `&#9;`, both outside the span, since Google's import strips real leading whitespace on a continuation line; a
   blank code line becomes `&nbsp;` with the hard break, and a one-line block gets one appended (it exports as a
@@ -86,7 +86,8 @@ repository's conventions. The first proof is a scratch Doc, not a real list.
   another line of the same paragraph or item) gets a hard break, so the Doc keeps the file's lines (fixture 06),
   except a span-only line before another span-only or blank line, which would read as a code run; a hard break
   the file already had comes back as a soft one. Everything else passes through. Built in
-  `md2gdoc.py` as `push_form()` and `normalize()`, tested by `tests/test_normalize.py`.
+  [md2gdoc.py](../md2gdoc.py) as `push_form()` and `normalize()`, tested by
+  [tests/test_normalize.py](../tests/test_normalize.py).
 - Merge: three-way on normalized lines, base = snapshot, ours = local file, theirs = Doc export. Added lines on
   either side are kept; a line changed on one side only takes that change; a checkbox ticked on one side wins
   over an untouched box. A line deleted on one side and edited on the other is a conflict, not a silent delete.

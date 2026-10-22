@@ -1,0 +1,33 @@
+<h1>PT-013 Probe 3</h1>
+<h2>Pre code with language</h2>
+<pre><code class="language-python">def hello():
+    return "world"
+
+print(hello())
+</code></pre>
+<h2>Pre without code, markdown-looking lines</h2>
+<pre># not a heading
+- not a bullet
+&gt; not a quote
+1. not a list
+	tabbed
+**not bold** and *not italic* and `tick`
+&lt;b&gt;not html&lt;/b&gt;
+a &amp; b &lt; c
+</pre>
+<h2>Pre with br</h2>
+<pre>one<br>two<br>three</pre>
+<h2>Courier paragraphs</h2>
+<p style="font-family:'Courier New'">def hello():</p>
+<p style="font-family:'Courier New'">    return "world"</p>
+<h2>Monospace generic</h2>
+<p style="font-family:monospace">mono generic line</p>
+<p style="font-family:'Roboto Mono'">roboto mono line</p>
+<h2>Inline</h2>
+<p>Text <code>a*b*c</code> and <tt>tt text</tt> and <span style="font-family:'Courier New'">span courier</span> and <code>&lt;tag&gt;</code>.</p>
+<h2>Pre in list</h2>
+<ul><li>Item<pre><code>echo hi</code></pre></li><li>Next</li></ul>
+<h2>Table with code</h2>
+<table><tr><td>a</td><td><code>code in cell</code></td></tr></table>
+<h2>Paragraph after</h2>
+<p>End.</p>

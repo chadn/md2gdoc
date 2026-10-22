@@ -15,4 +15,5 @@ Who writes what:
   including this file, is edited normally.
 - `thoughts.md` is never edited by tooling or agents (`init` only seeds it); jot anything, no format.
 
-See the ChadKit model for the rules this directory follows; `chadkit model` says where it is.
+See the ChadKit model for the rules this directory follows; `chadkit model` says where it is,
+or read at [ChadKit.com](https://chadkit.com).

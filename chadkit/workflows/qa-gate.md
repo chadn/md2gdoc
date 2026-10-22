@@ -32,8 +32,11 @@ converter.
 `scripts/gate-checks.sh` runs `chadkit validate`; `chadkit doctor`, failing on any health note except a task
 waiting on a human and a commit with no QA-Gate trailer, which the stamp about to land resolves; `chadkit language
 check` on the changed Markdown (printed, never failing); the sync script's tests under `tests/` when the change
-touches a Python file or a fixture; and over added lines in `.md`, `.py` and `.sh` files, no line past 120
-characters and no em dash. It prints the session id the trailer below needs.
+touches a Python file or a fixture; over added lines in `.md`, `.py` and `.sh` files, no line past 120
+characters (the evidence folders under [chadkit/work/](../work/), exports kept as returned, excepted) and no em
+dash; and *linked references*: an added line of a `.md` file that names a file or folder of this repository, in
+backticks or not, links to it, so a reader lands on the evidence (the log, the task lines, fenced blocks and the
+evidence folders are exempt). It prints the session id the trailer below needs.
 
 ## The brief, item 2
 

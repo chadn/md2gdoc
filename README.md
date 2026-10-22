@@ -10,16 +10,15 @@ Tool for 2-way sync between md files and google docs.
 
 ## Layout
 
-The tool is one file, [md2gdoc.py](md2gdoc.py), at the root (PT-005 wrote its text layer, PT-006 adds the
-commands); `scripts/` is repository maintenance, not the tool.
-
-- [docs/design.md](docs/design.md) - how the script works: API calls, normalizer, merge, push guard
-- [docs/features.md](docs/features.md) - every known feature and its status
-- [docs/similar.md](docs/similar.md) - what else does this, platform paths and tools on GitHub
-- [docs/setup.md](docs/setup.md) - one-time Google Cloud and OAuth setup
-- [tests/fixtures/](tests/fixtures/) - round-trip fixtures through Google's converter; the normalizer's test cases
-
-## Process
-
-Following [chadkit.com](https://chadkit.com), see [chadkit/](chadkit/) for more, like
-[chadkit/tasks](chadkit/tasks.md) for the `PT-NNN` task list.
+- [md2gdoc.py](md2gdoc.py) - the main tool (this is really all you need)
+- [chadkit/](chadkit/) - project mgmt from [chadkit.com](https://chadkit.com)
+	- [tasks.md](chadkit/tasks.md) - for the `PT-NNN` task list.
+	- [language.md](chadkit/language.md) - for defining terms used in this repo.
+- [docs/](docs/)
+	- [features.md](docs/features.md) - every known feature and its status (planned, built, not possible, etc)
+	- [design.md](docs/design.md) - how the script works: API calls, normalizer, merge, push guard
+	- [similar.md](docs/similar.md) - what else does this, platform paths and tools on GitHub
+	- [setup.md](docs/setup.md) - one-time Google Cloud and OAuth setup
+- [tests/](tests/)
+	- [fixtures/](tests/fixtures/) - round-trip fixtures through Google's converter; the normalizer's test cases
+- [scripts/](scripts/) - repo maintenance
