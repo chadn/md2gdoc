@@ -258,7 +258,7 @@ HERE = Path(__file__).resolve().parent
 
 HELP = f"""\
 Two-way sync between one markdown file and one native Google Doc. Either side may add, edit, or tick a line;
-`sync` (PT-007) merges both, `push` and `pull` move one way.
+`sync` (not yet built) merges both, `push` and `pull` move one way.
 
 commands:
   init FILE      create the Doc from FILE and write the state file; prints the Doc's link
@@ -268,7 +268,7 @@ commands:
   status FILE    which side changed since the last sync
   --dry-run      on any command: say what would happen, change nothing (status: local side only, no network)
 
-setup (once; the full walkthrough is docs/setup.md in the repository):
+setup (once; the full walkthrough is docs/setup.md at github.com/chadn/md2gdoc):
   1. a Google Cloud project with the Drive API enabled and an OAuth consent screen, scope
      https://www.googleapis.com/auth/drive.file only, published (In production)
   2. an OAuth client of type Desktop app, its JSON saved as client_secret.json next to this script

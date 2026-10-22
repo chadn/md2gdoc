@@ -34,7 +34,7 @@ Converter rows describe what Google's markdown import and export do, which the s
 | Skip a push when normalized content is unchanged, so no empty revisions | tested | [tests/test_cli.py](../tests/test_cli.py) |
 | Re-pull after a successful push and store the new `version` and snapshot | tested | [tests/test_cli.py](../tests/test_cli.py); after `init` too |
 | Targeted edits through the Docs API so comments and formatting on untouched text survive | planned | PT-009 |
-| Agent hooks: auto-pull before an agent reads a synced file, auto-push after it writes | idea | gdoc ships these (`similar.md`) |
+| Agent hooks: auto-pull before an agent reads a synced file, auto-push after it writes | planned | PT-026, as a documented recipe; gdoc ships these as code ([similar.md](similar.md)) |
 | Sync several files or a folder in one run | idea | - |
 | Named versions of a Doc | not possible | no API names a revision; `files.copy` a titled snapshot instead |
 
@@ -45,8 +45,12 @@ Converter rows describe what Google's markdown import and export do, which the s
 | Single Python file with PEP 723 inline dependencies; `uv run` installs them | tested | every command of the real run in [chadkit/work/PT-006.md](../chadkit/work/PT-006.md) ran under `uv run --script` |
 | OAuth desktop client, `drive.file` scope only, token cached after one browser login | built | PT-003 made the client and proved it on both APIs ([chadkit/work/PT-003.md](../chadkit/work/PT-003.md)); the script reuses and refreshes the cached token (the real run in [chadkit/work/PT-006.md](../chadkit/work/PT-006.md)); its browser login is the same flow as PT-003's probe, not run from the script yet |
 | Credentials and token kept out of git | tested | `.gitignore`; the gate's checks run on every commit |
-| Open a Doc a human created by hand | idea | needs the `drive` scope on a secondary account or a service account, and a script option to request it; `--account NAME` already picks the token (the account half); [setup.md](setup.md) "Other setups" |
-| Runs unattended: git hook, cron, CI | built | no browser once `token.json` exists; no hook or CI example yet |
+| Open a Doc a human created by hand | planned | PT-020 adds `--scope drive` per profile, PT-022 proves it with a second account; [setup.md](setup.md) "Other setups" |
+| Runs unattended: git hook, cron | built | no browser once the token exists; no hook example yet; CI out of scope until a service-account path exists (PD-002) |
+| Config directory: client file and token per profile under `~/.config/md2gdoc` (`%APPDATA%` on Windows) | planned | PT-020 |
+| Windows, macOS and Linux, tests in CI on all three; CRLF kept; UTF-8 output | planned | PT-025 |
+| `--json` on every command for agents | planned | PT-026 |
+| Installable as the command `md2gdoc` with `uv tool install` from GitHub | planned | PT-021 |
 | Exit codes documented: 0 ok, 1 error, 2 conflict, 3 push or pull refused | tested | [tests/test_cli.py](../tests/test_cli.py), usage errors included |
 
 ## Markdown through Google's converter

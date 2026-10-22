@@ -1,13 +1,18 @@
 # Setup
 
-One-time Google Cloud steps before the first sync. The *Recommended setup* comes first; why it looks this way, the
-other setups, and a reference of every relevant scope follow. Claims marked **To verify:** are not yet tested; the
+This doc covers the One-time Google Cloud steps needed before the first sync. 
+The output is `client_secret.json` file needed by script.
+
+Claims marked **To verify:** are not yet tested; the
 full list is in [To verify](#to-verify).
 
 ## Recommended setup
 
-Your main Google account, the `drive.file` scope. The script can reach only the Docs it created; nothing else in your
-Drive is visible to it.
+Use your main Google account, with just the `drive.file` scope - that means the script can reach only the Docs 
+it created; nothing else in your Drive is visible to it. Uses 2 APIs
+
+- Google Drive API - to find, list, or create docs by name
+- Google Docs API - read and write parts of existing doc
 
 1. Create a project: [console.cloud.google.com/projectcreate](https://console.cloud.google.com/projectcreate).
    Name it `md2gdoc`, or anything.

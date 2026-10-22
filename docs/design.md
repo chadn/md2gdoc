@@ -20,6 +20,16 @@ repository's conventions. The first proof is a scratch Doc, not a real list.
 - Text typed in the Docs UI inherits the formatting of the text before it: T-004, typed after a bold line, came
   back as `**T-004 ...**`. Treat inline bold or italic on a task line as noise unless the local side had it.
 
+## End state
+
+What the script is built toward, decided in [PD-002](../chadkit/decisions/PD-002-architecture-direction.md): one
+downloadable file that runs on Windows, macOS and Linux under `uv` or plain Python; installable as the command
+`md2gdoc`; a per-user config directory holding one profile per Google account and scope, each with its own
+client file and token, switched by `--account`; `drive.file` by default and `drive` for existing Docs; the state
+file next to the markdown, committed; GitHub Flavored Markdown and then GitHub.com's platform layer as the
+flavour, proven by fixtures; prose and `--json` output; no line target for the file. Everything below describes
+how far the current state has got; where the two differ, the end state wins and a task closes the gap.
+
 ## What is not proven (needs real credentials; PT-004 does these first on a scratch Doc)
 
 1. `files.update` with a `text/markdown` media body replaces a native Doc's content in place and keeps its id and
@@ -66,7 +76,8 @@ repository's conventions. The first proof is a scratch Doc, not a real list.
 
 - Subcommands: `init` (create the Doc from the markdown file, write the state file), `pull`, `push`, `sync`,
   `status`, each with `--dry-run`. `--help` must explain setup, files, and exit codes. Built by PT-006 except
-  `sync`; `--account NAME` picks `token-NAME.json` next to the script.
+  `sync`; `--account NAME` picks a profile, today a token file next to the script, under PD-002 a folder in the
+  config directory (PT-020).
 - State file next to the markdown (for example `tasks.md.gdoc.json`): Doc id, link, Drive `version` at last sync,
   the normalized snapshot of what the Doc held after the last sync (the merge base), and the normalized text the
   file held then (`local`, so a converter change in the Doc does not read as a local edit, PT-006). It is
@@ -133,11 +144,11 @@ c. Hybrid: b for small diffs, a when the diff is large or b fails. Needs b first
 
 ## Borrowed pieces and what the tool review settled
 
-- From benstein/md2gdoc (PT-017, [similar.md](similar.md)), for PT-006: *account profiles*, `--account NAME` with
-  one token file per name under one client, as the account-selection half of the secondary-account option;
-  setup steps printed by the script itself when the client file is missing; `supportsAllDrives=True` on the
-  create so a folder on a shared drive works. Kept apart from that tool: no `~/.config/md2gdoc/` and no `md2gdoc`
-  command on PATH, so a machine with both has no file in common.
+- From benstein/md2gdoc (PT-017, [similar.md](similar.md)): *account profiles*, `--account NAME`, which PD-002
+  widens to a client file and token per profile under the config directory; setup steps printed by the script
+  itself when the client file is missing; `supportsAllDrives=True` on the create so a folder on a shared drive
+  works; the config directory `~/.config/md2gdoc/` itself (PT-020). The command name `md2gdoc` is shared with
+  that tool by decision (PD-002).
 
 - In-place update is proven in the wild: gdoc ships `files.update` with a `text/markdown` body on the same Doc id
   (`gdoc/api/drive.py:176-200`) and its 20-star user base depends on the link surviving. Item 1 under "What is not
