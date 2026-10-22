@@ -1,0 +1,126 @@
+$ uv run --script md2gdoc.py init <scratch>/tasks.md --name 'md2gdoc PT-006 run' --dry-run
+would create Doc 'md2gdoc PT-006 run' from <scratch>/tasks.md (14 lines) and write <scratch>/tasks.md.gdoc.json
+exit 0
+$ uv run --script md2gdoc.py init <scratch>/tasks.md --name 'md2gdoc PT-006 run'
+created https://docs.google.com/document/d/1qcUy9iKA8iPRsrZ7ifWBpjmggrEngqoudW4wlIQk_t0/edit?usp=drivesdk
+exit 0
+$ cat <scratch>/tasks.md.gdoc.json (texts elided)
+{
+  "doc_id": "1qcUy9iKA8iPRsrZ7ifWBpjmggrEngqoudW4wlIQk_t0",
+  "link": "https://docs.google.com/document/d/1qcUy9iKA8iPRsrZ7ifWBpjmggrEngqoudW4wlIQk_t0/edit?usp=drivesdk",
+  "version": 5,
+  "snapshot": "<376 chars>",
+  "local": "<376 chars>"
+}
+$ uv run --script md2gdoc.py status <scratch>/tasks.md
+<scratch>/tasks.md: unchanged since the last sync
+Doc https://docs.google.com/document/d/1qcUy9iKA8iPRsrZ7ifWBpjmggrEngqoudW4wlIQk_t0/edit?usp=drivesdk: unchanged (version 5 -> 5)
+exit 0
+$ uv run --script md2gdoc.py push <scratch>/tasks.md
+nothing to push: <scratch>/tasks.md matches the last sync
+exit 0
+$ sed -i '' 's/- \[ \] T-001/- [x] T-001/' <scratch>/tasks.md; echo '- [ ] T-004 added locally' >> <scratch>/tasks.md
+$ uv run --script md2gdoc.py push <scratch>/tasks.md --dry-run
+--- <scratch>/tasks.md (last sync)
++++ <scratch>/tasks.md (local)
+@@ -4,7 +4,7 @@
+ 
+ ## Open
+ 
+-- [ ] T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc
++- [x] T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc
+ - [ ] T-002 Call the vendor (due 2026-10-24)
+     - [ ] sub-task with 4-space indent
+ - [x] T-003 Done item with `inline code` and **bold**
+@@ -12,3 +12,4 @@
+ ## Notes
+ 
+ Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word.
++- [ ] T-004 added locally
+
+exit 0
+$ uv run --script md2gdoc.py push <scratch>/tasks.md 2>&1  (stderr and stdout interleave as the pipe delivers them)
+the Doc holds a different text; `pull --force` would write it back (docs/features.md lists what the converter loses):
+--- <scratch>/tasks.md (local)
++++ <scratch>/tasks.md (Doc)
+@@ -12,4 +12,5 @@
+ ## Notes
+ 
+ Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word.
++
+ - [ ] T-004 added locally
+
+pushed https://docs.google.com/document/d/1qcUy9iKA8iPRsrZ7ifWBpjmggrEngqoudW4wlIQk_t0/edit?usp=drivesdk
+exit 0
+$ uv run --script md2gdoc.py status <scratch>/tasks.md
+<scratch>/tasks.md: unchanged since the last sync
+Doc https://docs.google.com/document/d/1qcUy9iKA8iPRsrZ7ifWBpjmggrEngqoudW4wlIQk_t0/edit?usp=drivesdk: unchanged (version 7 -> 7)
+exit 0
+$ uv run --script md2gdoc.py push <scratch>/tasks.md
+nothing to push: <scratch>/tasks.md matches the last sync
+exit 0
+$ (an edit made in the Doc: files.update outside the script ticks T-002 and types T-005)
+updated the Doc outside the script
+$ echo '- [ ] T-006 added locally too' >> <scratch>/tasks.md
+$ uv run --script md2gdoc.py status <scratch>/tasks.md
+<scratch>/tasks.md: changed since the last sync
+Doc https://docs.google.com/document/d/1qcUy9iKA8iPRsrZ7ifWBpjmggrEngqoudW4wlIQk_t0/edit?usp=drivesdk: changed (version 7 -> 8)
+exit 0
+$ uv run --script md2gdoc.py push <scratch>/tasks.md
+push refused: the Doc changed since the last sync; pull or sync first
+exit 3
+$ uv run --script md2gdoc.py pull <scratch>/tasks.md
+pull refused: <scratch>/tasks.md changed since the last sync; sync, or pull --force to overwrite it
+exit 3
+$ uv run --script md2gdoc.py pull <scratch>/tasks.md --dry-run
+--- <scratch>/tasks.md (local)
++++ <scratch>/tasks.md (Doc)
+@@ -5,12 +5,13 @@
+ ## Open
+ 
+ - [x] T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc
+-- [ ] T-002 Call the vendor (due 2026-10-24)
++- [x] T-002 Call the vendor (due 2026-10-24)
+     - [ ] sub-task with 4-space indent
+ - [x] T-003 Done item with `inline code` and **bold**
+ 
+ ## Notes
+ 
+ Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word.
++
+ - [ ] T-004 added locally
+-- [ ] T-006 added locally too
++- [ ] T-005 typed in the Doc
+
+exit 0
+$ uv run --script md2gdoc.py pull <scratch>/tasks.md --force
+pulled <scratch>/tasks.md: changed
+exit 0
+$ cat <scratch>/tasks.md
+# Shared Tasks
+
+Last synced: 2026-10-21
+
+## Open
+
+- [x] T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc
+- [x] T-002 Call the vendor (due 2026-10-24)
+    - [ ] sub-task with 4-space indent
+- [x] T-003 Done item with `inline code` and **bold**
+
+## Notes
+
+Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word.
+
+- [ ] T-004 added locally
+- [ ] T-005 typed in the Doc
+$ uv run --script md2gdoc.py status <scratch>/tasks.md
+<scratch>/tasks.md: unchanged since the last sync
+Doc https://docs.google.com/document/d/1qcUy9iKA8iPRsrZ7ifWBpjmggrEngqoudW4wlIQk_t0/edit?usp=drivesdk: unchanged (version 8 -> 8)
+exit 0
+$ uv run --script md2gdoc.py bogus <scratch>/tasks.md
+usage: md2gdoc.py [-h] command ...
+md2gdoc: argument command: invalid choice: 'bogus' (choose from init, pull, push, status)
+exit 1
+$ (the Doc trashed afterwards: 1qcUy9iKA8iPRsrZ7ifWBpjmggrEngqoudW4wlIQk_t0)
+trashed

@@ -20,7 +20,7 @@ model (`chadkit model` says where it is).
 | `sync` | Pull, three-way merge against the snapshot, then push; the only command that writes both sides | - | - | domain |
 | `normalizer` | Reversible rewrite applied to both sides before any comparison, undoing Google's export noise | - | cleaner | domain |
 | `snapshot` | Normalized content at the last successful sync, kept in the state file; the merge base | - | baseline, cache | domain |
-| `state file` | JSON next to the markdown file: Doc id, link, Drive `version`, snapshot | - | sidecar | domain |
+| `state file` | JSON next to the markdown file: Doc id, link, Drive `version`, snapshot, and the file's normalized text at the last sync | - | sidecar | domain |
 | `api-edited` | Conflict-marker label for the markdown side, the side the script writes; `local` was ruled out | - | ours | domain |
 | `code run` | A Doc paragraph of monospace lines, one per code line, standing in for a fenced code block; a push sends one, a pull folds it back into a fence | - | monospace block, code paragraph | domain |
 | `push form` | The markdown the script sends to Google in place of the file: the file plus the rewrites that keep Google's import from losing content (code runs, entity indents); never written back to the file | - | wire format, upload form | domain |

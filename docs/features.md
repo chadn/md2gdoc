@@ -16,23 +16,23 @@ Converter rows describe what Google's markdown import and export do, which the s
 
 | Feature | Status | Owner / evidence |
 | --- | --- | --- |
-| `init`: create a native Doc from a markdown file and write the state file | planned | PT-006 |
-| `pull`: export the Doc as markdown, normalize, write the file | planned | PT-006 |
-| `push`: replace the whole Doc from the file, same link | planned | PT-006; in-place update PT-004 |
-| `status`: what changed on each side since the last sync | planned | PT-006 |
+| `init`: create a native Doc from a markdown file and write the state file | tested | [tests/test_cli.py](../tests/test_cli.py); the real run in [chadkit/work/PT-006.md](../chadkit/work/PT-006.md) |
+| `pull`: export the Doc as markdown, normalize, write the file | tested | [tests/test_cli.py](../tests/test_cli.py); the real run in [chadkit/work/PT-006.md](../chadkit/work/PT-006.md) |
+| `push`: replace the whole Doc from the file, same link | tested | [tests/test_cli.py](../tests/test_cli.py); the real run in [chadkit/work/PT-006.md](../chadkit/work/PT-006.md); in-place update PT-003's probe |
+| `status`: what changed on each side since the last sync | tested | [tests/test_cli.py](../tests/test_cli.py); compares the normalized export, since a matching `version` is not proof |
 | `sync`: pull, three-way merge against the snapshot, push | planned | PT-007 |
-| `--dry-run` on every command | planned | PT-006 |
-| `--help` that covers setup, files, and exit codes | planned | PT-006 |
-| State file next to the markdown file: Doc id, link, Drive `version`, snapshot | planned | PT-006 |
+| `--dry-run` on every command | tested | [tests/test_cli.py](../tests/test_cli.py); `status --dry-run` reads the local side only |
+| `--help` that covers setup, files, and exit codes | tested | [tests/test_cli.py](../tests/test_cli.py) |
+| State file next to the markdown file: Doc id, link, Drive `version`, snapshot, the file's text at last sync | tested | `FILE.gdoc.json`; [tests/test_cli.py](../tests/test_cli.py) |
 | Normalizer: reverse Google's export noise so both sides compare | tested | `normalize()`, fixtures 04, 05, 06; rules in [design.md](design.md) |
 | Push form: rewrite the file for Google's import (code runs, hard breaks) | tested | `push_form()`, fixtures 05, 06; rules in [design.md](design.md) |
 | Three-way merge on normalized lines; added lines kept, one-sided edits taken | planned | PT-007 |
 | A checkbox ticked on one side wins over an untouched box | planned | PT-007 |
 | A line deleted on one side and edited on the other is a conflict | planned | PT-007 |
 | Conflict markers `api-edited` / `hand-edited`, exit 2, no push | planned | PT-007 |
-| Push guard: Drive `version` plus normalized-export comparison; no `revisionId` | planned | PT-007; a matching `version` is not proof on its own ([chadkit/work/PT-004.md](../chadkit/work/PT-004.md)) |
-| Skip a push when normalized content is unchanged, so no empty revisions | planned | PT-007 |
-| Re-pull after a successful push and store the new `version` and snapshot | planned | PT-007 |
+| Push guard: normalized-export comparison, exit 3 when the Doc moved; `version` shown, never trusted alone, never `revisionId` | tested | [tests/test_cli.py](../tests/test_cli.py); a matching `version` is not proof ([chadkit/work/PT-004.md](../chadkit/work/PT-004.md)); `pull` has the mirror guard, `--force` lifts it |
+| Skip a push when normalized content is unchanged, so no empty revisions | tested | [tests/test_cli.py](../tests/test_cli.py) |
+| Re-pull after a successful push and store the new `version` and snapshot | tested | [tests/test_cli.py](../tests/test_cli.py); after `init` too |
 | Targeted edits through the Docs API so comments and formatting on untouched text survive | planned | PT-009 |
 | Agent hooks: auto-pull before an agent reads a synced file, auto-push after it writes | idea | gdoc ships these (`similar.md`) |
 | Sync several files or a folder in one run | idea | - |
@@ -42,12 +42,12 @@ Converter rows describe what Google's markdown import and export do, which the s
 
 | Feature | Status | Owner / evidence |
 | --- | --- | --- |
-| Single Python file with PEP 723 inline dependencies; `uv run` installs them | built | [md2gdoc.py](../md2gdoc.py) carries the header; no command runs under `uv` yet (PT-006) |
-| OAuth desktop client, `drive.file` scope only, token cached after one browser login | built | PT-003 made the client and proved it on both APIs ([chadkit/work/PT-003.md](../chadkit/work/PT-003.md)); the script's own token caching is PT-006 |
+| Single Python file with PEP 723 inline dependencies; `uv run` installs them | tested | every command of the real run in [chadkit/work/PT-006.md](../chadkit/work/PT-006.md) ran under `uv run --script` |
+| OAuth desktop client, `drive.file` scope only, token cached after one browser login | built | PT-003 made the client and proved it on both APIs ([chadkit/work/PT-003.md](../chadkit/work/PT-003.md)); the script reuses and refreshes the cached token (the real run in [chadkit/work/PT-006.md](../chadkit/work/PT-006.md)); its browser login is the same flow as PT-003's probe, not run from the script yet |
 | Credentials and token kept out of git | tested | `.gitignore`; the gate's checks run on every commit |
-| Open a Doc a human created by hand | idea | needs the `drive` scope on a secondary account or a service account, and a script option to request either; [setup.md](setup.md) "Other setups" |
-| Runs unattended: git hook, cron, CI | planned | PT-006 |
-| Exit codes documented: 0 ok, 2 conflict, others per `--help` | planned | PT-006 |
+| Open a Doc a human created by hand | idea | needs the `drive` scope on a secondary account or a service account, and a script option to request it; `--account NAME` already picks the token (the account half); [setup.md](setup.md) "Other setups" |
+| Runs unattended: git hook, cron, CI | built | no browser once `token.json` exists; no hook or CI example yet |
+| Exit codes documented: 0 ok, 1 error, 2 conflict, 3 push or pull refused | tested | [tests/test_cli.py](../tests/test_cli.py), usage errors included |
 
 ## Markdown through Google's converter
 
@@ -78,4 +78,5 @@ What survives a round trip, file to Doc to file. `tests/fixtures/` holds the byt
 | `<details>` | not possible | its text merges into the next heading |
 | Images | idea | via `<img src>` in an HTML upload or `insertInlineImage`; not tested |
 | Comments and suggestions in the Doc | not possible | lost on a whole-document push; PT-009 is the remedy |
+| A list item right after a paragraph line, no blank line between | idea | the real run in [chadkit/work/PT-006.md](../chadkit/work/PT-006.md): the export puts a blank line before the list, so after a push the Doc's text differs from the file's until `pull --force` writes the blank line; a fixture and a normalizer rule could reverse it |
 | Nested checkbox under a checkbox at deeper levels | tested | fixture 08: a child's indent is its parent's content column (6 under a checkbox, 2 under a bullet, 3 under an ordered item), and the normalizer reads levels relative to the open items |

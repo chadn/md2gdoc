@@ -61,10 +61,12 @@ repository's conventions. The first proof is a scratch Doc, not a real list.
 ## Script design
 
 - Subcommands: `init` (create the Doc from the markdown file, write the state file), `pull`, `push`, `sync`,
-  `status`, each with `--dry-run`. `--help` must explain setup, files, and exit codes.
+  `status`, each with `--dry-run`. `--help` must explain setup, files, and exit codes. Built by PT-006 except
+  `sync`; `--account NAME` picks `token-NAME.json` next to the script.
 - State file next to the markdown (for example `tasks.md.gdoc.json`): Doc id, link, Drive `version` at last sync,
-  and the normalized snapshot of the last synced content (the merge base). It is committed to git, so a clone syncs
-  the same Doc; only the credentials and token stay out (decided 2026-10-21).
+  the normalized snapshot of what the Doc held after the last sync (the merge base), and the normalized text the
+  file held then (`local`, so a converter change in the Doc does not read as a local edit, PT-006). It is
+  committed to git, so a clone syncs the same Doc; only the credentials and token stay out (decided 2026-10-21).
 - Normalizer (applied to both sides before any comparison; export noise observed in the fixtures and PT-013's
   probes, all reversible; a fence the text already holds and the inside of a code span are left as they are):
   strip `**` wrapping a heading; unescape `\-`, `\[`, `\]`, `\#`, `\_`, `\<`, `\>`, `\:`, `\*`, `\.`, except
@@ -105,10 +107,11 @@ repository's conventions. The first proof is a scratch Doc, not a real list.
   wrong is history on each side: git for the file, Drive version history for the Doc, which is what PG-01 rests on.
 - True conflict (same line changed differently on both sides): keep both lines, marked
   `<<<<<<< api-edited` ... `=======` ... `>>>>>>> hand-edited`, exit code 2, no push.
-- Push guard: before `files.update`, re-read the Drive `version`; if it differs from the one pulled, export again
-  and compare normalized text to the snapshot; abort only if the content moved. A matching `version` is not proof
-  on its own ("What is not proven", item 2); PT-007 decides whether to compare on every push. Skip the push when
-  the normalized content is unchanged, so no empty revisions. Do not use `revisionId` (see [similar.md](similar.md)).
+- Push guard: before `files.update`, export and compare normalized text to the snapshot; abort (exit 3) if the
+  content moved. The Drive `version` is stored and shown but never trusted alone, since a match is not proof
+  ("What is not proven", item 2; PT-007 may let it skip the export once PT-018 reads the UI case). `pull` has the
+  mirror guard on the file, lifted by `--force`. Skip the push when the file's normalized text is what the last
+  sync sent, so no empty revisions. Do not use `revisionId` (see [similar.md](similar.md)).
 - After a successful push, pull once more and store the new `version` and snapshot.
 
 ## Whole-document replace: must every push replace the Doc?

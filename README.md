@@ -11,6 +11,18 @@ Tool for 2-way sync between md files and google docs.
 Not to be confused with [benstein/md2gdoc](https://github.com/benstein/md2gdoc), a one-way uploader of the same
 name; [docs/similar.md](docs/similar.md) says how the two differ and coexist.
 
+## Use
+
+```text
+uv run --script md2gdoc.py init tasks.md     # create the Doc, write tasks.md.gdoc.json, print the link
+uv run --script md2gdoc.py status tasks.md   # which side changed since the last sync
+uv run --script md2gdoc.py push tasks.md     # replace the Doc from the file; refused if the Doc moved
+uv run --script md2gdoc.py pull tasks.md     # write the Doc's content to the file
+uv run --script md2gdoc.py --help            # setup, files, exit codes; --dry-run on every command
+```
+
+Setup, once: [docs/setup.md](docs/setup.md). `sync`, the three-way merge, is PT-007.
+
 ## Layout
 
 - [md2gdoc.py](md2gdoc.py) - the main tool (this is really all you need)
