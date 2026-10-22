@@ -6,10 +6,10 @@ Either side may add a line, edit it, or tick a task done, and gets its change ba
 is shown and stops the sync; it is never resolved silently. The text on either side is never lost: what a sync
 replaces stays restorable from that side's history.
 
-## PG-02 - Adoptable by any project, person, or agent
+## PG-02 - Runs for anyone, on any desktop
 
-One file that any project can take as is, that a person or an agent can set up and run from its own help alone,
-that asks for the least access to Google the job needs, and that runs unattended and deterministically.
+One file that any person or agent downloads and runs on their own desktop, set up from its own help alone, asking
+for the least access to Google the chosen job needs, and running unattended and deterministically.
 
 ## PG-03 - Quality assured, audited, and improving
 
@@ -20,5 +20,5 @@ record.
 
 ## PG-04 - Markdown fidelity is proven and documented
 
-As many markdown features as possible survive the round trip. Which ones do is proven by fixtures, not assumed,
+The markdown features people use most survive the round trip. Which ones do is proven by fixtures, not assumed,
 and which ones do not is written where a user looks before syncing a file.

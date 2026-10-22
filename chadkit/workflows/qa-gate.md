@@ -17,13 +17,13 @@ this file holds only this repository's parts, the shared file's Local list. Thre
 
 ## Standing questions
 
-Beneficiaries: PG-01 a person or agent editing the task list on either side; PG-02 the next project, person, or
-agent that drops the script in; PG-03 Chad reading the gate's record; PG-04 a user whose file goes through Google's
-converter.
+Beneficiaries: PG-01 a person or agent editing the task list on either side; PG-02 a person or agent who downloads the
+one file and runs it on their own machine; PG-03 Chad reading the gate's record; PG-04 a user whose file goes through
+Google's converter.
 
 - PG-01: If I change this on either side, do I get my change back, does a real conflict stop rather than guess, and
   can I get back what a sync replaced?
-- PG-02: Could I drop this one file into my project and run it from `--help` alone, with no access it does not need?
+- PG-02: Could I download this one file, run it on my machine from `--help` alone, with no access it does not need?
 - PG-03: Was this examined independently before it landed, and does the record show what the examination missed?
 - PG-04: Is what survives the round trip proven by a fixture, and is what does not survive written down?
 

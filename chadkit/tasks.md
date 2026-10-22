@@ -26,3 +26,4 @@
 - [ ] PT-024 [PG-04] [needs:PT-005] GitHub.com platform layer coverage: fixtures and rows for what GitHub renders beyond GFM (mermaid, alerts, math, emoji, footnotes already pinned); PD-002.
 - [ ] PT-025 [PG-02] [needs:PT-020] Windows, macOS and Linux: CI running the tests on all three, CRLF files read and written as found, UTF-8 forced on stdout and stderr, the config directory on Windows; PD-002.
 - [ ] PT-026 [PG-02] [needs:PT-007] --json on every command for agents (status, diffs, exit reasons as one object) and a documented Claude Code hook recipe in docs/, not code in the script; PD-002.
+- [x] PT-027 [PG-02,PG-04] [#qa-gate] Reword the goals after PD-002: PG-02 for anyone who downloads the one file on any desktop instead of a project that takes it; PG-04 for the most popular markdown features, no dialect named; the gate's PG-02 beneficiary follows. Completed: 2026-10-22
