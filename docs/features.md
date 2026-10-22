@@ -24,7 +24,8 @@ Converter rows describe what Google's markdown import and export do, which the s
 | `--dry-run` on every command | planned | PT-006 |
 | `--help` that covers setup, files, and exit codes | planned | PT-006 |
 | State file next to the markdown file: Doc id, link, Drive `version`, snapshot | planned | PT-006 |
-| Normalizer: reverse Google's export noise so both sides compare | planned | PT-005; rules in `design.md` |
+| Normalizer: reverse Google's export noise so both sides compare | tested | `normalize()`, fixtures 04, 05, 06; rules in `design.md` |
+| Push form: rewrite the file for Google's import (code runs, hard breaks) | tested | `push_form()`, fixtures 05, 06; rules in `design.md` |
 | Three-way merge on normalized lines; added lines kept, one-sided edits taken | planned | PT-007 |
 | A checkbox ticked on one side wins over an untouched box | planned | PT-007 |
 | A line deleted on one side and edited on the other is a conflict | planned | PT-007 |
@@ -41,7 +42,7 @@ Converter rows describe what Google's markdown import and export do, which the s
 
 | Feature | Status | Owner / evidence |
 | --- | --- | --- |
-| Single Python file with PEP 723 inline dependencies; `uv run` installs them | planned | PT-006 |
+| Single Python file with PEP 723 inline dependencies; `uv run` installs them | built | `md2gdoc.py` carries the header; no command runs under `uv` yet (PT-006) |
 | OAuth desktop client, `drive.file` scope only, token cached after one browser login | planned | PT-003 |
 | Credentials and token kept out of git | tested | `.gitignore`; the gate's checks run on every commit |
 | Open a Doc a human created by hand | idea | needs the broader `drive` scope; `setup.md` "Limits worth knowing" |
@@ -59,19 +60,19 @@ What survives a round trip, file to Doc to file. `tests/fixtures/` holds the byt
 | Inline code (single backtick) | tested | fixtures 01, 05: backticks inside, stars, tags, table cells, task lines all survive |
 | Nested bullet and numbered lists; a list starting at 5 keeps its start | tested | fixtures 01, 03 (the start at 5); nesting comes back at 2 spaces |
 | Checkboxes `- [ ]` / `- [x]`, including state ticked in the Docs UI | tested | fixture 04 |
-| Tables, including bold cells | tested | fixture 01 |
+| Tables, including bold cells | workaround | fixture 01; alignment colons come back on every column, so the normalizer writes `| --- |` and alignment is lost |
 | Blockquotes | tested | fixture 01; becomes an indented paragraph |
 | Horizontal rules | tested | fixtures 01, 03 |
 | Footnotes | tested | fixture 01; real Docs footnotes |
-| Escaped characters (`\-`, `\[`, `\#`, ...) | tested | fixture 03 for `\-`, fixture 04 for `\[` and `\#`; the normalizer unescapes |
-| Soft line breaks inside a paragraph | tested | fixture 03; joined into one line on export; keep one logical line per task |
+| Escaped characters (`\-`, `\[`, `\#`, ...) | workaround | fixtures 03, 04, 07; the normalizer unescapes outside code spans, so a deliberate escape there is dropped on pull unless it keeps a line from becoming a block |
+| Soft line breaks inside a paragraph or list item | workaround | fixture 06: pushed as hard breaks so the Doc keeps the file's lines; a hard break the file had comes back soft; raw, fixture 03 shows them joined |
 | Text typed in the Docs UI after a bold line | tested | fixture 04; it inherits bold, treated as noise unless local had it |
-| Fenced code blocks (triple backtick) | workaround | fixture 05: pushed as a code run (`design.md` "Push form"), PT-005 builds it; lost: the Doc shows monospace lines with no code background, the fence style, a trailing blank line |
-| Language tag on a fence | workaround | the Doc cannot hold it; kept from the local file, empty on a fresh pull (PT-013.md) |
+| Fenced code blocks (triple backtick) | workaround | fixture 05: a fence at the left margin is pushed as a code run (`design.md` "Push form", built by PT-005); lost: the Doc shows monospace lines with no code background, the fence style, a trailing blank line |
+| Language tag on a fence | workaround | fixture 05 tests: the Doc cannot hold it; kept from the local file, empty on a fresh pull |
 | Indentation, tabs, and blank lines inside a fenced block | tested | fixture 05; pushed as entities, come back as whitespace |
 | Trailing whitespace inside a code line | idea | fixture 05 line 27: the export moves a pad space outside the span; an entity was not tried |
 | Indented code (four spaces) | idea | fixture 01 `.round2.out.md`: the indent is lost on re-import; the normalizer could rewrite it to a fence |
-| Fenced code inside a list item | idea | a PT-013 probe kept the lines in the item; no fixture pins it |
+| Fenced code inside a list item | idea | sent as it is today and loses its shape; a PT-013 probe kept a code run's lines in the item; no fixture pins it |
 | Native Docs "Code block" building block | not possible | UI only, paid Workspace editions; no API request creates one |
 | Raw HTML inside markdown: inline styles such as colour | idea | fixture 01 shows the text survives; colour cannot show in a markdown export |
 | `<details>` | not possible | its text merges into the next heading |

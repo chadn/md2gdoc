@@ -10,8 +10,8 @@ Tool for 2-way sync between md files and google docs.
 
 ## Layout
 
-The tool is one file, [md2gdoc.py](md2gdoc.py), at the root (PT-006 writes it); `scripts/` is repository
-maintenance, not the tool.
+The tool is one file, [md2gdoc.py](md2gdoc.py), at the root (PT-005 wrote its text layer, PT-006 adds the
+commands); `scripts/` is repository maintenance, not the tool.
 
 - [docs/design.md](docs/design.md) - how the script works: API calls, normalizer, merge, push guard
 - [docs/features.md](docs/features.md) - every known feature and its status

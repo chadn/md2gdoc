@@ -1,0 +1,139 @@
+"""The text layer against tests/fixtures/: see that folder's README for what each equality means."""
+
+import sys
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from md2gdoc import normalize, push_form  # noqa: E402
+
+FIXTURES = ROOT / "tests" / "fixtures"
+
+
+def fixture(name: str) -> str:
+    return (FIXTURES / name).read_text()
+
+
+class CodeBlocks(unittest.TestCase):
+    """Fixture 05: the push form and the fold are each other's inverse through Google."""
+
+    def test_push_form_is_what_was_uploaded(self):
+        self.assertEqual(push_form(fixture("05-code-blocks.src.md")), fixture("05-code-blocks.in.md"))
+
+    def test_export_normalizes_back_to_the_source(self):
+        src = fixture("05-code-blocks.src.md")
+        self.assertEqual(normalize(fixture("05-code-blocks.out.md"), src), src)
+
+    def test_info_string_is_empty_without_a_source(self):
+        out = normalize(fixture("05-code-blocks.out.md"))
+        self.assertIn("\n```\ndef hello():\n", out)
+        self.assertNotIn("```python", out)
+
+
+class HardBreaks(unittest.TestCase):
+    """Fixture 06: soft breaks travel as hard breaks, and a one-line block exports as a span plus a space."""
+
+    def test_push_form_is_what_was_uploaded(self):
+        self.assertEqual(push_form(fixture("06-hard-breaks.src.md")), fixture("06-hard-breaks.in.md"))
+
+    def test_export_normalizes_back_to_the_source(self):
+        src = fixture("06-hard-breaks.src.md")
+        self.assertEqual(normalize(fixture("06-hard-breaks.out.md"), src), src)
+
+
+class Spans(unittest.TestCase):
+    """Fixture 07: what is inside a code span comes back verbatim; the export escapes only outside spans."""
+
+    def test_export_normalizes_like_the_upload(self):
+        src = fixture("07-spans.in.md")
+        self.assertEqual(normalize(fixture("07-spans.out.md")), normalize(src))
+        # The one loss: the upload's deliberate escape outside a span is dropped on both sides.
+        self.assertEqual(normalize(src), src.replace("\\_x\\_", "_x_"))
+
+
+class TaskList(unittest.TestCase):
+    """Fixture 04: a task list round-trips exactly, and a UI edit shows up as the edit alone."""
+
+    def test_pair(self):
+        src = fixture("04-task-list.in.md")
+        self.assertEqual(normalize(src), src)
+        self.assertEqual(normalize(fixture("04-task-list.out.md")), src)
+
+    def test_after_ui_edit(self):
+        expected = fixture("04-task-list.in.md").replace("- [ ] T-002", "- [x] T-002").replace(
+            "and **bold**\n", "and **bold**\n- [ ] **T-004 chad was notified this works**\n"
+        ) + '\nT-004 - chad should be told "green eggs" to verify this works.\n'
+        self.assertEqual(normalize(fixture("04-task-list.after-ui-edit.out.md")), expected)
+
+
+class RawUploads(unittest.TestCase):
+    """Fixtures 01 and 03 were uploaded raw, without the push form; what they lose is pinned here."""
+
+    def test_01_markdown_import(self):
+        expected = normalize(fixture("01-markdown-import.in.md"))
+        for lost, got in [
+            ("- Top level two\n\n1. First", "- Top level two\n1. First"),  # the blank between two lists
+            ('```python\ndef hello():\n    return "world"\n```', 'def hello():\n\n    return "world"'),
+            ('<div style="color:red">Raw HTML div</div>\n<details><summary>Summary</summary>Hidden text</details>'
+             "\n\n## Extras", "Raw HTML div\n\n## SummaryHidden text Extras"),
+        ]:
+            self.assertIn(lost, expected)
+            expected = expected.replace(lost, got)
+        self.assertEqual(normalize(fixture("01-markdown-import.out.md")), expected)
+
+    def test_03_resume_style(self):
+        expected = normalize(fixture("03-resume-style.in.md"))
+        for lost, got in [
+            ("Paragraph line one.\nParagraph line two", "Paragraph line one. Paragraph line two"),  # soft break
+            ("Version: 2026-10-20\nFor Reader", "Version: 2026-10-20 For Reader"),
+            ("_Italic sentence using underscores._", "*Italic sentence using underscores.*"),
+        ]:
+            self.assertIn(lost, expected)
+            expected = expected.replace(lost, got)
+        self.assertEqual(normalize(fixture("03-resume-style.out.md")), expected)
+
+
+class Rules(unittest.TestCase):
+    def test_normalize_is_idempotent_on_every_export(self):
+        for path in sorted(FIXTURES.glob("*.out.md")):
+            once = normalize(path.read_text())
+            self.assertEqual(normalize(once), once, path.name)
+
+    def test_escapes_that_keep_a_line_from_becoming_a_block_stay(self):
+        self.assertEqual(normalize("\\- not a bullet\n1\\. not a list\n\\# not a heading\na \\- dash\n"),
+                         "\\- not a bullet\n1\\. not a list\n\\# not a heading\na - dash\n")
+
+    def test_hard_breaks_go_where_the_doc_would_join_lines(self):
+        self.assertEqual(push_form("one\ntwo\n\n- item\n  more\n# H\nthree\n> q\n> r\n| a |\n| b |\n"),
+                         "one  \ntwo\n\n- item  \n  more\n# H\nthree\n> q\n> r\n| a |\n| b |\n")
+
+    def test_one_line_block_gets_a_blank_line_and_backticks_are_padded(self):
+        self.assertEqual(push_form("```\n`a`\n```\n"), "`` `a` ``  \n&nbsp;\n")
+        self.assertEqual(normalize("`` `a` ``  \n   \n"), "```\n`a`\n```\n")
+
+    def test_a_fence_in_a_file_is_left_alone(self):
+        text = "```\n\\- x\na \\- b\n    - y\n| :-- |\n```\na \\- b\n"
+        self.assertEqual(normalize(text), "```\n\\- x\na \\- b\n    - y\n| :-- |\n```\na - b\n")
+
+    def test_inside_a_span_is_left_alone(self):
+        self.assertEqual(normalize("regex `\\d+\\.` and `rm \\-rf` a \\- b [u](u)\n"),
+                         "regex `\\d+\\.` and `rm \\-rf` a - b [u](u)\n")
+
+    def test_a_block_may_open_with_a_blank_line(self):
+        self.assertEqual(push_form("```\n\ncode\n```\n"), "&nbsp;  \n`code`\n")
+        self.assertEqual(normalize("   \n`code`\n"), "```\n\ncode\n```\n")
+
+    def test_a_partly_bold_heading_is_kept(self):
+        self.assertEqual(normalize("# **a** and **b**\n"), "# **a** and **b**\n")
+
+    def test_span_only_lines_take_no_break_before_another(self):
+        self.assertEqual(push_form("`a`\n`b`\n\n`c`\nprose\n"), "`a`\n`b`\n\n`c`  \nprose\n")
+
+    def test_a_lone_span_is_prose(self):
+        self.assertEqual(normalize("`alpha` `beta`\n\n`gamma`\n"), "`alpha` `beta`\n\n`gamma`\n")
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -56,25 +56,37 @@ repository's conventions. The first proof is a scratch Doc, not a real list.
 - State file next to the markdown (for example `tasks.md.gdoc.json`): Doc id, link, Drive `version` at last sync,
   and the normalized snapshot of the last synced content (the merge base). It is committed to git, so a clone syncs
   the same Doc; only the credentials and token stay out (decided 2026-10-21).
-- Normalizer (applied to both sides before any comparison; export noise observed, all reversible):
-  strip `**` wrapping a heading; unescape `\-`, `\[`, `\]`, `\#`, `\_`, `\<`, `\:`, `\*`; collapse an autolink
-  `[url](url)` to `url`; drop two trailing spaces on list items; re-indent nested items to 4 spaces per level
-  (export gives 2 for plain items, 6 for a nested checkbox); restore the final newline; join nothing (soft line
-  breaks are already joined by Docs, so keep one logical line per task). Fold a code run back into a fence: two or
-  more consecutive lines that are each one code span, with optional leading whitespace outside the span and a
-  hard break (two or more trailing spaces) after every line but the last, become a backtick fence whose lines are
-  the spans' text (one pad space stripped from each end when both are present) with that leading whitespace kept;
-  a whitespace-only line inside the run is a blank code line, and a trailing blank line is dropped (the push form
-  adds one to a one-line block, so a lone span is never a run). The fence's info string and style are not in the
+- Normalizer (applied to both sides before any comparison; export noise observed in the fixtures and PT-013's
+  probes, all reversible; a fence the text already holds and the inside of a code span are left as they are):
+  strip `**` wrapping a heading; unescape `\-`, `\[`, `\]`, `\#`, `\_`, `\<`, `\>`, `\:`, `\*`, `\.`, except
+  an escape that keeps a line from becoming a bullet, heading, quote, or ordered item, which stays (so a
+  deliberate escape elsewhere in a line is dropped on pull); collapse an autolink `[url](url)` to `url`; make a
+  table delimiter row `| --- |`; drop trailing whitespace on every line (hard breaks included); re-indent list
+  items to 4 spaces per level, the level read from the item's indent relative to the open items above it
+  (export gives 2 for plain items, 6 for a nested checkbox); restore the final newline; join nothing (soft
+  line breaks are already joined by Docs, which is why the push form sends them as hard breaks). Fold a code
+  run back into a fence: two or more consecutive lines that are each one code span, with optional leading
+  whitespace outside the span and a hard break (two or more trailing spaces) after every line but the last,
+  become a backtick fence whose lines are the spans' text (one pad space stripped from each end when both are
+  present) with that leading whitespace kept; a whitespace-only line in the run, first lines included, is a blank
+  code line, and a trailing blank line is dropped (the push form adds one to a one-line block, so a lone span is
+  never a run). The fence's info string and style are not in the
   Doc: the n-th run takes the info string of the n-th fenced block in the local file when the counts match, else
   none; a tilde fence comes back as a backtick fence.
 - Push form (applied to the file just before a push, never written back; fixture 05 `.in.md` is the reference):
-  a fenced or tilde-fenced block becomes a code run, one line per code line, each wrapped in one more backtick
-  than its longest backtick sequence and padded with a space on both ends when it starts or ends with a backtick,
+  a fenced or tilde-fenced block at the left margin (one indented under a list item is sent as it is and loses
+  its shape, the `idea` row in features.md) becomes a code run, one line per code line, each wrapped in one more
+  backtick than its longest backtick sequence and padded with a space on both ends when it starts or ends with a
+  backtick,
   lines joined by hard breaks (two trailing spaces); leading spaces become `&nbsp;` entities and leading tabs
   `&#9;`, both outside the span, since Google's import strips real leading whitespace on a continuation line; a
-  blank code line becomes `&nbsp;` with the hard break, and a one-line block gets one appended. Trailing
-  whitespace inside a code line is lost (the export moves it outside the span). Everything else passes through.
+  blank code line becomes `&nbsp;` with the hard break, and a one-line block gets one appended (it exports as a
+  lone-space line, fixture 06). Trailing whitespace inside a code line is lost (the export moves it outside the
+  span). A line the Doc would join onto the next (a paragraph line, list item, or continuation line followed by
+  another line of the same paragraph or item) gets a hard break, so the Doc keeps the file's lines (fixture 06),
+  except a span-only line before another span-only or blank line, which would read as a code run; a hard break
+  the file already had comes back as a soft one. Everything else passes through. Built in
+  `md2gdoc.py` as `push_form()` and `normalize()`, tested by `tests/test_normalize.py`.
 - Merge: three-way on normalized lines, base = snapshot, ours = local file, theirs = Doc export. Added lines on
   either side are kept; a line changed on one side only takes that change; a checkbox ticked on one side wins
   over an untouched box. A line deleted on one side and edited on the other is a conflict, not a silent delete.

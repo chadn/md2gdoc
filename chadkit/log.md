@@ -49,3 +49,10 @@
 - Related: PT-013, PT-015
 - Tags: #qa-gate
 
+### PLR-20261021-08 t_qa [PT-005,PG-04,PG-02,PT-006,PD-001,PLR-20261021-07,PLR-20261021-05,PT-013,PT-007] Full gate on the normalizer and push form
+
+- Date: 2026-10-21
+- Summary: 10 confirmed, 1 refuted, 1 declined; judge and reviewer claude-fable-5-1, full tier; gate user-ck@f95f135; session 2a707704-fea6-44bc-80be-8bbbde1bdf6f. Double-loop: the text layer inside the one file with fixture-backed tests was right as scoped, under PD-001; the judge noted that the task's bar (every pair) was met partly by restating it in the fixtures README for the raw uploads 01 and 03, whose losses the test pins, and that the file side of the normalizer, which PT-007's merge will call, was untested. Applied: PT-005 cites PG-02; a fence the text already holds and the inside of a code span are left alone (fixture 07, made through the connector for this run, shows the export keeps span contents verbatim and escapes only outside); a code run may open with blank lines; a partly bold heading is kept; a span-only line before another takes no hard break, and a setext underline none; the escapes `\>` and `\.` now cite PT-013's probes; the fence-at-left-margin limit, the alignment-colon loss and the span rule are written into design.md and the features rows; the reflow orphan and the docstring's auth path fixed; the tests cover each. Declined: CRLF files (PT-006 reads the file and decides newline handling). Refuted: `local` as an Avoid word, it sits in the Meaning column of api-edited. Verdict, judged by claude-fable-5-1 before the fixes: Verification 62 (14 tests rerun, findings 1 to 4 confirmed by failing inputs); Validation, task intent 85 (all three requirements met; bar restated in-diff for 01 and 03); Validation, goals PG-04 72 (fixture 06 proves the push-form rules; five losses were unwritten); Consistency 70 (reuses PT-013's fixture-triple shape and status vocabulary; third instance of the mis-cited-evidence class after PLR-20261021-05 and PLR-20261021-07); Score 70
+- Related: PT-005, PT-006
+- Tags: #qa-gate
+

@@ -2,8 +2,8 @@
 
 Each `.in.*` file was uploaded to Google Drive with conversion to a native Google Doc; each `.out.md` is the
 `text/markdown` export of the resulting Doc, byte for byte. Use them as normalizer test cases: normalize(out) must
-equal normalize(in) for pairs 01 to 04, the task-list pair must preserve checkbox state, and 05 has its own
-equalities below.
+equal normalize(in) for pair 04 and, with the losses `tests/test_normalize.py` lists, for 01 and 03; the
+task-list pair must preserve checkbox state; 05, 06 and 07 have their own equalities below.
 
 - 01-markdown-import: markdown with every feature; `.round2.out.md` is the export after feeding `.out.md` back in.
 - 02-html-import: the same content as HTML; shows what HTML conversion keeps.
@@ -14,5 +14,9 @@ equalities below.
   `.in.md` is the push form the script sends in its place (`docs/design.md`, "Push form"), `.out.md` the export.
   Tests: push_form(src) == in, and normalize(out, src) == src where src supplies the fences' info strings.
   The export has no final newline; keep it that way.
+- 06-hard-breaks: a one-line fenced block, a two-line paragraph, and a list item with a continuation line
+  (PT-005); same three files and equalities as 05.
+- 07-spans: backslashes and markdown characters inside code spans, and escapes outside them (PT-005). A pair:
+  normalize(out) == normalize(in), and the test pins the one deliberate escape the normalizer drops.
 
 Trailing double spaces on list lines are part of Google's export; keep them when copying.
