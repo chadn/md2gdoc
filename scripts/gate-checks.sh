@@ -10,7 +10,9 @@
 #            lines and the evidence folders under chadkit/work/ excepted) and no em dash;
 #            and linked references: an added line of a .md file that names a tracked
 #            file or folder, in backticks or not, links to it (the log, the task lines,
-#            fenced blocks and the evidence folders excepted). Prints the session id the t_qa record and the
+#            fenced blocks and the evidence folders excepted); and evidence citations: every
+#            fixture docs/features.md cites exists under tests/fixtures/ and each tested row of
+#            its converter table cites a fixture pair. Prints the session id the t_qa record and the
 #            Session: trailer carry.
 # REQUIRES:  The chadkit CLI, git, python3. Run from anywhere inside the repository.
 # CHANGES:   Nothing. Reads the tree and the git index only.
@@ -167,6 +169,48 @@ if [ -n "$unlinked" ]; then
     status=1
 else
     echo "== linked references: every added reference is a link"
+fi
+
+# Evidence citations: every fixture docs/features.md cites, on any line, exists under tests/fixtures/, and each
+# tested row of the converter table cites a fixture pair (an .in.* and an .out.md). A citation is "fixture NN",
+# "fixtures NN, NN" or "fixtures NN and NN"; a backticked `.suffix.md` or `.suffix.html` names the file NN-*.suffix
+# of the fixture cited last before it. The whole file is judged, not only added lines, since a fixture can be
+# renamed or removed under a citation that did not change. A failure of the check itself fails the gate.
+cited=$( python3 -c '
+import glob, re
+converter = "## Markdown through Google\u0027s converter"
+number = re.compile(r"\b[Ff]ixtures?\s+(\d{2}(?:(?:,\s*|,?\s+and\s+)\d{2})*)\b")
+suffix = re.compile(r"`(\.[A-Za-z0-9.-]*\.(?:md|html))`")
+cell = re.compile(r"\|(?=(?:[^`]*`[^`]*`)*[^`]*$)")   # a pipe outside a code span
+def pair(nn):
+    return glob.glob(f"tests/fixtures/{nn}-*.in.*") and glob.glob(f"tests/fixtures/{nn}-*.out.md")
+section = None
+for n, line in enumerate(open("docs/features.md", encoding="utf-8"), 1):
+    if line.startswith("## "):
+        section = line.rstrip("\n")
+    cites = [(m.end(), re.split(r",\s*|\s+and\s+", m.group(1))) for m in number.finditer(line)]
+    numbers = [nn for _, nns in cites for nn in nns]
+    for nn in sorted(set(numbers)):
+        if not glob.glob(f"tests/fixtures/{nn}-*"):
+            print(f"docs/features.md:{n}: fixture {nn} has no file under tests/fixtures/")
+    for m in suffix.finditer(line):
+        before = [nns[-1] for end, nns in cites if end <= m.start()]
+        if before and not glob.glob(f"tests/fixtures/{before[-1]}-*{m.group(1)}"):
+            print(f"docs/features.md:{n}: no fixture {before[-1]} file ends in {m.group(1)}")
+    if section != converter or not line.startswith("|"):
+        continue
+    cells = [c.strip() for c in cell.split(line.strip().strip("|"))]
+    if len(cells) < 3 or cells[0] == "Feature" or cells[0].startswith("---"):
+        continue
+    if cells[1].strip("`").startswith("tested") and not any(pair(nn) for nn in numbers):
+        print(f"docs/features.md:{n}: tested row cites no fixture pair: {cells[0]}")
+' | sort -u ) || { echo "gate: the evidence-citation check could not run"; status=1; }
+if [ -n "$cited" ]; then
+    echo "== evidence citations: docs/features.md cites a fixture that does not exist, or a tested row cites no pair"
+    printf '%s\n' "$cited"
+    status=1
+else
+    echo "== evidence citations: every cited fixture exists; every tested converter row cites a pair"
 fi
 
 if [ "$status" -ne 0 ]; then

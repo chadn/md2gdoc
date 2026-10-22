@@ -36,7 +36,9 @@ touches a Python file or a fixture; over added lines in `.md`, `.py` and `.sh` f
 characters (the evidence folders under [chadkit/work/](../work/), exports kept as returned, excepted) and no em
 dash; and *linked references*: an added line of a `.md` file that names a file or folder of this repository, in
 backticks or not, links to it, so a reader lands on the evidence (the log, the task lines, fenced blocks and the
-evidence folders are exempt). It prints the session id the trailer below needs.
+evidence folders are exempt); and *evidence citations*: every fixture [docs/features.md](../../docs/features.md)
+cites exists under [tests/fixtures/](../../tests/fixtures/), and each `tested` row of its converter table cites
+a fixture pair, so a status rests on files and not on memory. It prints the session id the trailer below needs.
 
 ## The brief, item 2
 
@@ -51,4 +53,5 @@ the id is `$CLAUDE_CODE_SESSION_ID`. The commit carries a second trailer, `Sessi
 ## History
 
 Adopted 2026-10-21 (PT-010) with the shape of smb-reports' local file, at the shared revision current that day; the
-revision followed is always the one the config names.
+revision followed is always the one the config names. The evidence-citation check was added 2026-10-22 (PT-015)
+after the mis-cited-evidence class was confirmed four times (PLR-20261021-05, -07, -08 and PLR-20261022-01).
