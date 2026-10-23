@@ -68,7 +68,7 @@ What survives a round trip, file to Doc to file. `tests/fixtures/` holds the byt
 | Blockquotes | tested | fixture 01; becomes an indented paragraph |
 | Horizontal rules | tested | fixtures 01, 03 |
 | Footnotes | tested | fixture 01; real Docs footnotes |
-| Escaped characters (`\-`, `\[`, `\#`, ...) | workaround | fixtures 03, 04, 07; the normalizer unescapes outside code spans, so a deliberate escape there is dropped on pull unless it keeps a line from becoming a block |
+| Escaped characters (`\-`, `\[`, `\#`, ...) | workaround | fixtures 03, 04, 07; the normalizer unescapes outside code spans, so a deliberate escape there is dropped on pull unless it keeps a line from becoming a block; the export also escapes a dash right after a code span, dropped since PT-008's real run ([chadkit/work/PT-008.md](../chadkit/work/PT-008.md)) |
 | Soft line breaks inside a paragraph or list item | workaround | fixture 06: pushed as hard breaks so the Doc keeps the file's lines; a hard break the file had comes back soft; raw, fixture 03 shows them joined |
 | Text typed in the Docs UI after a bold line | tested | fixture 04; it inherits bold, treated as noise unless local had it |
 | Fenced code blocks (triple backtick) | workaround | fixture 05: a fence at the left margin is pushed as a code run ([design.md](design.md) "Push form", built by PT-005); lost: the Doc shows monospace lines with no code background, the fence style, a trailing blank line |

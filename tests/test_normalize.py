@@ -112,6 +112,10 @@ class Rules(unittest.TestCase):
         self.assertEqual(normalize("\\- not a bullet\n1\\. not a list\n\\# not a heading\na \\- dash\n"),
                          "\\- not a bullet\n1\\. not a list\n\\# not a heading\na - dash\n")
 
+    def test_an_escape_after_a_code_span_is_prose_and_dropped(self):
+        self.assertEqual(normalize("Prove the `drive`\\-scope path\n"), "Prove the `drive`-scope path\n")
+        self.assertEqual(normalize("\\- not a bullet, `code`\\-less\n"), "\\- not a bullet, `code`-less\n")
+
     def test_hard_breaks_go_where_the_doc_would_join_lines(self):
         self.assertEqual(push_form("one\ntwo\n\n- item\n  more\n# H\nthree\n> q\n> r\n| a |\n| b |\n"),
                          "one  \ntwo\n\n- item  \n  more\n# H\nthree\n> q\n> r\n| a |\n| b |\n")

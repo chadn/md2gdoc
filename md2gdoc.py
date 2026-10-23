@@ -154,15 +154,17 @@ def _outside_spans(line: str, rewrite) -> str:
     out: list[str] = []
     pos = 0
     for m in _SPAN.finditer(line):
-        out.append(rewrite(line[pos:m.start()]))
+        out.append(rewrite(line[pos:m.start()], pos == 0))
         out.append(m.group(0))
         pos = m.end()
-    out.append(rewrite(line[pos:]))
+    out.append(rewrite(line[pos:], pos == 0))
     return "".join(out)
 
 
-def _unescape(text: str) -> str:
-    keep = _BLOCK_ESCAPE.match(text)
+def _unescape(text: str, at_line_start: bool = True) -> str:
+    """Drop the export's escapes; one that keeps the line from becoming a block stays, so only at the line's start
+    (after a code span the export escapes a dash too, PT-008's real run, and there it is prose)."""
+    keep = _BLOCK_ESCAPE.match(text) if at_line_start else None
     head, tail = (text[: keep.end()], text[keep.end():]) if keep else ("", text)
     return head + _AUTOLINK.sub(r"\1", _ESCAPE.sub(r"\1", tail))
 
