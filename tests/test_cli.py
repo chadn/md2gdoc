@@ -13,7 +13,8 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from md2gdoc import (  # noqa: E402
-    EXIT_MOVED, EXIT_OK, SCOPE_URL, config_dir, main, normalize, profile_dir, push_form, state_path, token_scope,
+    EXIT_CONFLICT, EXIT_MOVED, EXIT_OK, SCOPE_URL, config_dir, main, merge3, normalize, profile_dir, push_form,
+    state_path, token_scope,
 )
 
 FIXTURES = ROOT / "tests" / "fixtures"
@@ -57,7 +58,7 @@ class FakeDrive:
         self.versions[doc_id] += 1
 
 
-class Commands(unittest.TestCase):
+class _WithDoc(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.md = Path(self.tmp.name) / "tasks.md"
@@ -73,6 +74,8 @@ class Commands(unittest.TestCase):
             code = main(list(argv), drive=lambda account, scope: self.drive)
         return code, out.getvalue(), err.getvalue()
 
+
+class Commands(_WithDoc):
     def test_init_creates_the_doc_and_the_state_file(self):
         code, out, err = self.run_cmd("init", str(self.md))
         self.assertEqual(code, EXIT_OK)
@@ -189,7 +192,7 @@ class Commands(unittest.TestCase):
         with redirect_stdout(out), self.assertRaises(SystemExit) as e:
             main(["--help"])
         self.assertEqual(e.exception.code, 0)
-        for word in ("setup", "client_secret.json", "token.json", ".gdoc.json", "exit codes", "3  refused",
+        for word in ("setup", "client_secret.json", "token.json", ".gdoc.json", "exit codes", "3  refused", "sync FILE",
                      "--account", "--scope", "MD2GDOC_CONFIG_DIR", "MD2GDOC_ACCOUNT", "%APPDATA%", "pip install"):
             self.assertIn(word, out.getvalue())
 
@@ -205,6 +208,156 @@ class Commands(unittest.TestCase):
         with self.assertRaises(SystemExit) as e:
             self.run_cmd("status", str(self.md))
         self.assertIn("no state file", str(e.exception))
+
+
+class Sync(_WithDoc):
+    """`sync` against the fake Drive: both sides merged, conflicts marked, the guard, the re-pull."""
+
+    def setUp(self):
+        super().setUp()
+        self.run_cmd("init", str(self.md))
+        self.drive.calls.clear()
+
+    def edit_local(self, old, new):
+        self.md.write_text(self.md.read_text().replace(old, new))
+
+    def test_in_sync_touches_nothing(self):
+        code, out, _ = self.run_cmd("sync", str(self.md))
+        self.assertEqual((code, self.drive.calls), (EXIT_OK, ["export"]))
+        self.assertIn("in sync", out)
+
+    def test_both_sides_edits_are_merged_written_and_pushed(self):
+        self.edit_local("- [ ] T-001", "- [x] T-001")
+        self.edit_local("- [x] T-003 Done item", "- [x] T-003 Reworded locally, done item")
+        self.drive.edit_in_ui("doc-1", "- [ ] T-002", "- [x] T-002")
+        self.drive.edit_in_ui("doc-1", "## Notes", "- [ ] T-004 typed in the Doc\n\n## Notes")
+        code, out, err = self.run_cmd("sync", str(self.md), "--dry-run")
+        self.assertEqual((code, self.drive.calls), (EXIT_OK, ["export"]))
+        self.assertIn("+- [x] T-002", out)
+        self.assertIn("+- [x] T-001", out)
+        code, out, err = self.run_cmd("sync", str(self.md))
+        self.assertEqual((code, err), (EXIT_OK, ""))
+        text = self.md.read_text()
+        for line in ("- [x] T-001", "- [x] T-002", "- [x] T-003 Reworded locally", "- [ ] T-004 typed in the Doc"):
+            self.assertIn(line, text)
+        self.assertEqual(self.drive.docs["doc-1"], push_form(text))
+        self.assertEqual(self.drive.calls, ["export", "export", "export", "update", "export"])  # the guard export
+        state = json.loads(state_path(self.md).read_text())
+        self.assertEqual((state["version"], state["local"], state["snapshot"]), (8, text, text))
+        code, out, _ = self.run_cmd("sync", str(self.md))
+        self.assertIn("in sync", out)
+
+    def test_a_doc_only_change_is_pulled_and_nothing_pushed(self):
+        self.drive.edit_in_ui("doc-1", "- [ ] T-002", "- [x] T-002")
+        code, out, _ = self.run_cmd("sync", str(self.md))
+        self.assertEqual((code, self.drive.calls), (EXIT_OK, ["export"]))
+        self.assertIn("pulled, nothing to push", out)
+        self.assertIn("- [x] T-002", self.md.read_text())
+        self.assertEqual(json.loads(state_path(self.md).read_text())["version"], 6)
+
+    def test_a_conflict_is_written_with_markers_exit_2_and_nothing_pushed(self):
+        self.edit_local("Call the vendor", "Call the vendor, ours")
+        self.drive.edit_in_ui("doc-1", "Call the vendor", "Call the vendor, theirs")
+        code, out, err = self.run_cmd("sync", str(self.md), "--dry-run")
+        self.assertEqual(code, EXIT_CONFLICT)
+        self.assertIn("would write", err)
+        self.assertIn("Call the vendor, ours", self.md.read_text())
+        self.assertNotIn("<<<<<<<", self.md.read_text())
+        code, out, err = self.run_cmd("sync", str(self.md))
+        self.assertEqual(code, EXIT_CONFLICT)
+        self.assertIn("conflict: 1 place", err)
+        self.assertNotIn("update", self.drive.calls)
+        self.assertIn("<<<<<<< api-edited\n- [ ] T-002 Call the vendor, ours (due 2026-10-24)\n=======\n"
+                      "- [ ] T-002 Call the vendor, theirs (due 2026-10-24)\n>>>>>>> hand-edited\n",
+                      self.md.read_text())
+        code, _, err = self.run_cmd("sync", str(self.md))
+        self.assertEqual(code, EXIT_CONFLICT)
+        self.assertIn("holds conflict markers", err)
+        self.assertEqual(self.drive.calls, ["export", "export"])
+
+    def test_the_converters_own_blank_line_is_never_a_conflict(self):
+        self.md.write_text(self.md.read_text() + "- [ ] T-004 right after the paragraph\n")
+        self.run_cmd("sync", str(self.md))
+        state = json.loads(state_path(self.md).read_text())
+        self.assertNotEqual(state["snapshot"], state["local"])  # the Doc gained a blank line before T-004
+        self.drive.edit_in_ui("doc-1", "a_snake_case word.", "a_snake_case word, edited in the Doc.")
+        code, out, err = self.run_cmd("sync", str(self.md))
+        self.assertEqual((code, err), (EXIT_OK, ""))
+        self.assertIn("pulled, nothing to push", out)
+        self.assertIn("edited in the Doc.", self.md.read_text())
+        self.edit_local("Last synced: 2026-10-21", "Last synced: 2026-10-22")
+        code, out, err = self.run_cmd("sync", str(self.md))
+        self.assertEqual((code, err), (EXIT_OK, ""))
+        self.assertIn("Last synced: 2026-10-22", self.drive.docs["doc-1"])
+
+    def test_push_refuses_a_file_with_markers(self):
+        self.md.write_text(self.md.read_text() + "<<<<<<< api-edited\nx\n=======\ny\n>>>>>>> hand-edited\n")
+        code, _, err = self.run_cmd("push", str(self.md))
+        self.assertEqual((code, self.drive.calls), (EXIT_CONFLICT, []))
+        self.assertIn("holds conflict markers", err)
+
+    def test_the_push_is_refused_when_the_doc_moves_during_the_sync(self):
+        self.edit_local("- [ ] T-001", "- [x] T-001")
+        drive = self.drive
+
+        def version(doc_id):  # a UI edit lands between the export and the push, once; the version lags
+            if "- [ ] T-002" in drive.docs[doc_id]:
+                drive.docs[doc_id] = drive.docs[doc_id].replace("- [ ] T-002", "- [x] T-002")
+            return 5
+
+        drive.version = version
+        code, _, err = self.run_cmd("sync", str(self.md))
+        self.assertEqual(code, EXIT_MOVED)
+        self.assertIn("changed while syncing", err)
+        self.assertNotIn("update", drive.calls)
+        self.assertIn("- [x] T-001", self.md.read_text())  # the merge was written; the next sync pushes it
+
+
+class Merge(unittest.TestCase):
+    base = "# T\n\n- [ ] a\n- [ ] b\n- [ ] c\n"
+
+    def test_one_sided_changes_and_ticks_are_taken(self):
+        ours = self.base.replace("[ ] a", "[x] a")
+        theirs = self.base.replace("[ ] c", "[x] c").replace("- [ ] b", "- [ ] b, edited")
+        self.assertEqual(merge3(self.base, ours, theirs), ("# T\n\n- [x] a\n- [ ] b, edited\n- [x] c\n", 0))
+        self.assertEqual(merge3(self.base, self.base, theirs), (theirs, 0))
+        self.assertEqual(merge3(self.base, ours, ours), (ours, 0))
+
+    def test_lines_added_at_the_same_place_on_both_sides_are_all_kept(self):
+        self.assertEqual(merge3(self.base, self.base + "- [ ] d\n", self.base + "- [ ] e\n"),
+                         (self.base + "- [ ] d\n- [ ] e\n", 0))
+        self.assertEqual(merge3(self.base, self.base + "d\n", self.base + "d\ne\n"), (self.base + "d\ne\n", 0))
+        self.assertEqual(merge3(self.base, self.base + "d\ne\n", self.base + "d\n"), (self.base + "d\ne\n", 0))
+        self.assertEqual(merge3(self.base, self.base + "d\ne\n", self.base + "d\nf\n"),
+                         (self.base + "d\ne\nf\n", 0))
+        self.assertEqual(merge3(self.base, self.base + "d\ne\n", self.base + "f\ne\n"),
+                         (self.base + "d\ne\nf\n", 0))
+        self.assertEqual(merge3("", "Title\n=======\n", "Title\n=======\n"), ("Title\n=======\n", 0))
+
+    def test_neighbouring_lines_changed_on_each_side_are_no_conflict(self):
+        ours = self.base.replace("[ ] a", "[x] a").replace("[ ] c", "[x] c")
+        theirs = self.base.replace("- [ ] b", "- [x] b").replace("[ ] c", "[x] c")
+        self.assertEqual(merge3(self.base, ours, theirs), ("# T\n\n- [x] a\n- [x] b\n- [x] c\n", 0))
+        merged, n = merge3(self.base, ours, self.base.replace("- [ ] a", "- [ ] a, theirs"))
+        self.assertEqual(n, 1)
+        self.assertIn("<<<<<<< api-edited\n- [x] a\n=======\n- [ ] a, theirs\n>>>>>>> hand-edited\n- [ ] b\n", merged)
+
+    def test_lines_added_beside_a_changed_line_are_kept_around_it(self):
+        ours = self.base.replace("- [ ] c", "- [x] c")
+        self.assertEqual(merge3(self.base, ours, self.base + "- [ ] d\n"), (ours + "- [ ] d\n", 0))
+        self.assertEqual(merge3(self.base, ours, self.base.replace("- [ ] c", "- [ ] b2\n- [ ] c")),
+                         (ours.replace("- [x] c", "- [ ] b2\n- [x] c"), 0))
+        gone = self.base.replace("- [ ] c\n", "")
+        self.assertEqual(merge3(self.base, gone, self.base + "- [ ] d\n"), (gone + "- [ ] d\n", 0))
+
+    def test_a_deletion_against_an_edit_is_a_conflict(self):
+        merged, n = merge3(self.base, self.base.replace("- [ ] b\n", ""), self.base.replace("b", "b edited"))
+        self.assertEqual(n, 1)
+        self.assertIn("<<<<<<< api-edited\n=======\n- [ ] b edited\n>>>>>>> hand-edited\n", merged)
+
+    def test_the_same_deletion_on_both_sides_is_not_a_conflict(self):
+        gone = self.base.replace("- [ ] b\n", "")
+        self.assertEqual(merge3(self.base, gone, gone), (gone, 0))
 
 
 class Profiles(unittest.TestCase):

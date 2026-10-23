@@ -10,8 +10,8 @@
 """md2gdoc: two-way sync between a markdown file and a native Google Doc.
 
 This file is the whole tool. The text layer, `normalize()` and `push_form()`, follows docs/design.md "Script
-design" with tests/fixtures/ as its evidence (PT-005). The commands `init`, `pull`, `push` and `status` and the
-state file follow the same section (PT-006); `sync` is PT-007. The Google client libraries are imported only on
+design" with tests/fixtures/ as its evidence (PT-005). The commands `init`, `pull`, `push`, `sync` and `status`,
+the state file and the merge follow the same section (PT-006, PT-007). The Google client libraries are imported only on
 the auth path, so the text layer and the tests run without them.
 """
 
@@ -249,8 +249,88 @@ def _run_line(line: str) -> bool:
     return _span_line(line) is not None or (line != "" and line.strip(" \t") == "")
 
 
-# The commands. Exit codes: 0 done, 1 usage, setup or Google error, 2 a conflict (sync, PT-007), 3 the Doc
-# changed since the last sync so a push was refused.
+# The merge (sync): three-way on normalized lines, base = the snapshot, ours = the file, theirs = the Doc.
+
+OURS, THEIRS = "api-edited", "hand-edited"  # the conflict-marker labels (language.md)
+_MARKER = re.compile(r"^(<{7} " + OURS + r"|>{7} " + THEIRS + r")$")
+
+
+def merge3(base: str, ours: str, theirs: str) -> tuple[str, int]:
+    """Merge two edits of `base`; returns the text and the number of conflicts, each marked in the text.
+
+    Lines that match on all three sides are sync points; between two of them, a chunk changed on one side only
+    takes that side, a chunk changed the same way on both takes it once, and a chunk changed differently on both
+    is a conflict: both versions kept, `<<<<<<< api-edited` (the file) above, `>>>>>>> hand-edited` (the Doc)
+    below. Where git would stop, two more rules keep a task list flowing, since neither loses a line: a chunk that
+    kept its line count on both sides is merged line by line, so a box ticked on each of two neighbouring lines is no
+    conflict; and lines one side added right before or after a chunk the other side changed are kept around the
+    change, as are lines both sides added at the same place, the file's first. A line deleted on one side and edited
+    on the other is a conflict, since the deletion is a change too.
+    """
+    a, b, c = base.split("\n"), ours.split("\n"), theirs.split("\n")
+    out: list[str] = []
+    conflicts = 0
+    ia = ib = ic = 0
+    for ja, jb, jc, size in _sync_regions(a, b, c):
+        lines, n = _merge_chunk(a[ia:ja], b[ib:jb], c[ic:jc])
+        out.extend(lines + a[ja:ja + size])
+        conflicts += n
+        ia, ib, ic = ja + size, jb + size, jc + size
+    return "\n".join(out), conflicts
+
+
+def _merge_chunk(x: list[str], y: list[str], z: list[str]) -> tuple[list[str], int]:
+    """Merge one chunk between two sync points: base `x`, the file's `y`, the Doc's `z`; see `merge3`."""
+    if y == x:
+        return z, 0
+    if z == x or y == z:
+        return y, 0
+    if not x:  # both sides added lines here: all kept, the file's first, what they share once
+        p = next((i for i, (u, v) in enumerate(zip(y, z)) if u != v), min(len(y), len(z)))
+        s = next((i for i, (u, v) in enumerate(zip(reversed(y[p:]), reversed(z[p:]))) if u != v),
+                 min(len(y), len(z)) - p)
+        return y + z[p:len(z) - s], 0
+    if len(x) == len(y) == len(z) > 1:
+        out: list[str] = []
+        conflicts = 0
+        for lines in zip(x, y, z):
+            merged, n = _merge_chunk(*([line] for line in lines))
+            out.extend(merged)
+            conflicts += n
+        return out, conflicts
+    for mine, other in ((y, z), (z, y)):  # one side added lines at an end of the chunk; the other changed it
+        if len(mine) > len(x) and mine[:len(x)] == x:
+            return other + mine[len(x):], 0
+        if len(mine) > len(x) and mine[len(mine) - len(x):] == x:
+            return mine[:len(mine) - len(x)] + other, 0
+    return [f"<<<<<<< {OURS}", *y, "=======", *z, f">>>>>>> {THEIRS}"], 1
+
+
+def _sync_regions(a: list[str], b: list[str], c: list[str]) -> list[tuple[int, int, int, int]]:
+    """(i, j, k, size): a[i:i+size] == b[j:j+size] == c[k:k+size], in order; the last one is empty, at the ends."""
+    ab = difflib.SequenceMatcher(None, a, b, autojunk=False).get_matching_blocks()
+    ac = difflib.SequenceMatcher(None, a, c, autojunk=False).get_matching_blocks()
+    regions: list[tuple[int, int, int, int]] = []
+    x = y = 0
+    while x < len(ab) - 1 and y < len(ac) - 1:
+        (i1, j1, n1), (i2, k2, n2) = ab[x], ac[y]
+        lo, hi = max(i1, i2), min(i1 + n1, i2 + n2)
+        if lo < hi:
+            regions.append((lo, j1 + lo - i1, k2 + lo - i2, hi - lo))
+        if i1 + n1 < i2 + n2:
+            x += 1
+        else:
+            y += 1
+    regions.append((len(a), len(b), len(c), 0))
+    return regions
+
+
+def has_markers(text: str) -> bool:
+    return any(_MARKER.match(line) for line in text.split("\n"))
+
+
+# The commands. Exit codes: 0 done, 1 usage, setup or Google error, 2 a conflict (sync), 3 the Doc changed since
+# the last sync so a push was refused.
 
 EXIT_OK, EXIT_ERROR, EXIT_CONFLICT, EXIT_MOVED = 0, 1, 2, 3
 STATE_SUFFIX = ".gdoc.json"
@@ -260,13 +340,16 @@ CLIENT_FILE, TOKEN_FILE = "client_secret.json", "token.json"
 
 HELP = f"""\
 Two-way sync between one markdown file and one native Google Doc. Either side may add, edit, or tick a line;
-`sync` (not yet built) merges both, `push` and `pull` move one way.
+`sync` merges both, `push` and `pull` move one way.
 
 commands:
   init FILE      create the Doc from FILE and write the state file; prints the Doc's link
   pull FILE      export the Doc, undo the converter's noise, write FILE; refused when FILE changed since the
                  last sync, unless --force
   push FILE      replace the Doc's content from FILE; refused when the Doc changed since the last sync
+  sync FILE      merge both sides' changes since the last sync, write FILE, push the Doc; a line changed
+                 differently on both sides is written to FILE between <<<<<<< api-edited (FILE's version) and
+                 >>>>>>> hand-edited (the Doc's), nothing is pushed, and the exit code is 2
   status FILE    which side changed since the last sync
   --dry-run      on any command: say what would happen, change nothing (status: local side only, no network)
   --account NAME on any command: the profile to use (default: $MD2GDOC_ACCOUNT, else `default`)
@@ -295,8 +378,10 @@ files:
                        else ~/.config/md2gdoc
 
 exit codes:
-  0  done            1  usage, setup, or Google error      2  conflict, both sides changed one line (sync)
-  3  refused: push when the Doc changed since the last sync, pull when FILE did; sync, or pull --force
+  0  done            1  usage, setup, or Google error
+  2  conflict: both sides changed one line (sync), or FILE still holds conflict markers (sync, push)
+  3  refused: push when the Doc changed since the last sync, pull when FILE did (sync, or pull --force);
+     sync when the Doc changed between its export and its push (run it again)
 """
 
 
@@ -450,6 +535,9 @@ def cmd_push(args, drive) -> int:
     md = Path(args.file)
     state = load_state(md)
     text = read_md(md)
+    if has_markers(text):
+        print(f"push refused: {md} holds conflict markers from the last sync; resolve them first", file=sys.stderr)
+        return EXIT_CONFLICT
     local = normalize(text)
     if local == state["local"]:
         print(f"nothing to push: {md} matches the last sync")
@@ -482,6 +570,56 @@ def cmd_status(args, drive) -> int:
     return EXIT_OK
 
 
+def cmd_sync(args, drive) -> int:
+    md = Path(args.file)
+    state = load_state(md)
+    text = read_md(md)
+    if has_markers(text):
+        print(f"sync refused: {md} holds conflict markers from the last sync; resolve them first", file=sys.stderr)
+        return EXIT_CONFLICT
+    local = normalize(text)
+    d = drive(args.account, args.scope)
+    theirs = normalize(d.export(state["doc_id"]), text)
+    version = d.version(state["doc_id"])
+    if local == state["local"] and theirs == state["snapshot"]:
+        print(f"in sync: neither {md} nor the Doc changed since the last sync")
+        return EXIT_OK
+    # One side unchanged: the other side is the result, so the converter's own differences between the two
+    # texts of the last sync (features.md, the blank line before a list) never read as a conflict.
+    if local == state["local"]:
+        merged, conflicts = theirs, 0
+    elif theirs == state["snapshot"]:
+        merged, conflicts = local, 0
+    else:
+        merged, conflicts = merge3(state["snapshot"], local, theirs)
+    if conflicts:
+        if args.dry_run:
+            print(diff(local, merged, f"{md} (local)", f"{md} (merged, with markers)"))
+        else:
+            md.write_text(merged, encoding="utf-8")
+        print(f"conflict: {conflicts} place{'s' if conflicts > 1 else ''} changed differently on both sides; "
+              f"{'would write' if args.dry_run else 'wrote'} both versions to {md} between "
+              f"<<<<<<< {OURS} and >>>>>>> {THEIRS}; nothing pushed", file=sys.stderr)
+        return EXIT_CONFLICT
+    if args.dry_run:
+        print(diff(local, merged, f"{md} (local)", f"{md} (merged)") or f"{md} would not change")
+        print(diff(theirs, merged, f"{md} (Doc)", f"{md} (merged)") or "the Doc would not change")
+        return EXIT_OK
+    if merged != local:
+        md.write_text(merged, encoding="utf-8")
+    if merged == theirs:
+        state.update(version=version, snapshot=theirs, local=merged)
+        save_state(md, state)
+        print(f"synced {state['link']}: pulled, nothing to push")
+        return EXIT_OK
+    # The push guard is a fresh export, as in push: the version is no proof of anything (design.md, item 2).
+    if normalize(d.export(state["doc_id"]), text) != theirs:
+        print("push refused: the Doc changed while syncing; run sync again", file=sys.stderr)
+        return EXIT_MOVED
+    d.update(state["doc_id"], push_form(merged))
+    return _record(md, merged, {"doc_id": state["doc_id"], "link": state["link"]}, d, "synced")
+
+
 def _record(md: Path, text: str, state: dict, d: Drive, verb: str) -> int:
     """After a create or an update: export once more and store what the Doc now holds as the snapshot."""
     snapshot = normalize(d.export(state["doc_id"]), text)
@@ -507,6 +645,7 @@ def main(argv: list[str] | None = None, drive=connect) -> int:
     for name, fn, what in (("init", cmd_init, "create the Doc and the state file"),
                            ("pull", cmd_pull, "write the Doc's content to the file"),
                            ("push", cmd_push, "replace the Doc's content from the file"),
+                           ("sync", cmd_sync, "merge both sides' changes, write the file, push the Doc"),
                            ("status", cmd_status, "which side changed")):
         p = sub.add_parser(name, help=what)
         p.add_argument("file", help="the markdown file")

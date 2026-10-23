@@ -15,10 +15,11 @@ uv run --script md2gdoc.py init tasks.md     # create the Doc, write tasks.md.gd
 uv run --script md2gdoc.py status tasks.md   # which side changed since the last sync
 uv run --script md2gdoc.py push tasks.md     # replace the Doc from the file; refused if the Doc moved
 uv run --script md2gdoc.py pull tasks.md     # write the Doc's content to the file
+uv run --script md2gdoc.py sync tasks.md     # merge both sides' changes; a conflict is marked in the file, exit 2
 uv run --script md2gdoc.py --help            # setup, files, exit codes; --dry-run on every command
 ```
 
-Setup, once: [docs/setup.md](docs/setup.md). `sync`, the three-way merge, is PT-007.
+Setup, once: [docs/setup.md](docs/setup.md).
 
 ## Layout
 

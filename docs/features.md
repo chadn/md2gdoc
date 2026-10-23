@@ -20,16 +20,16 @@ Converter rows describe what Google's markdown import and export do, which the s
 | `pull`: export the Doc as markdown, normalize, write the file | tested | [tests/test_cli.py](../tests/test_cli.py); the real run in [chadkit/work/PT-006.md](../chadkit/work/PT-006.md) |
 | `push`: replace the whole Doc from the file, same link | tested | [tests/test_cli.py](../tests/test_cli.py); the real run in [chadkit/work/PT-006.md](../chadkit/work/PT-006.md); in-place update PT-003's probe |
 | `status`: what changed on each side since the last sync | tested | [tests/test_cli.py](../tests/test_cli.py); compares the normalized export, since a matching `version` is not proof |
-| `sync`: pull, three-way merge against the snapshot, push | planned | PT-007 |
+| `sync`: pull, three-way merge against the snapshot, push | tested | [tests/test_cli.py](../tests/test_cli.py); the real run in [chadkit/work/PT-007.md](../chadkit/work/PT-007.md) |
 | `--dry-run` on every command | tested | [tests/test_cli.py](../tests/test_cli.py); `status --dry-run` reads the local side only |
 | `--help` that covers setup, files, and exit codes | tested | [tests/test_cli.py](../tests/test_cli.py) |
 | State file next to the markdown file: Doc id, link, Drive `version`, snapshot, the file's text at last sync | tested | `FILE.gdoc.json`; [tests/test_cli.py](../tests/test_cli.py) |
 | Normalizer: reverse Google's export noise so both sides compare | tested | `normalize()`, fixtures 04, 05, 06; rules in [design.md](design.md) |
 | Push form: rewrite the file for Google's import (code runs, hard breaks) | tested | `push_form()`, fixtures 05, 06; rules in [design.md](design.md) |
-| Three-way merge on normalized lines; added lines kept, one-sided edits taken | planned | PT-007 |
-| A checkbox ticked on one side wins over an untouched box | planned | PT-007 |
-| A line deleted on one side and edited on the other is a conflict | planned | PT-007 |
-| Conflict markers `api-edited` / `hand-edited`, exit 2, no push | planned | PT-007 |
+| Three-way merge on normalized lines; added lines kept, one-sided edits taken | tested | `merge3()`; [tests/test_cli.py](../tests/test_cli.py); lines added at the same place on both sides are all kept, the file's first |
+| A checkbox ticked on one side wins over an untouched box | tested | [tests/test_cli.py](../tests/test_cli.py); a one-sided change like any other |
+| A line deleted on one side and edited on the other is a conflict | tested | [tests/test_cli.py](../tests/test_cli.py) |
+| Conflict markers `api-edited` / `hand-edited`, exit 2, no push | tested | [tests/test_cli.py](../tests/test_cli.py); written to the file, and a file still holding them is refused |
 | Push guard: normalized-export comparison, exit 3 when the Doc moved; `version` shown, never trusted alone, never `revisionId` | tested | [tests/test_cli.py](../tests/test_cli.py); a matching `version` is not proof ([chadkit/work/PT-004.md](../chadkit/work/PT-004.md)); `pull` has the mirror guard, `--force` lifts it |
 | Skip a push when normalized content is unchanged, so no empty revisions | tested | [tests/test_cli.py](../tests/test_cli.py) |
 | Re-pull after a successful push and store the new `version` and snapshot | tested | [tests/test_cli.py](../tests/test_cli.py); after `init` too |
@@ -83,4 +83,5 @@ What survives a round trip, file to Doc to file. `tests/fixtures/` holds the byt
 | Images | idea | via `<img src>` in an HTML upload or `insertInlineImage`; not tested |
 | Comments and suggestions in the Doc | not possible | lost on a whole-document push; PT-009 is the remedy |
 | A list item right after a paragraph line, no blank line between | idea | the real run in [chadkit/work/PT-006.md](../chadkit/work/PT-006.md): the export puts a blank line before the list, so after a push the Doc's text differs from the file's until `pull --force` writes the blank line; a fixture and a normalizer rule could reverse it |
+| A loose list (a blank line between items) | idea | PT-007's [loose-list probe](../chadkit/work/PT-007/loose-list-probe.out.txt): the export puts a whitespace-only hard-break line after every item, which the normalizer reads as a blank line, so the whole list comes back loose and stays so; a tight list is stable over three round trips ([roundtrips probe](../chadkit/work/PT-007/roundtrips-probe.out.txt)); PT-023 may pin it |
 | Nested checkbox under a checkbox at deeper levels | tested | fixture 08: a child's indent is its parent's content column (6 under a checkbox, 2 under a bullet, 3 under an ordered item), and the normalizer reads levels relative to the open items |

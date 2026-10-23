@@ -75,8 +75,8 @@ how far the current state has got; where the two differ, the end state wins and 
 ## Script design
 
 - Subcommands: `init` (create the Doc from the markdown file, write the state file), `pull`, `push`, `sync`,
-  `status`, each with `--dry-run`. `--help` must explain setup, files, and exit codes. Built by PT-006 except
-  `sync`; `--account NAME` picks a profile, a folder under the config directory holding that account's client file
+  `status`, each with `--dry-run`. `--help` must explain setup, files, and exit codes. Built by PT-006 and PT-007;
+  `--account NAME` picks a profile, a folder under the config directory holding that account's client file
   and token, `--scope` chooses `drive.file` or `drive` at the profile's first login and the token remembers it
   (PD-002, PT-020).
 - State file next to the markdown (for example `tasks.md.gdoc.json`): Doc id, link, Drive `version` at last sync,
@@ -119,16 +119,27 @@ how far the current state has got; where the two differ, the end state wins and 
 - Merge: three-way on normalized lines, base = snapshot, ours = local file, theirs = Doc export. Added lines on
   either side are kept; a line changed on one side only takes that change; a checkbox ticked on one side wins
   over an untouched box. A line deleted on one side and edited on the other is a conflict, not a silent delete.
-  Nothing in the Doc outside the markdown's content needs to survive a push (PD-001). Recovery when a merge goes
-  wrong is history on each side: git for the file, Drive version history for the Doc, which is what PG-01 rests on.
+  Lines added at the same place on both sides are all kept, the file's first, since nothing is lost that way; git
+  would call that a conflict. Nothing in the Doc outside the markdown's content needs to survive a push (PD-001).
+  Recovery when a merge goes wrong is history on each side: git for the file, Drive version history for the Doc,
+  which is what PG-01 rests on. The merge is `merge3()` in [md2gdoc.py](../md2gdoc.py): pure Python on
+  `difflib` matching blocks, no `git merge-file` (gdoc-sync's first choice, below), so it runs the same on every
+  desktop with nothing installed (PT-007). The file is written only when the merge changed it, and then in
+  normalized form, as `pull` writes it.
 - True conflict (same line changed differently on both sides): keep both lines, marked
-  `<<<<<<< api-edited` ... `=======` ... `>>>>>>> hand-edited`, exit code 2, no push.
+  `<<<<<<< api-edited` ... `=======` ... `>>>>>>> hand-edited`, written to the file, exit code 2, no push; a file
+  that still holds a marker line is refused with exit 2 until it is resolved.
 - Push guard: before `files.update`, export and compare normalized text to the snapshot; abort (exit 3) if the
   content moved. The Drive `version` is stored and shown but never trusted alone, since a match is not proof
   ("What is not proven", item 2; PT-007 may let it skip the export once PT-018 reads the UI case). `pull` has the
   mirror guard on the file, lifted by `--force`. Skip the push when the file's normalized text is what the last
   sync sent, so no empty revisions. Do not use `revisionId` (see [similar.md](similar.md)).
-- After a successful push, pull once more and store the new `version` and snapshot.
+- After a successful push, pull once more and store the new `version` and snapshot. In `sync` the guard is a
+  second export right before the push, compared to the one the merge read: a Doc that changed meanwhile refuses the
+  push with exit 3, and the merge already written to the file waits for the next run. The `version` is not
+  consulted, since a UI edit moves it late (item 2). When one side is unchanged since the last sync the other side
+  is the result without a merge, so the converter's own difference between the two stored texts (the blank line
+  before a list, [features.md](features.md)) never reads as a conflict.
 
 ## Whole-document replace: must every push replace the Doc?
 

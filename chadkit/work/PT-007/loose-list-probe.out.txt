@@ -1,0 +1,86 @@
+--- after create raw ---
+# **Shared Tasks**
+
+Last synced: 2026-10-21
+
+## **Open**
+
+- [ ] T-001 \[PG-003\] \[\#repo,\#spike\] Prove in-place update keeps the link \- see [https\://example.com/doc](https://example.com/doc)<HB>
+- [ ] T-002 Call the vendor (due 2026-10-24)<HB>
+      - [ ] sub-task with 4-space indent<HB>
+- [x] T-003 Done item with `inline code` and **bold**
+
+## **Notes**
+
+Plain paragraph with a \- dash, an & ampersand, 50% and a\_snake\_case word.
+--- sending ---
+# Shared Tasks
+
+Last synced: 2026-10-21
+
+## Open
+
+- [ ] T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc
+- [x] T-002 Call the vendor (due 2026-10-24)
+    - [ ] sub-task with 4-space indent
+- [x] T-003 Done item with `inline code` and **bold**
+
+## Notes
+
+Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word.
+
+--- after edit '- [ ] T-002' raw ---
+# **Shared Tasks**
+
+Last synced: 2026-10-21
+
+## **Open**
+
+- [ ] T-001 \[PG-003\] \[\#repo,\#spike\] Prove in-place update keeps the link \- see [https\://example.com/doc](https://example.com/doc)<HB>
+- [x] T-002 Call the vendor (due 2026-10-24)<HB>
+      - [ ] sub-task with 4-space indent<HB>
+- [x] T-003 Done item with `inline code` and **bold**
+
+## **Notes**
+
+Plain paragraph with a \- dash, an & ampersand, 50% and a\_snake\_case word.
+--- sending ---
+# Shared Tasks
+
+Last synced: 2026-10-21
+
+## Open
+
+- [ ] T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc
+- [x] T-002 Call the vendor (due 2026-10-24)
+    - [ ] sub-task with 4-space indent
+- [x] T-003 Done item with `inline code` and **bold**
+
+- [ ] T-004 typed outside the script
+
+## Notes
+
+Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word.
+
+--- after edit '## Notes' raw ---
+# **Shared Tasks**
+
+Last synced: 2026-10-21
+
+## **Open**
+
+- [ ] T-001 \[PG-003\] \[\#repo,\#spike\] Prove in-place update keeps the link \- see [https\://example.com/doc](https://example.com/doc)<HB>
+      <HB>
+- [x] T-002 Call the vendor (due 2026-10-24)<HB>
+      <HB>
+      - [ ] sub-task with 4-space indent
+
+    <HB>
+
+- [x] T-003 Done item with `inline code` and **bold**<HB>
+      <HB>
+- [ ] T-004 typed outside the script
+
+## **Notes**
+
+Plain paragraph with a \- dash, an & ampersand, 50% and a\_snake\_case word.

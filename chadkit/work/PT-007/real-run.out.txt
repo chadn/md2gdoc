@@ -1,0 +1,116 @@
+$ uv run --script md2gdoc.py init tasks.md --name md2gdoc PT-007 run
+created https://docs.google.com/document/d/<doc-id>/edit?usp=drivesdk
+exit 0
+$ uv run --script md2gdoc.py sync tasks.md
+in sync: neither tasks.md nor the Doc changed since the last sync
+exit 0
+# local: tick T-001, reword T-003; outside the script: tick T-002, add T-004 after T-003
+$ uv run --script chadkit/work/PT-007/outside.py <repo> edit <doc-id> - [ ] T-002 - [x] T-002
+outside edit: '- [ ] T-002' -> '- [x] T-002', version 7
+exit 0
+$ uv run --script chadkit/work/PT-007/outside.py <repo> edit <doc-id> and **bold** and **bold**
+- [ ] T-004 typed outside the script
+outside edit: 'and **bold**' -> 'and **bold**\n- [ ] T-004 typed outside the script', version 8
+exit 0
+$ uv run --script md2gdoc.py sync tasks.md --dry-run
+--- tasks.md (local)
++++ tasks.md (merged)
+@@ -5,9 +5,10 @@
+ ## Open
+ 
+ - [x] T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc
+-- [ ] T-002 Call the vendor (due 2026-10-24)
++- [x] T-002 Call the vendor (due 2026-10-24)
+     - [ ] sub-task with 4-space indent
+ - [x] T-003 Reworded locally, done item with `inline code` and **bold**
++- [ ] T-004 typed outside the script
+ 
+ ## Notes
+ 
+
+--- tasks.md (Doc)
++++ tasks.md (merged)
+@@ -4,10 +4,10 @@
+ 
+ ## Open
+ 
+-- [ ] T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc
++- [x] T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc
+ - [x] T-002 Call the vendor (due 2026-10-24)
+     - [ ] sub-task with 4-space indent
+-- [x] T-003 Done item with `inline code` and **bold**
++- [x] T-003 Reworded locally, done item with `inline code` and **bold**
+ - [ ] T-004 typed outside the script
+ 
+ ## Notes
+
+exit 0
+$ uv run --script md2gdoc.py sync tasks.md
+synced https://docs.google.com/document/d/<doc-id>/edit?usp=drivesdk
+exit 0
+$ cat tasks.md
+# Shared Tasks
+
+Last synced: 2026-10-21
+
+## Open
+
+- [x] T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc
+- [x] T-002 Call the vendor (due 2026-10-24)
+    - [ ] sub-task with 4-space indent
+- [x] T-003 Reworded locally, done item with `inline code` and **bold**
+- [ ] T-004 typed outside the script
+
+## Notes
+
+Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word.
+exit 0
+$ uv run --script md2gdoc.py status tasks.md
+tasks.md: unchanged since the last sync
+Doc https://docs.google.com/document/d/<doc-id>/edit?usp=drivesdk: unchanged (version 9 -> 9)
+exit 0
+# local: T-002 'vendor' -> 'vendor, ours'; outside the script: 'vendor' -> 'vendor, theirs'
+$ uv run --script chadkit/work/PT-007/outside.py <repo> edit <doc-id> Call the vendor Call the vendor, theirs
+outside edit: 'Call the vendor' -> 'Call the vendor, theirs', version 10
+exit 0
+$ uv run --script md2gdoc.py sync tasks.md
+conflict: 1 place changed differently on both sides; wrote both versions to tasks.md between <<<<<<< api-edited and >>>>>>> hand-edited; nothing pushed
+exit 2
+$ cat tasks.md
+# Shared Tasks
+
+Last synced: 2026-10-21
+
+## Open
+
+- [x] T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc
+<<<<<<< api-edited
+- [x] T-002 Call the vendor, ours (due 2026-10-24)
+=======
+- [x] T-002 Call the vendor, theirs (due 2026-10-24)
+>>>>>>> hand-edited
+    - [ ] sub-task with 4-space indent
+- [x] T-003 Reworded locally, done item with `inline code` and **bold**
+- [ ] T-004 typed outside the script
+
+## Notes
+
+Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word.
+exit 0
+$ uv run --script md2gdoc.py sync tasks.md
+sync refused: tasks.md holds conflict markers from the last sync; resolve them first
+exit 2
+$ uv run --script md2gdoc.py push tasks.md
+push refused: tasks.md holds conflict markers from the last sync; resolve them first
+exit 2
+# resolved by hand: the Doc's version kept
+$ uv run --script md2gdoc.py sync tasks.md
+synced https://docs.google.com/document/d/<doc-id>/edit?usp=drivesdk: pulled, nothing to push
+exit 0
+$ uv run --script md2gdoc.py status tasks.md
+tasks.md: unchanged since the last sync
+Doc https://docs.google.com/document/d/<doc-id>/edit?usp=drivesdk: unchanged (version 10 -> 10)
+exit 0
+$ uv run --script chadkit/work/PT-007/outside.py <repo> trash <doc-id>
+trashed the scratch Doc
+exit 0
