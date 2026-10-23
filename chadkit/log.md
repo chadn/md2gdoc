@@ -147,3 +147,10 @@
 - Related: PT-025,PG-02,PD-002,PT-023,PT-024
 - Tags: #qa-gate
 
+### PLR-20261022-14 t_qa [PT-020,PT-025,PT-026,PG-02] PT-025 outcome: the first CI run on GitHub
+
+- Date: 2026-10-22
+- Summary: good: the first push of dev_tasks to GitHub ran .github/workflows/tests.yml, run 39879796913, and all nine jobs passed, Ubuntu, macOS and Windows on Python 3.11, 3.13 and 3.14, 53 tests each; the Windows jobs are the first run of anything in this repository on Windows, so the CRLF, UTF-8 and %APPDATA% code paths PT-020 and PT-025 pinned with tests now have a real run behind them; the features row for the three platforms still says built and moves to tested with the next change to docs/features.md, PT-026's
+- Related: PT-025,PG-02
+- Tags: #outcome
+
