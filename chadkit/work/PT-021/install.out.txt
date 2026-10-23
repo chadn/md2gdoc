@@ -1,0 +1,23 @@
+$ UV_TOOL_DIR=<scratch>/tool/dir UV_TOOL_BIN_DIR=<scratch>/tool/bin uv tool install <repo>   # from the working tree; GitHub is the same path
+   Building md2gdoc @ file://<repo>
+      Built md2gdoc @ file://<repo>
+Installed 26 packages in 32ms
+ + md2gdoc==0.1.0 (from file://<repo>)
+Installed 1 executable: md2gdoc
+warning: `<scratch>/tool/bin` is not on your PATH. To use installed tools, run `export PATH="<scratch>/tool/bin:$PATH"` or `uv tool update-shell`.
+$ md2gdoc --help | head -1
+usage: md2gdoc [-h] command ...
+$ md2gdoc status README.md
+md2gdoc: no state file README.md.gdoc.json; run `init README.md` first
+exit 1
+$ md2gdoc bogus
+usage: md2gdoc [-h] command ...
+md2gdoc: argument command: invalid choice: 'bogus' (choose from init, pull, push, sync, status)
+exit 1
+$ python3 md2gdoc.py --help | head -1
+usage: md2gdoc.py [-h] command ...
+$ uv run --script md2gdoc.py --help | head -1
+usage: md2gdoc.py [-h] command ...
+$ ls <scratch>/tool/dir/md2gdoc/lib/python3.*/site-packages/ | grep -i md2gdoc
+md2gdoc-0.1.0.dist-info
+md2gdoc.py

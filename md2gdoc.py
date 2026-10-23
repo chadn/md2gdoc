@@ -366,8 +366,9 @@ setup (once per profile; the full walkthrough is docs/setup.md at github.com/cha
   3. the first command that needs Google opens a browser once; the token is cached and refreshes itself
   The script sees only the Docs it created (drive.file): let `init` make each Doc. To sync a Doc made by
   hand, a second profile with `--scope drive`, best under a Google account that holds little else.
-  Run: `uv run --script md2gdoc.py ...`, or `pip install google-api-python-client google-auth-oauthlib
-  google-auth-httplib2` once and `python md2gdoc.py ...`.
+  Run: `uv run --script md2gdoc.py ...`; or `uv tool install git+https://github.com/chadn/md2gdoc` once and
+  `md2gdoc ...`; or `pip install google-api-python-client google-auth-oauthlib google-auth-httplib2` once and
+  `python md2gdoc.py ...`.
 
 files:
   FILE{STATE_SUFFIX}       the state file next to FILE: Doc id, link, Drive version, the normalized snapshot of
@@ -642,7 +643,8 @@ class _Parser(argparse.ArgumentParser):
 
 
 def main(argv: list[str] | None = None, drive=connect) -> int:
-    parser = _Parser(prog="md2gdoc.py", description=HELP, formatter_class=argparse.RawDescriptionHelpFormatter)
+    prog = Path(sys.argv[0]).name or "md2gdoc"  # md2gdoc.py when run as the file, md2gdoc as the installed command
+    parser = _Parser(prog=prog, description=HELP, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True, metavar="command")
     for name, fn, what in (("init", cmd_init, "create the Doc and the state file"),
                            ("pull", cmd_pull, "write the Doc's content to the file"),
@@ -666,10 +668,15 @@ def main(argv: list[str] | None = None, drive=connect) -> int:
     return args.fn(args, drive)
 
 
-if __name__ == "__main__":
+def cli() -> None:
+    """The entry point, for `python md2gdoc.py` and for the `md2gdoc` command `uv tool install` makes."""
     try:
         sys.exit(main())
     except Exception as e:  # a Google error is one line, not a traceback; anything else is a bug
         if type(e).__name__ != "HttpError":
             raise
         sys.exit(f"md2gdoc: Google error: {e}")
+
+
+if __name__ == "__main__":
+    cli()

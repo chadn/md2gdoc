@@ -50,7 +50,7 @@ Converter rows describe what Google's markdown import and export do, which the s
 | Config directory: client file and token per profile under `~/.config/md2gdoc` (`%APPDATA%` on Windows), `--account`, `MD2GDOC_ACCOUNT`, `MD2GDOC_CONFIG_DIR` | tested | `config_dir()`, `profile_dir()`, `token_scope()` in [tests/test_cli.py](../tests/test_cli.py); the live run in [chadkit/work/PT-020.md](../chadkit/work/PT-020.md) |
 | Windows, macOS and Linux, tests in CI on all three; CRLF kept; UTF-8 output | planned | PT-025 |
 | `--json` on every command for agents | planned | PT-026 |
-| Installable as the command `md2gdoc` with `uv tool install` from GitHub | planned | PT-021 |
+| Installable as the command `md2gdoc` with `uv tool install` from GitHub | built | [pyproject.toml](../pyproject.toml), entry point `md2gdoc:cli`; installed from the working tree in [chadkit/work/PT-021/install.out.txt](../chadkit/work/PT-021/install.out.txt), the GitHub URL being the same path once the branch is merged |
 | Exit codes documented: 0 ok, 1 error, 2 conflict, 3 push or pull refused | tested | [tests/test_cli.py](../tests/test_cli.py), usage errors included |
 
 ## Markdown through Google's converter

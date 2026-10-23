@@ -67,7 +67,9 @@ how far the current state has got; where the two differ, the end state wins and 
 ## Python
 
 - Single file, PEP 723 inline metadata so `uv run md2gdoc.py ...` installs deps:
-  `google-api-python-client`, `google-auth-oauthlib`, `google-auth-httplib2`.
+  `google-api-python-client`, `google-auth-oauthlib`, `google-auth-httplib2`. [pyproject.toml](../pyproject.toml)
+  beside it repeats the three for `uv tool install`, which reads project metadata and not the header, and names
+  `md2gdoc:cli` as the command (PD-002, PT-021); the tests import the file directly, never the package.
 - Media upload: `googleapiclient.http.MediaIoBaseUpload(io.BytesIO(md.encode()), mimetype="text/markdown")`.
 - Import the Google client libraries lazily, inside the auth path, so `tests/` can import the script and run the
   normalizer and merge tests without the libraries installed or any network.

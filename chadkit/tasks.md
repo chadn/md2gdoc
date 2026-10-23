@@ -20,7 +20,7 @@
 - [x] PT-018 [PG-01] [needs:PT-004] Read the Drive version after a cosmetic edit made in the Docs UI on PT-004's kept Doc (chadkit/work/PT-004.md, the command at its end), at once and a minute later; settle design.md item 2 either way and trash the Doc. Completed: 2026-10-22
 - [x] PT-019 [PG-02,PG-01,PG-04] Set the architecture direction: the end state the script is built toward, every assumption in the docs and code reviewed against it; PD-002 and PT-019.md. Completed: 2026-10-22
 - [x] PT-020 [PG-02] [needs:PT-019] Config directory and account profiles in code and docs: client file, token and scope per profile under the per-user config directory, `--account`, `--scope`; the shape is PD-002. Completed: 2026-10-22
-- [ ] PT-021 [PG-02] [needs:PT-019] README Install and Usage sections, concise with examples, every environment variable and file listed; the `pyproject.toml` for `uv tool install`; the shape is PD-002.
+- [x] PT-021 [PG-02,PG-04] [needs:PT-019] README Install and Usage sections, concise with examples, every environment variable and file listed; the `pyproject.toml` for `uv tool install`; the shape is PD-002. Completed: 2026-10-22
 - [ ] PT-022 [PG-02,PG-01] [needs:PT-020] Prove the `drive`-scope path for existing Docs end to end with a second Google account, then land Chad's setup.md text for it; the shape is PD-002.
 - [ ] PT-023 [PG-04] [needs:PT-005] GFM coverage: a fixture pair per GitHub Flavored Markdown feature not yet pinned (task lists are), features.md rows for each; PD-002 names GFM as the flavour.
 - [ ] PT-024 [PG-04] [needs:PT-005] GitHub.com platform layer coverage: fixtures and rows for what GitHub renders beyond GFM (mermaid, alerts, math, emoji, footnotes already pinned); PD-002.
