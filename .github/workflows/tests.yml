@@ -1,0 +1,20 @@
+# The script's tests on the three desktops PD-002 names, on the oldest supported Python and the two newest. No Google
+# access: the tests run the text layer and the commands against a fake Drive. Runs on every push to GitHub.
+name: tests
+on:
+  push:
+  pull_request:
+jobs:
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.11", "3.13", "3.14"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m unittest discover -s tests -p "test_*.py"

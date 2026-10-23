@@ -62,7 +62,7 @@ class _WithDoc(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.md = Path(self.tmp.name) / "tasks.md"
-        self.md.write_text((FIXTURES / "04-task-list.in.md").read_text())
+        self.md.write_text((FIXTURES / "04-task-list.in.md").read_text(encoding="utf-8"), encoding="utf-8")
         self.drive = FakeDrive()
 
     def tearDown(self):
@@ -81,10 +81,10 @@ class Commands(_WithDoc):
         self.assertEqual(code, EXIT_OK)
         self.assertIn("created https://docs.google.com/document/d/doc-1/edit", out)
         self.assertEqual(err, "")
-        state = json.loads(state_path(self.md).read_text())
+        state = json.loads(state_path(self.md).read_text(encoding="utf-8"))
         self.assertEqual(state["doc_id"], "doc-1")
-        self.assertEqual(state["snapshot"], normalize(self.md.read_text()))
-        self.assertEqual(self.drive.docs["doc-1"], push_form(self.md.read_text()))
+        self.assertEqual(state["snapshot"], normalize(self.md.read_text(encoding="utf-8")))
+        self.assertEqual(self.drive.docs["doc-1"], push_form(self.md.read_text(encoding="utf-8")))
         self.assertEqual(self.drive.calls, ["create", "export"])
 
     def test_init_dry_run_touches_nothing(self):
@@ -105,7 +105,7 @@ class Commands(_WithDoc):
         code, out, _ = self.run_cmd("status", str(self.md))
         self.assertIn("tasks.md: unchanged", out)
         self.assertIn("unchanged (version 5 -> 5)", out)
-        self.md.write_text(self.md.read_text().replace("- [ ] T-001", "- [x] T-001"))
+        self.md.write_text(self.md.read_text(encoding="utf-8").replace("- [ ] T-001", "- [x] T-001"), encoding="utf-8")
         self.drive.edit_in_ui("doc-1", "- [ ] T-002", "- [x] T-002")
         code, out, _ = self.run_cmd("status", str(self.md))
         self.assertEqual(code, EXIT_OK)
@@ -122,11 +122,12 @@ class Commands(_WithDoc):
 
     def test_push_is_skipped_again_after_the_converter_changed_the_text(self):
         self.run_cmd("init", str(self.md))
-        self.md.write_text(self.md.read_text() + "- [ ] T-004 right after the paragraph\n")
+        self.md.write_text(self.md.read_text(encoding="utf-8") + "- [ ] T-004 right after the paragraph\n",
+                           encoding="utf-8")
         code, _, err = self.run_cmd("push", str(self.md))
         self.assertEqual(code, EXIT_OK)
         self.assertIn("the Doc holds a different text", err)
-        state = json.loads(state_path(self.md).read_text())
+        state = json.loads(state_path(self.md).read_text(encoding="utf-8"))
         self.assertNotEqual(state["snapshot"], state["local"])
         code, out, _ = self.run_cmd("push", str(self.md))
         self.assertIn("nothing to push", out)
@@ -137,7 +138,7 @@ class Commands(_WithDoc):
 
     def test_push_replaces_the_doc_and_stores_the_new_snapshot(self):
         self.run_cmd("init", str(self.md))
-        self.md.write_text(self.md.read_text() + "\n- [ ] T-004 added locally\n")
+        self.md.write_text(self.md.read_text(encoding="utf-8") + "\n- [ ] T-004 added locally\n", encoding="utf-8")
         code, out, _ = self.run_cmd("push", str(self.md), "--dry-run")
         self.assertEqual(code, EXIT_OK)
         self.assertIn("+- [ ] T-004 added locally", out)
@@ -145,12 +146,12 @@ class Commands(_WithDoc):
         code, out, err = self.run_cmd("push", str(self.md))
         self.assertEqual((code, err), (EXIT_OK, ""))
         self.assertIn("T-004 added locally", self.drive.docs["doc-1"])
-        state = json.loads(state_path(self.md).read_text())
-        self.assertEqual((state["version"], state["snapshot"]), (6, normalize(self.md.read_text())))
+        state = json.loads(state_path(self.md).read_text(encoding="utf-8"))
+        self.assertEqual((state["version"], state["snapshot"]), (6, normalize(self.md.read_text(encoding="utf-8"))))
 
     def test_push_is_refused_when_the_doc_moved(self):
         self.run_cmd("init", str(self.md))
-        self.md.write_text(self.md.read_text().replace("- [ ] T-001", "- [x] T-001"))
+        self.md.write_text(self.md.read_text(encoding="utf-8").replace("- [ ] T-001", "- [x] T-001"), encoding="utf-8")
         self.drive.edit_in_ui("doc-1", "- [ ] T-002", "- [x] T-002")
         code, _, err = self.run_cmd("push", str(self.md))
         self.assertEqual(code, EXIT_MOVED)
@@ -159,31 +160,31 @@ class Commands(_WithDoc):
 
     def test_pull_is_refused_when_the_file_changed_unless_forced(self):
         self.run_cmd("init", str(self.md))
-        self.md.write_text(self.md.read_text() + "- [ ] T-006 added locally\n")
+        self.md.write_text(self.md.read_text(encoding="utf-8") + "- [ ] T-006 added locally\n", encoding="utf-8")
         code, _, err = self.run_cmd("pull", str(self.md))
         self.assertEqual(code, EXIT_MOVED)
         self.assertIn("pull refused", err)
-        self.assertIn("T-006", self.md.read_text())
+        self.assertIn("T-006", self.md.read_text(encoding="utf-8"))
         code, out, _ = self.run_cmd("pull", str(self.md), "--dry-run")
         self.assertEqual(code, EXIT_OK)
         self.assertIn("-- [ ] T-006 added locally", out)
         code, _, _ = self.run_cmd("pull", str(self.md), "--force")
         self.assertEqual(code, EXIT_OK)
-        self.assertNotIn("T-006", self.md.read_text())
+        self.assertNotIn("T-006", self.md.read_text(encoding="utf-8"))
 
     def test_pull_writes_the_normalized_export(self):
         self.run_cmd("init", str(self.md))
         self.drive.edit_in_ui("doc-1", "- [ ] T-002", "- [x] T-002")
         code, out, _ = self.run_cmd("pull", str(self.md), "--dry-run")
         self.assertIn("+- [x] T-002", out)
-        self.assertNotIn("- [x] T-002", self.md.read_text())
+        self.assertNotIn("- [x] T-002", self.md.read_text(encoding="utf-8"))
         code, out, _ = self.run_cmd("pull", str(self.md))
         self.assertEqual(code, EXIT_OK)
         self.assertIn("pulled", out)
-        self.assertIn("- [x] T-002", self.md.read_text())
-        self.assertNotIn("**", self.md.read_text().split("\n")[0])
-        state = json.loads(state_path(self.md).read_text())
-        text = self.md.read_text()
+        self.assertIn("- [x] T-002", self.md.read_text(encoding="utf-8"))
+        self.assertNotIn("**", self.md.read_text(encoding="utf-8").split("\n")[0])
+        state = json.loads(state_path(self.md).read_text(encoding="utf-8"))
+        text = self.md.read_text(encoding="utf-8")
         self.assertEqual((state["version"], state["snapshot"], state["local"]), (6, text, text))
         self.assertEqual(sorted(state), ["doc_id", "link", "local", "snapshot", "version"])
 
@@ -204,6 +205,28 @@ class Commands(_WithDoc):
             self.assertEqual(e.exception.code, f"md2gdoc: {e.exception.code[9:]}", argv)
             self.assertIn("usage:", err.getvalue())
 
+    def test_a_crlf_file_is_read_and_written_as_crlf_and_the_state_file_as_lf(self):
+        self.md.write_bytes(self.md.read_text(encoding="utf-8").replace("\n", "\r\n").encode())
+        self.run_cmd("init", str(self.md))
+        state = json.loads(state_path(self.md).read_text(encoding="utf-8"))
+        self.assertEqual(state["local"], normalize((FIXTURES / "04-task-list.in.md").read_text(encoding="utf-8")))
+        self.assertNotIn("\r", self.drive.docs["doc-1"])
+        self.assertNotIn(b"\r", state_path(self.md).read_bytes())
+        self.drive.edit_in_ui("doc-1", "- [ ] T-002", "- [x] T-002")
+        code, _, _ = self.run_cmd("pull", str(self.md))
+        self.assertEqual(code, EXIT_OK)
+        raw = self.md.read_bytes()
+        self.assertIn(b"- [x] T-002", raw)
+        self.assertEqual(raw.count(b"\r\n"), raw.count(b"\n"))
+        code, out, _ = self.run_cmd("status", str(self.md))
+        self.assertIn("tasks.md: unchanged", out)
+        lf = Path(self.tmp.name) / "lf.md"
+        lf.write_bytes(b"# T\n\n- [ ] a\n")
+        self.run_cmd("init", str(lf))
+        self.drive.edit_in_ui("doc-2", "- [ ] a", "- [x] a")
+        self.run_cmd("pull", str(lf))
+        self.assertNotIn(b"\r", lf.read_bytes())
+
     def test_a_missing_state_file_is_an_error(self):
         with self.assertRaises(SystemExit) as e:
             self.run_cmd("status", str(self.md))
@@ -219,7 +242,7 @@ class Sync(_WithDoc):
         self.drive.calls.clear()
 
     def edit_local(self, old, new):
-        self.md.write_text(self.md.read_text().replace(old, new))
+        self.md.write_text(self.md.read_text(encoding="utf-8").replace(old, new), encoding="utf-8")
 
     def test_in_sync_touches_nothing(self):
         code, out, _ = self.run_cmd("sync", str(self.md))
@@ -237,12 +260,12 @@ class Sync(_WithDoc):
         self.assertIn("+- [x] T-001", out)
         code, out, err = self.run_cmd("sync", str(self.md))
         self.assertEqual((code, err), (EXIT_OK, ""))
-        text = self.md.read_text()
+        text = self.md.read_text(encoding="utf-8")
         for line in ("- [x] T-001", "- [x] T-002", "- [x] T-003 Reworded locally", "- [ ] T-004 typed in the Doc"):
             self.assertIn(line, text)
         self.assertEqual(self.drive.docs["doc-1"], push_form(text))
         self.assertEqual(self.drive.calls, ["export", "export", "export", "update", "export"])  # the guard export
-        state = json.loads(state_path(self.md).read_text())
+        state = json.loads(state_path(self.md).read_text(encoding="utf-8"))
         self.assertEqual((state["version"], state["local"], state["snapshot"]), (8, text, text))
         code, out, _ = self.run_cmd("sync", str(self.md))
         self.assertIn("in sync", out)
@@ -252,8 +275,8 @@ class Sync(_WithDoc):
         code, out, _ = self.run_cmd("sync", str(self.md))
         self.assertEqual((code, self.drive.calls), (EXIT_OK, ["export"]))
         self.assertIn("pulled, nothing to push", out)
-        self.assertIn("- [x] T-002", self.md.read_text())
-        self.assertEqual(json.loads(state_path(self.md).read_text())["version"], 6)
+        self.assertIn("- [x] T-002", self.md.read_text(encoding="utf-8"))
+        self.assertEqual(json.loads(state_path(self.md).read_text(encoding="utf-8"))["version"], 6)
 
     def test_a_conflict_is_written_with_markers_exit_2_and_nothing_pushed(self):
         self.edit_local("Call the vendor", "Call the vendor, ours")
@@ -261,37 +284,39 @@ class Sync(_WithDoc):
         code, out, err = self.run_cmd("sync", str(self.md), "--dry-run")
         self.assertEqual(code, EXIT_CONFLICT)
         self.assertIn("would write", err)
-        self.assertIn("Call the vendor, ours", self.md.read_text())
-        self.assertNotIn("<<<<<<<", self.md.read_text())
+        self.assertIn("Call the vendor, ours", self.md.read_text(encoding="utf-8"))
+        self.assertNotIn("<<<<<<<", self.md.read_text(encoding="utf-8"))
         code, out, err = self.run_cmd("sync", str(self.md))
         self.assertEqual(code, EXIT_CONFLICT)
         self.assertIn("conflict: 1 place", err)
         self.assertNotIn("update", self.drive.calls)
         self.assertIn("<<<<<<< api-edited\n- [ ] T-002 Call the vendor, ours (due 2026-10-24)\n=======\n"
                       "- [ ] T-002 Call the vendor, theirs (due 2026-10-24)\n>>>>>>> hand-edited\n",
-                      self.md.read_text())
+                      self.md.read_text(encoding="utf-8"))
         code, _, err = self.run_cmd("sync", str(self.md))
         self.assertEqual(code, EXIT_CONFLICT)
         self.assertIn("holds conflict markers", err)
         self.assertEqual(self.drive.calls, ["export", "export"])
 
     def test_the_converters_own_blank_line_is_never_a_conflict(self):
-        self.md.write_text(self.md.read_text() + "- [ ] T-004 right after the paragraph\n")
+        self.md.write_text(self.md.read_text(encoding="utf-8") + "- [ ] T-004 right after the paragraph\n",
+                           encoding="utf-8")
         self.run_cmd("sync", str(self.md))
-        state = json.loads(state_path(self.md).read_text())
+        state = json.loads(state_path(self.md).read_text(encoding="utf-8"))
         self.assertNotEqual(state["snapshot"], state["local"])  # the Doc gained a blank line before T-004
         self.drive.edit_in_ui("doc-1", "a_snake_case word.", "a_snake_case word, edited in the Doc.")
         code, out, err = self.run_cmd("sync", str(self.md))
         self.assertEqual((code, err), (EXIT_OK, ""))
         self.assertIn("pulled, nothing to push", out)
-        self.assertIn("edited in the Doc.", self.md.read_text())
+        self.assertIn("edited in the Doc.", self.md.read_text(encoding="utf-8"))
         self.edit_local("Last synced: 2026-10-21", "Last synced: 2026-10-22")
         code, out, err = self.run_cmd("sync", str(self.md))
         self.assertEqual((code, err), (EXIT_OK, ""))
         self.assertIn("Last synced: 2026-10-22", self.drive.docs["doc-1"])
 
     def test_push_refuses_a_file_with_markers(self):
-        self.md.write_text(self.md.read_text() + "<<<<<<< api-edited\nx\n=======\ny\n>>>>>>> hand-edited\n")
+        markers = "<<<<<<< api-edited\nx\n=======\ny\n>>>>>>> hand-edited\n"
+        self.md.write_text(self.md.read_text(encoding="utf-8") + markers, encoding="utf-8")
         code, _, err = self.run_cmd("push", str(self.md))
         self.assertEqual((code, self.drive.calls), (EXIT_CONFLICT, []))
         self.assertIn("holds conflict markers", err)
@@ -310,7 +335,7 @@ class Sync(_WithDoc):
         self.assertEqual(code, EXIT_MOVED)
         self.assertIn("changed while syncing", err)
         self.assertNotIn("update", drive.calls)
-        self.assertIn("- [x] T-001", self.md.read_text())  # the merge was written; the next sync pushes it
+        self.assertIn("- [x] T-001", self.md.read_text(encoding="utf-8"))  # written; the next sync pushes it
 
 
 class Merge(unittest.TestCase):

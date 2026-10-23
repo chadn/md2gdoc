@@ -13,7 +13,7 @@ FIXTURES = ROOT / "tests" / "fixtures"
 
 
 def fixture(name: str) -> str:
-    return (FIXTURES / name).read_text()
+    return (FIXTURES / name).read_text(encoding="utf-8")
 
 
 class CodeBlocks(unittest.TestCase):
@@ -105,7 +105,7 @@ class RawUploads(unittest.TestCase):
 class Rules(unittest.TestCase):
     def test_normalize_is_idempotent_on_every_export(self):
         for path in sorted(FIXTURES.glob("*.out.md")):
-            once = normalize(path.read_text())
+            once = normalize(path.read_text(encoding="utf-8"))
             self.assertEqual(normalize(once), once, path.name)
 
     def test_escapes_that_keep_a_line_from_becoming_a_block_stay(self):

@@ -400,13 +400,21 @@ def load_state(md: Path) -> dict:
 
 
 def save_state(md: Path, state: dict) -> None:
-    state_path(md).write_text(json.dumps(state, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    # newline="\n" on every platform, so a Windows checkout does not rewrite a committed file with CRLF
+    state_path(md).write_text(json.dumps(state, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
 
 
 def read_md(md: Path) -> str:
+    r"""The file's text with `\n` line endings, whatever the file uses; `write_md` restores CRLF when it had it."""
     if not md.is_file():
         raise SystemExit(f"md2gdoc: {md} is not a file")
-    return md.read_text(encoding="utf-8")
+    return md.read_text(encoding="utf-8")  # universal newlines: CRLF read as \n
+
+
+def write_md(md: Path, text: str) -> None:
+    """Write the file with the line endings it had: CRLF when a CRLF is in it today, else LF, on every platform."""
+    crlf = md.is_file() and b"\r\n" in md.read_bytes()
+    md.write_text(text, encoding="utf-8", newline="\r\n" if crlf else "\n")
 
 
 def diff(a: str, b: str, a_name: str, b_name: str) -> str:
@@ -527,7 +535,7 @@ def cmd_pull(args, drive) -> int:
     if args.dry_run:
         print(diff(local, new, f"{md} (local)", f"{md} (Doc)") or f"{md} already matches the Doc")
         return EXIT_OK
-    md.write_text(new, encoding="utf-8")
+    write_md(md, new)
     state.update(version=d.version(state["doc_id"]), snapshot=new, local=new)
     save_state(md, state)
     print(f"pulled {md}: {'changed' if new != local else 'unchanged'}")
@@ -599,7 +607,7 @@ def cmd_sync(args, drive) -> int:
         if args.dry_run:
             print(diff(local, merged, f"{md} (local)", f"{md} (merged, with markers)"))
         else:
-            md.write_text(merged, encoding="utf-8")
+            write_md(md, merged)
         print(f"conflict: {conflicts} place{'s' if conflicts > 1 else ''} changed differently on both sides; "
               f"{'would write' if args.dry_run else 'wrote'} both versions to {md} between "
               f"<<<<<<< {OURS} and >>>>>>> {THEIRS}; nothing pushed", file=sys.stderr)
@@ -609,7 +617,7 @@ def cmd_sync(args, drive) -> int:
         print(diff(theirs, merged, f"{md} (Doc)", f"{md} (merged)") or "the Doc would not change")
         return EXIT_OK
     if merged != local:
-        md.write_text(merged, encoding="utf-8")
+        write_md(md, merged)
     if merged == theirs:
         state.update(version=version, snapshot=theirs, local=merged)
         save_state(md, state)
@@ -670,6 +678,9 @@ def main(argv: list[str] | None = None, drive=connect) -> int:
 
 def cli() -> None:
     """The entry point, for `python md2gdoc.py` and for the `md2gdoc` command `uv tool install` makes."""
+    for stream in (sys.stdout, sys.stderr):  # UTF-8 whatever the console's code page (Windows), so diffs print
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors=stream.errors)
     try:
         sys.exit(main())
     except Exception as e:  # a Google error is one line, not a traceback; anything else is a bug

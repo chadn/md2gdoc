@@ -70,6 +70,11 @@ how far the current state has got; where the two differ, the end state wins and 
   `google-api-python-client`, `google-auth-oauthlib`, `google-auth-httplib2`. [pyproject.toml](../pyproject.toml)
   beside it repeats the three for `uv tool install`, which reads project metadata and not the header, and names
   `md2gdoc:cli` as the command (PD-002, PT-021); the tests import the file directly, never the package.
+- Any desktop (PD-002, PT-025): the markdown file is read with universal newlines and written back with CRLF when
+  it had a CRLF, else LF, on every platform; the state file is always LF, so a Windows checkout does not rewrite a
+  committed file; stdout and stderr are reconfigured to UTF-8 at the entry point, so a diff with non-ASCII text
+  prints under any console code page. [.github/workflows/tests.yml](../.github/workflows/tests.yml) runs the tests
+  on Ubuntu, macOS and Windows.
 - Media upload: `googleapiclient.http.MediaIoBaseUpload(io.BytesIO(md.encode()), mimetype="text/markdown")`.
 - Import the Google client libraries lazily, inside the auth path, so `tests/` can import the script and run the
   normalizer and merge tests without the libraries installed or any network.

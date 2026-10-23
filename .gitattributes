@@ -1,0 +1,6 @@
+# Text files are LF in every checkout, Windows included, so the state files beside synced markdown, which the
+# script writes LF, are not rewritten by git; the fixtures and the evidence folders are kept byte for byte as
+# Google returned them, so git never touches their line endings either way.
+* text=auto eol=lf
+tests/fixtures/** -text
+chadkit/work/** -text
