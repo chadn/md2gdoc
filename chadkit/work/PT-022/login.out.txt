@@ -1,0 +1,10 @@
+First login of the tatanka profile, 2026-10-23 11:13 PT, run by Chad from the repo root (client_id elided
+from the URL). The browser showed login-1-unverified-app.png (Advanced > Go to md2gdoc (unsafe)) and then
+login-2-consent-drive.png ("See, edit, create, and delete all of your Google Drive files"). The probe Doc is
+throwaway.
+
+$ uv run --script md2gdoc.py init probe.md --account tatanka --scope drive
+Please visit this URL to authorize this application: https://accounts.google.com/o/oauth2/auth?...&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive&...&access_type=offline
+created https://docs.google.com/document/d/<doc-id>/edit?usp=drivesdk
+$ ls -l ~/.config/md2gdoc/tatanka/token.json
+-rw-r--r--@ 1 chad  staff   726B Oct 23 11:15:21 2026 /Users/chad/.config/md2gdoc/tatanka/token.json

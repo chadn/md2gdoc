@@ -1,0 +1,15 @@
+$ md2gdoc init shared.md --doc DOC_A --account tatanka
+attached shared.md to https://docs.google.com/document/d/DOC_A/edit?usp=drivesdk
+exit 0
+$ cat shared.md
+# PT-022 shared from chad
+
+A Doc chad.norwood owns, made by the Claude Drive connector, not by md2gdoc, and shared with tatanka as Editor.
+
+- [ ] edited in the Docs UI by chad
+- [ ] edited locally by md2gdoc as tatanka
+- [ ] both edits present on both sides after sync
+$ md2gdoc status shared.md --account tatanka
+shared.md: unchanged since the last sync
+Doc https://docs.google.com/document/d/DOC_A/edit?usp=drivesdk: unchanged (version 7 -> 7)
+exit 0

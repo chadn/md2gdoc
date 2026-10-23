@@ -53,6 +53,19 @@ class FakeDrive:
     def version(self, doc_id):
         return self.versions[doc_id]
 
+    def lookup(self, doc_id):
+        self.calls.append("lookup")
+        if doc_id not in self.docs:
+            raise KeyError(doc_id)  # Google answers 404; the fake has no HttpError
+        return {"doc_id": doc_id, "link": f"https://docs.google.com/document/d/{doc_id}/edit",
+                "version": self.versions[doc_id]}
+
+    def make_by_hand(self, markdown):
+        """A Doc the script did not create, as the Docs UI would leave it."""
+        doc_id = f"hand-{len(self.docs) + 1}"
+        self.docs[doc_id], self.versions[doc_id] = markdown, 2
+        return doc_id
+
     def edit_in_ui(self, doc_id, old, new):
         self.docs[doc_id] = self.docs[doc_id].replace(old, new)
         self.versions[doc_id] += 1
@@ -99,6 +112,50 @@ class Commands(_WithDoc):
         with self.assertRaises(SystemExit) as e:
             self.run_cmd("init", str(self.md))
         self.assertIn("already has a Doc", str(e.exception))
+
+    def test_init_doc_attaches_a_hand_made_doc_and_pulls_its_text(self):
+        doc_id = self.drive.make_by_hand(self.md.read_text(encoding="utf-8"))
+        new = Path(self.tmp.name) / "hand.md"
+        code, out, err = self.run_cmd("init", str(new), "--doc", doc_id)
+        self.assertEqual(code, EXIT_OK)
+        self.assertIn(f"attached {new} to https://docs.google.com/document/d/{doc_id}/edit", out)
+        self.assertEqual(err, "")
+        self.assertEqual(self.drive.calls, ["export", "lookup"])
+        state = json.loads(state_path(new).read_text(encoding="utf-8"))
+        self.assertEqual((state["doc_id"], state["version"]), (doc_id, 2))
+        self.assertEqual(new.read_text(encoding="utf-8"), state["snapshot"])
+        self.assertEqual(state["local"], state["snapshot"])
+        self.assertEqual(state["snapshot"], normalize(self.md.read_text(encoding="utf-8")))
+        new.write_text(new.read_text(encoding="utf-8").replace("- [ ] T-001", "- [x] T-001"), encoding="utf-8")
+        self.drive.edit_in_ui(doc_id, "- [ ] T-002", "- [x] T-002")
+        code, out, _ = self.run_cmd("sync", str(new))
+        self.assertEqual(code, EXIT_OK)
+        self.assertIn("- [x] T-001", self.drive.docs[doc_id])
+        self.assertIn("- [x] T-002", new.read_text(encoding="utf-8"))
+
+    def test_init_doc_takes_an_empty_file_and_refuses_a_filled_one(self):
+        doc_id = self.drive.make_by_hand("# hand\n")
+        empty = Path(self.tmp.name) / "empty.md"
+        empty.write_text("\n", encoding="utf-8")
+        code, _, _ = self.run_cmd("init", str(empty), "--doc", doc_id)
+        self.assertEqual(code, EXIT_OK)
+        self.assertEqual(empty.read_text(encoding="utf-8"), "# hand\n")
+        with self.assertRaises(SystemExit) as e:
+            self.run_cmd("init", str(self.md), "--doc", doc_id)
+        self.assertIn("exists and is not empty", str(e.exception))
+        self.assertFalse(state_path(self.md).exists())
+
+    def test_init_doc_refuses_the_create_options_and_dry_runs_offline(self):
+        with self.assertRaises(SystemExit) as e:
+            self.run_cmd("init", str(self.md), "--doc", "hand-9", "--name", "x")
+        self.assertIn("--name and --folder are for creating one", str(e.exception))
+        new = Path(self.tmp.name) / "hand.md"
+        code, out, _ = self.run_cmd("init", str(new), "--doc", "hand-9", "--dry-run", "--json")
+        self.assertEqual(code, EXIT_OK)
+        obj = json.loads(out)
+        self.assertEqual((obj["reason"], obj["doc_id"], obj["written"]), ("attached", "hand-9", False))
+        self.assertFalse(new.exists())
+        self.assertEqual(self.drive.calls, [])
 
     def test_status_names_the_side_that_changed(self):
         self.run_cmd("init", str(self.md))

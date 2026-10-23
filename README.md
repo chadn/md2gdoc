@@ -31,6 +31,7 @@ needs Google opens a browser once; after that the token refreshes itself and the
 
 ```text
 md2gdoc init tasks.md      # create the Doc from the file, write tasks.md.gdoc.json, print the link
+md2gdoc init notes.md --doc ID  # attach a new file to the Doc with that id; needs a --scope drive profile
 md2gdoc sync tasks.md      # merge both sides' changes since the last sync: write the file, push the Doc
 md2gdoc status tasks.md    # which side changed since the last sync
 md2gdoc push tasks.md      # replace the Doc from the file; refused when the Doc changed since the last sync

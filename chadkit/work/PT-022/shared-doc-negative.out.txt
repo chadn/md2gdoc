@@ -1,0 +1,5 @@
+$ md2gdoc init main.md --doc DOC_A --account default   # the main account, drive.file
+md2gdoc: Google error: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/DOC_A/export?mimeType=text%2Fmarkdown returned "The user has not granted the app 488540069386 read access to the file DOC_A.". Details: "[{'message': 'The user has not granted the app 488540069386 read access to the file DOC_A.', 'domain': 'global', 'reason': 'appNotAuthorizedToFile', 'location': 'Authorization', 'locationType': 'header'}]">
+exit 1
+ls: main.md: No such file or directory
+ls: main.md.gdoc.json: No such file or directory

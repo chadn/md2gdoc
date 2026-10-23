@@ -17,6 +17,7 @@ model (`chadkit model` says where it is).
 | `native Doc` | A Google Docs document (`application/vnd.google-apps.document`), not a `.md` file stored in Drive | - | Google file | domain |
 | `push` | Markdown file to Doc: replace the whole Doc with the file's push form, same link | - | - | domain |
 | `pull` | Doc to markdown file: export the Doc as markdown and normalize it | - | download, fetch | domain |
+| `attach` | `init FILE --doc ID`: bind a new or empty markdown file to a Doc that exists, writing the state file and a first pull; the only way to sync a Doc the script did not create | - | link, connect, import | domain |
 | `sync` | Pull, three-way merge against the snapshot, then push; the only command that writes both sides | - | - | domain |
 | `normalizer` | Reversible rewrite applied to both sides before any comparison, undoing Google's export noise | - | cleaner | domain |
 | `snapshot` | Normalized content at the last successful sync, kept in the state file; the merge base | - | baseline, cache | domain |

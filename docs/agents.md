@@ -13,7 +13,7 @@ without it. Fields:
 |---|---|---|
 | `command`, `file`, `dry_run` | every object | what ran, on which file, whether `--dry-run` was given; on an error, read from the arguments as given |
 | `exit` | every object | the exit code: 0 done, 1 error, 2 conflict or markers, 3 refused |
-| `reason` | every object | one fixed word: `created`, `pulled`, `pushed`, `synced`, `status`, `in_sync`, `nothing_to_push`, `conflict`, `markers`, `refused_doc_changed`, `refused_file_changed`, `error` |
+| `reason` | every object | one fixed word: `created`, `attached`, `pulled`, `pushed`, `synced`, `status`, `in_sync`, `nothing_to_push`, `conflict`, `markers`, `refused_doc_changed`, `refused_file_changed`, `error` |
 | `message` | every object | the prose the command would have printed, stdout then stderr, joined by newlines |
 | `doc_id`, `link` | once the state file is read | the Doc |
 | `written`, `pushed` | pull, push, sync, init, once past the refusals | whether the file was written, whether the Doc was; `pushed` is `false` on a dry run |

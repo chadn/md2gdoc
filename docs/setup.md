@@ -92,15 +92,18 @@ Differences from the Recommended setup:
 
 1. Create a Google account for md2gdoc, e.g. a new Gmail address.
 2. Step 5: add `https://www.googleapis.com/auth/drive` instead of `drive.file`.
-3. Step 6: publish anyway. `drive` is a restricted scope, so the consent screen shows **Google hasn't verified this
-   app**; click **Advanced** > **Go to md2gdoc (unsafe)**. Unverified apps are capped at 100 users for the project's
-   lifetime, irrelevant for one person.
+3. Step 6: publish anyway. `drive` is a restricted scope, so the first login shows **Google hasn't verified this
+   app**; click **Advanced** > **Go to md2gdoc (unsafe)**, then on the consent screen, under a banner saying the
+   same, allow "See, edit, create, and delete all of your Google Drive files". Unverified apps are capped at 100
+   users for the project's lifetime, irrelevant for one person. Screens and transcript:
+   [chadkit/work/PT-022/](../chadkit/work/PT-022/).
 4. Share each Doc to sync from your main account with the secondary account as **Editor**.
 5. Step 7: save the JSON in a second profile's folder, for example `~/.config/md2gdoc/work/client_secret.json`.
 6. Step 8: run the first command with `--account work --scope drive` and sign in as the secondary account, not
    your main one; a private browser window avoids picking the wrong account. The scope is remembered in that
-   profile's token, so afterwards `--account work`, or `MD2GDOC_ACCOUNT=work`, is enough. **To verify:** the whole
-   path, end to end with a second account.
+   profile's token, so afterwards `--account work`, or `MD2GDOC_ACCOUNT=work`, is enough, and `--scope drive.file`
+   on that profile is refused. For a Doc that exists, the first command is `init FILE --doc DOC_ID`, which writes
+   the Doc's text into a new FILE and its state file; `sync` from then on.
 
 Side effects:
 
@@ -224,8 +227,9 @@ points to if the test disagrees.
 
 - [Recommended setup](#recommended-setup) step 6: the token issued on 2026-10-22 under In production still
   refreshes after 2026-10-29, which is the 7-day mark.
-- [Secondary-account setup](#secondary-account-setup): `--account NAME --scope drive` syncs a hand-made Doc shared
-  with a second account, end to end (PT-022).
+- [Secondary-account setup](#secondary-account-setup): an edit made in the Docs UI on a shared Doc reaches the
+  file by `sync`, and a Doc the secondary account made by hand attaches (PT-022; the login, the attach, a push
+  and the `drive.file` refusal are done).
 - [Service-account setup](#service-account-setup): updating a shared Doc counts against the owner's quota.
 - [Service-account setup](#service-account-setup): a personal Gmail account can share a Doc with a service account.
 

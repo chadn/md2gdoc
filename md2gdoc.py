@@ -346,6 +346,9 @@ Two-way sync between one markdown file and one native Google Doc. Either side ma
 
 commands:
   init FILE      create the Doc from FILE and write the state file; prints the Doc's link
+  init FILE --doc ID  attach FILE, new or empty, to the Doc with id ID (the /d/ID/ part of its link): write
+                 its text to FILE and the state file; a Doc the script did not make needs a `--scope drive`
+                 profile; refused with --name or --folder, or when FILE holds text
   pull FILE      export the Doc, undo the converter's noise, write FILE; refused when FILE changed since the
                  last sync, unless --force
   push FILE      replace the Doc's content from FILE; refused when the Doc changed since the last sync
@@ -355,8 +358,8 @@ commands:
   status FILE    which side changed since the last sync
   --dry-run      on any command: say what would happen, change nothing (status: local side only, no network)
   --json         on any command: one JSON object on stdout and nothing else: command, file, exit, reason (a
-                 fixed word: created, pulled, pushed, synced, status, in_sync, nothing_to_push, conflict,
-                 markers, refused_doc_changed, refused_file_changed, error), message (the prose), and per
+                 fixed word: created, attached, pulled, pushed, synced, status, in_sync, nothing_to_push,
+                 conflict, markers, refused_doc_changed, refused_file_changed, error), message (the prose), and per
                  command written, pushed, conflicts, version, link, the diffs; for agents (docs/agents.md)
   --account NAME on any command: the profile to use (default: $MD2GDOC_ACCOUNT, else `default`)
   --scope NAME   on any command: `drive.file` (default) or `drive`; chosen at a profile's first login, then
@@ -460,6 +463,12 @@ class Drive:
         f = self.api.files().get(fileId=doc_id, fields="version", supportsAllDrives=True).execute()
         return int(f["version"])
 
+    def lookup(self, doc_id: str) -> dict:
+        """The same fields `create` returns, for a Doc that exists (a `drive.file` token gets 404 notFound on one it did
+        not make; the export `_attach` runs first gets 403 appNotAuthorizedToFile)."""
+        f = self.api.files().get(fileId=doc_id, fields="id,webViewLink,version", supportsAllDrives=True).execute()
+        return {"doc_id": f["id"], "link": f["webViewLink"], "version": int(f["version"])}
+
 
 def config_dir() -> Path:
     """The per-user directory holding the profiles (PD-002): an override, the platform's convention, else XDG."""
@@ -543,15 +552,38 @@ def error_object(message: str, argv: list[str]) -> dict:
 def cmd_init(args, drive) -> int:
     md = Path(args.file)
     out = _out(args, md)
-    text = read_md(md)
     if state_path(md).exists():
         raise SystemExit(f"md2gdoc: {state_path(md)} exists; this file already has a Doc")
+    if args.doc:
+        return _attach(args, out, md, drive)
+    text = read_md(md)
     name = args.name or md.stem
     if args.dry_run:
         return _finish(args, out, EXIT_OK, "created", name=name, lines=[
             f"would create Doc {name!r} from {md} ({len(text.splitlines())} lines) and write {state_path(md)}"])
     d = drive(args.account, args.scope)
     return _record(args, out, md, text, d.create(name, push_form(text), args.folder), d, "created")
+
+
+def _attach(args, out: dict, md: Path, drive) -> int:
+    """`init --doc`: the state file for a Doc that already exists, and its text into FILE, as a first pull."""
+    if args.name or args.folder:
+        raise SystemExit("md2gdoc: --doc attaches a Doc that exists; --name and --folder are for creating one")
+    if md.is_file() and read_md(md).strip():
+        raise SystemExit(f"md2gdoc: {md} exists and is not empty; init --doc writes the Doc's text into a new or "
+                         f"empty FILE")
+    out.update(doc_id=args.doc)
+    if args.dry_run:
+        return _finish(args, out, EXIT_OK, "attached", written=False, lines=[
+            f"would write {md} from Doc {args.doc} and write {state_path(md)}"])
+    d = drive(args.account, args.scope)
+    new = normalize(d.export(args.doc))
+    state = d.lookup(args.doc)
+    write_md(md, new)
+    state.update(snapshot=new, local=new)
+    save_state(md, state)
+    return _finish(args, out, EXIT_OK, "attached", written=True, link=state["link"], version=state["version"],
+                   lines=[f"attached {md} to {state['link']}"])
 
 
 def cmd_pull(args, drive) -> int:
@@ -713,6 +745,7 @@ def main(argv: list[str] | None = None, drive=connect) -> int:
         if name == "init":
             p.add_argument("--name", help="the Doc's title (default: the file's name without .md)")
             p.add_argument("--folder", help="Drive folder id to create the Doc in")
+            p.add_argument("--doc", metavar="ID", help="attach FILE to the Doc with this id instead of creating one")
         if name == "pull":
             p.add_argument("--force", action="store_true", help="overwrite the file even if it changed")
         p.set_defaults(fn=fn)

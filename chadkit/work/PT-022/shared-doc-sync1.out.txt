@@ -1,0 +1,8 @@
+$ sed -i "" "s/- \[ \] edited locally by md2gdoc as tatanka/- [x] edited locally by md2gdoc as tatanka/" shared.md
+$ md2gdoc sync shared.md --account tatanka
+synced https://docs.google.com/document/d/DOC_A/edit?usp=drivesdk
+exit 0
+$ md2gdoc status shared.md --account tatanka
+shared.md: unchanged since the last sync
+Doc https://docs.google.com/document/d/DOC_A/edit?usp=drivesdk: unchanged (version 8 -> 8)
+exit 0

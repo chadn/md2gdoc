@@ -1,0 +1,3 @@
+$ uv run --script md2gdoc.py status probe.md --account tatanka --scope drive.file
+md2gdoc: this profile logged in with --scope drive; another scope is another profile (--account), or delete its token.json to log in again
+exit 1
