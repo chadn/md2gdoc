@@ -354,6 +354,10 @@ commands:
                  >>>>>>> hand-edited (the Doc's), nothing is pushed, and the exit code is 2
   status FILE    which side changed since the last sync
   --dry-run      on any command: say what would happen, change nothing (status: local side only, no network)
+  --json         on any command: one JSON object on stdout and nothing else: command, file, exit, reason (a
+                 fixed word: created, pulled, pushed, synced, status, in_sync, nothing_to_push, conflict,
+                 markers, refused_doc_changed, refused_file_changed, error), message (the prose), and per
+                 command written, pushed, conflicts, version, link, the diffs; for agents (docs/agents.md)
   --account NAME on any command: the profile to use (default: $MD2GDOC_ACCOUNT, else `default`)
   --scope NAME   on any command: `drive.file` (default) or `drive`; chosen at a profile's first login, then
                  remembered in its token
@@ -509,92 +513,129 @@ def connect(account: str | None, scope: str | None = None) -> Drive:
     return Drive(creds)
 
 
+def _out(args, md: Path) -> dict:
+    """The one object `--json` prints; the prose commands fill the same fields and print lines instead."""
+    return {"command": args.command, "file": str(md), "dry_run": bool(args.dry_run)}
+
+
+def _finish(args, out: dict, code: int, reason: str, *, lines=(), errors=(), **fields) -> int:
+    """Print the result and return the exit code: prose lines (stdout, then stderr), or with `--json` one object
+    holding `exit`, `reason`, `message` (the prose joined) and every field a command recorded."""
+    out.update(fields, exit=code, reason=reason, message="\n".join([*errors, *lines]))
+    if args.json:
+        print(json.dumps(out, ensure_ascii=False))
+    else:
+        for line in errors:  # first, as before: a warning sits above the line it qualifies on a terminal
+            print(line, file=sys.stderr)
+        for line in lines:
+            print(line)
+    return code
+
+
+def error_object(message: str, argv: list[str]) -> dict:
+    """The `--json` object for an error raised as a message, from the arguments as given: the command is the first
+    word that is not a flag, the file the second, since the parser may not have accepted them."""
+    words = [a for a in argv if not a.startswith("-")]
+    return {"command": words[0] if words else None, "file": str(Path(words[1])) if len(words) > 1 else None,
+            "dry_run": "--dry-run" in argv, "exit": EXIT_ERROR, "reason": "error", "message": message}
+
+
 def cmd_init(args, drive) -> int:
     md = Path(args.file)
+    out = _out(args, md)
     text = read_md(md)
     if state_path(md).exists():
         raise SystemExit(f"md2gdoc: {state_path(md)} exists; this file already has a Doc")
     name = args.name or md.stem
     if args.dry_run:
-        print(f"would create Doc {name!r} from {md} ({len(text.splitlines())} lines) and write {state_path(md)}")
-        return EXIT_OK
+        return _finish(args, out, EXIT_OK, "created", name=name, lines=[
+            f"would create Doc {name!r} from {md} ({len(text.splitlines())} lines) and write {state_path(md)}"])
     d = drive(args.account, args.scope)
-    return _record(md, text, d.create(name, push_form(text), args.folder), d, "created")
+    return _record(args, out, md, text, d.create(name, push_form(text), args.folder), d, "created")
 
 
 def cmd_pull(args, drive) -> int:
     md = Path(args.file)
+    out = _out(args, md)
     state = load_state(md)
     local = read_md(md) if md.is_file() else ""
+    out.update(doc_id=state["doc_id"], link=state["link"])
     if normalize(local) != state["local"] and not args.force and not args.dry_run:
-        print(f"pull refused: {md} changed since the last sync; sync, or pull --force to overwrite it",
-              file=sys.stderr)
-        return EXIT_MOVED
+        return _finish(args, out, EXIT_MOVED, "refused_file_changed", errors=[
+            f"pull refused: {md} changed since the last sync; sync, or pull --force to overwrite it"])
     d = drive(args.account, args.scope)
     new = normalize(d.export(state["doc_id"]), local)
+    changes = diff(local, new, f"{md} (local)", f"{md} (Doc)")
     if args.dry_run:
-        print(diff(local, new, f"{md} (local)", f"{md} (Doc)") or f"{md} already matches the Doc")
-        return EXIT_OK
+        return _finish(args, out, EXIT_OK, "pulled", diff=changes, written=False,
+                       lines=[changes or f"{md} already matches the Doc"])
     write_md(md, new)
     state.update(version=d.version(state["doc_id"]), snapshot=new, local=new)
     save_state(md, state)
-    print(f"pulled {md}: {'changed' if new != local else 'unchanged'}")
-    return EXIT_OK
+    return _finish(args, out, EXIT_OK, "pulled", written=new != local, version=state["version"],
+                   lines=[f"pulled {md}: {'changed' if new != local else 'unchanged'}"])
 
 
 def cmd_push(args, drive) -> int:
     md = Path(args.file)
+    out = _out(args, md)
     state = load_state(md)
     text = read_md(md)
+    out.update(doc_id=state["doc_id"], link=state["link"])
     if has_markers(text):
-        print(f"push refused: {md} holds conflict markers from the last sync; resolve them first", file=sys.stderr)
-        return EXIT_CONFLICT
+        return _finish(args, out, EXIT_CONFLICT, "markers", errors=[
+            f"push refused: {md} holds conflict markers from the last sync; resolve them first"])
     local = normalize(text)
     if local == state["local"]:
-        print(f"nothing to push: {md} matches the last sync")
-        return EXIT_OK
+        return _finish(args, out, EXIT_OK, "nothing_to_push", pushed=False,
+                       lines=[f"nothing to push: {md} matches the last sync"])
     d = drive(args.account, args.scope)
     # The guard exports and compares every time: a matching Drive version is not proof (design.md, item 2).
     doc_text = normalize(d.export(state["doc_id"]), text)
     if doc_text != state["snapshot"]:
-        print("push refused: the Doc changed since the last sync; pull or sync first", file=sys.stderr)
-        return EXIT_MOVED
+        return _finish(args, out, EXIT_MOVED, "refused_doc_changed", pushed=False, errors=[
+            "push refused: the Doc changed since the last sync; pull or sync first"])
     if args.dry_run:
-        print(diff(state["local"], local, f"{md} (last sync)", f"{md} (local)"))
-        return EXIT_OK
+        changes = diff(state["local"], local, f"{md} (last sync)", f"{md} (local)")
+        return _finish(args, out, EXIT_OK, "pushed", pushed=False, diff=changes, lines=[changes])
     d.update(state["doc_id"], push_form(text))
-    return _record(md, text, {"doc_id": state["doc_id"], "link": state["link"]}, d, "pushed")
+    return _record(args, out, md, text, {"doc_id": state["doc_id"], "link": state["link"]}, d, "pushed")
 
 
 def cmd_status(args, drive) -> int:
     md = Path(args.file)
+    out = _out(args, md)
     state = load_state(md)
     local = normalize(read_md(md)) if md.is_file() else ""
-    print(f"{md}: {'changed' if local != state['local'] else 'unchanged'} since the last sync")
+    out.update(doc_id=state["doc_id"], link=state["link"], local_changed=local != state["local"])
+    lines = [f"{md}: {'changed' if out['local_changed'] else 'unchanged'} since the last sync"]
     if args.dry_run:
-        return EXIT_OK
+        return _finish(args, out, EXIT_OK, "status", lines=lines)
     d = drive(args.account, args.scope)
     doc_text = normalize(d.export(state["doc_id"]))
     version = d.version(state["doc_id"])
-    print(f"Doc {state['link']}: {'changed' if doc_text != state['snapshot'] else 'unchanged'}"
-          f" (version {state['version']} -> {version})")
-    return EXIT_OK
+    out.update(doc_changed=doc_text != state["snapshot"], version=version, version_at_sync=state["version"])
+    lines.append(f"Doc {state['link']}: {'changed' if out['doc_changed'] else 'unchanged'}"
+                 f" (version {state['version']} -> {version})")
+    return _finish(args, out, EXIT_OK, "status", lines=lines)
 
 
 def cmd_sync(args, drive) -> int:
     md = Path(args.file)
+    out = _out(args, md)
     state = load_state(md)
     text = read_md(md)
+    out.update(doc_id=state["doc_id"], link=state["link"])
     if has_markers(text):
-        print(f"sync refused: {md} holds conflict markers from the last sync; resolve them first", file=sys.stderr)
-        return EXIT_CONFLICT
+        return _finish(args, out, EXIT_CONFLICT, "markers", errors=[
+            f"sync refused: {md} holds conflict markers from the last sync; resolve them first"])
     local = normalize(text)
     d = drive(args.account, args.scope)
     theirs = normalize(d.export(state["doc_id"]), text)
     version = d.version(state["doc_id"])
     if local == state["local"] and theirs == state["snapshot"]:
-        print(f"in sync: neither {md} nor the Doc changed since the last sync")
-        return EXIT_OK
+        return _finish(args, out, EXIT_OK, "in_sync", written=False, pushed=False,
+                       lines=[f"in sync: neither {md} nor the Doc changed since the last sync"])
     # One side unchanged: the other side is the result, so the converter's own differences between the two
     # texts of the last sync (features.md, the blank line before a list) never read as a conflict.
     if local == state["local"]:
@@ -604,44 +645,46 @@ def cmd_sync(args, drive) -> int:
     else:
         merged, conflicts = merge3(state["snapshot"], local, theirs)
     if conflicts:
-        if args.dry_run:
-            print(diff(local, merged, f"{md} (local)", f"{md} (merged, with markers)"))
-        else:
+        changes = diff(local, merged, f"{md} (local)", f"{md} (merged, with markers)")
+        if not args.dry_run:
             write_md(md, merged)
-        print(f"conflict: {conflicts} place{'s' if conflicts > 1 else ''} changed differently on both sides; "
-              f"{'would write' if args.dry_run else 'wrote'} both versions to {md} between "
-              f"<<<<<<< {OURS} and >>>>>>> {THEIRS}; nothing pushed", file=sys.stderr)
-        return EXIT_CONFLICT
+        return _finish(args, out, EXIT_CONFLICT, "conflict", conflicts=conflicts, written=not args.dry_run,
+                       pushed=False, diff_file=changes, lines=[changes] if args.dry_run else [], errors=[
+                           f"conflict: {conflicts} place{'s' if conflicts > 1 else ''} changed differently on both "
+                           f"sides; {'would write' if args.dry_run else 'wrote'} both versions to {md} between "
+                           f"<<<<<<< {OURS} and >>>>>>> {THEIRS}; nothing pushed"])
     if args.dry_run:
-        print(diff(local, merged, f"{md} (local)", f"{md} (merged)") or f"{md} would not change")
-        print(diff(theirs, merged, f"{md} (Doc)", f"{md} (merged)") or "the Doc would not change")
-        return EXIT_OK
+        diff_file = diff(local, merged, f"{md} (local)", f"{md} (merged)")
+        diff_doc = diff(theirs, merged, f"{md} (Doc)", f"{md} (merged)")
+        return _finish(args, out, EXIT_OK, "synced", written=False, pushed=False, diff_file=diff_file,
+                       diff_doc=diff_doc, lines=[diff_file or f"{md} would not change",
+                                                 diff_doc or "the Doc would not change"])
     if merged != local:
         write_md(md, merged)
+    out["written"] = merged != local
     if merged == theirs:
         state.update(version=version, snapshot=theirs, local=merged)
         save_state(md, state)
-        print(f"synced {state['link']}: pulled, nothing to push")
-        return EXIT_OK
+        return _finish(args, out, EXIT_OK, "synced", pushed=False, version=version,
+                       lines=[f"synced {state['link']}: pulled, nothing to push"])
     # The push guard is a fresh export, as in push: the version is no proof of anything (design.md, item 2).
     if normalize(d.export(state["doc_id"]), text) != theirs:
-        print("push refused: the Doc changed while syncing; run sync again", file=sys.stderr)
-        return EXIT_MOVED
+        return _finish(args, out, EXIT_MOVED, "refused_doc_changed", pushed=False, errors=[
+            "push refused: the Doc changed while syncing; run sync again"])
     d.update(state["doc_id"], push_form(merged))
-    return _record(md, merged, {"doc_id": state["doc_id"], "link": state["link"]}, d, "synced")
+    return _record(args, out, md, merged, {"doc_id": state["doc_id"], "link": state["link"]}, d, "synced")
 
 
-def _record(md: Path, text: str, state: dict, d: Drive, verb: str) -> int:
+def _record(args, out: dict, md: Path, text: str, state: dict, d: Drive, verb: str) -> int:
     """After a create or an update: export once more and store what the Doc now holds as the snapshot."""
     snapshot = normalize(d.export(state["doc_id"]), text)
     state.update(version=d.version(state["doc_id"]), snapshot=snapshot, local=normalize(text))
     save_state(md, state)
     lost = diff(normalize(text), snapshot, f"{md} (local)", f"{md} (Doc)")
-    if lost:
-        print(f"the Doc holds a different text; `pull --force` would write it back (docs/features.md lists what "
-              f"the converter loses):\n{lost}", file=sys.stderr)
-    print(f"{verb} {state['link']}")
-    return EXIT_OK
+    errors = [f"the Doc holds a different text; `pull --force` would write it back (docs/features.md lists what "
+              f"the converter loses):\n{lost}"] if lost else []
+    return _finish(args, out, EXIT_OK, verb, pushed=True, doc_id=state["doc_id"], link=state["link"],
+                   version=state["version"], converter_diff=lost, lines=[f"{verb} {state['link']}"], errors=errors)
 
 
 class _Parser(argparse.ArgumentParser):
@@ -662,6 +705,7 @@ def main(argv: list[str] | None = None, drive=connect) -> int:
         p = sub.add_parser(name, help=what)
         p.add_argument("file", help="the markdown file")
         p.add_argument("--dry-run", action="store_true", help="say what would happen; change nothing")
+        p.add_argument("--json", action="store_true", help="one JSON object on stdout instead of prose")
         p.add_argument("--account", metavar="NAME",
                        help="the profile to use (default: $MD2GDOC_ACCOUNT, else default)")
         p.add_argument("--scope", choices=SCOPES, help="the Google scope for a profile's first login (default: "
@@ -673,7 +717,13 @@ def main(argv: list[str] | None = None, drive=connect) -> int:
             p.add_argument("--force", action="store_true", help="overwrite the file even if it changed")
         p.set_defaults(fn=fn)
     args = parser.parse_args(argv)
-    return args.fn(args, drive)
+    try:
+        return args.fn(args, drive)
+    except SystemExit as e:  # a setup or state error raised as a message: the same object, exit 1
+        if not args.json or not isinstance(e.code, str):
+            raise
+        print(json.dumps(error_object(e.code, argv if argv is not None else sys.argv[1:]), ensure_ascii=False))
+        return EXIT_ERROR
 
 
 def cli() -> None:
@@ -686,6 +736,9 @@ def cli() -> None:
     except Exception as e:  # a Google error is one line, not a traceback; anything else is a bug
         if type(e).__name__ != "HttpError":
             raise
+        if "--json" in sys.argv[1:]:
+            print(json.dumps(error_object(f"md2gdoc: Google error: {e}", sys.argv[1:]), ensure_ascii=False))
+            sys.exit(EXIT_ERROR)
         sys.exit(f"md2gdoc: Google error: {e}")
 
 

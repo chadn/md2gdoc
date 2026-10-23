@@ -34,7 +34,7 @@ Converter rows describe what Google's markdown import and export do, which the s
 | Skip a push when normalized content is unchanged, so no empty revisions | tested | [tests/test_cli.py](../tests/test_cli.py) |
 | Re-pull after a successful push and store the new `version` and snapshot | tested | [tests/test_cli.py](../tests/test_cli.py); after `init` too |
 | Targeted edits through the Docs API so comments and formatting on untouched text survive | planned | PT-009 |
-| Agent hooks: auto-pull before an agent reads a synced file, auto-push after it writes | planned | PT-026, as a documented recipe; gdoc ships these as code ([similar.md](similar.md)) |
+| Agent hooks: auto-pull before an agent reads a synced file, auto-push after it writes | built | [agents.md](agents.md), a Claude Code hook recipe, not code in the script (PD-002); gdoc ships these as code ([similar.md](similar.md)) |
 | Sync several files or a folder in one run | idea | - |
 | Named versions of a Doc | not possible | no API names a revision; `files.copy` a titled snapshot instead |
 
@@ -48,8 +48,8 @@ Converter rows describe what Google's markdown import and export do, which the s
 | Open a Doc a human created by hand | built | `--scope drive` at a profile's first login (PT-020), unproven until PT-022 runs it with a second account; [setup.md](setup.md) "Other setups" |
 | Runs unattended: git hook, cron | built | no browser once the token exists; no hook example yet; CI out of scope until a service-account path exists (PD-002) |
 | Config directory: client file and token per profile under `~/.config/md2gdoc` (`%APPDATA%` on Windows), `--account`, `MD2GDOC_ACCOUNT`, `MD2GDOC_CONFIG_DIR` | tested | `config_dir()`, `profile_dir()`, `token_scope()` in [tests/test_cli.py](../tests/test_cli.py); the live run in [chadkit/work/PT-020.md](../chadkit/work/PT-020.md) |
-| Windows, macOS and Linux, tests in CI on all three; CRLF kept; UTF-8 output | built | [.github/workflows/tests.yml](../.github/workflows/tests.yml) runs the tests on the three with Python 3.11, 3.13 and 3.14 on every push to GitHub; CRLF read as LF and written back as CRLF, the state file always LF, UTF-8 forced on stdout and stderr ([tests/test_cli.py](../tests/test_cli.py) pins the line endings; the CI run itself is proof once the branch is on GitHub) |
-| `--json` on every command for agents | planned | PT-026 |
+| Windows, macOS and Linux, tests in CI on all three; CRLF kept; UTF-8 output | tested | [.github/workflows/tests.yml](../.github/workflows/tests.yml) runs the tests on the three with Python 3.11, 3.13 and 3.14 on every push to GitHub; CRLF read as LF and written back as CRLF, the state file always LF, UTF-8 forced on stdout and stderr ([tests/test_cli.py](../tests/test_cli.py) pins the line endings; the first CI run on GitHub, nine jobs green, PLR-20261022-14) |
+| `--json` on every command for agents: one object with exit, reason, message, the diffs and what was written or pushed | tested | [tests/test_cli.py](../tests/test_cli.py); the fields in [agents.md](agents.md) |
 | Installable as the command `md2gdoc` with `uv tool install` from GitHub | built | [pyproject.toml](../pyproject.toml), entry point `md2gdoc:cli`; installed from the working tree in [chadkit/work/PT-021/install.out.txt](../chadkit/work/PT-021/install.out.txt), the GitHub URL being the same path once the branch is merged |
 | Exit codes documented: 0 ok, 1 error, 2 conflict, 3 push or pull refused | tested | [tests/test_cli.py](../tests/test_cli.py), usage errors included |
 

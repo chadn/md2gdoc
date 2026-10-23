@@ -82,7 +82,9 @@ how far the current state has got; where the two differ, the end state wins and 
 ## Script design
 
 - Subcommands: `init` (create the Doc from the markdown file, write the state file), `pull`, `push`, `sync`,
-  `status`, each with `--dry-run`. `--help` must explain setup, files, and exit codes. Built by PT-006 and PT-007;
+  `status`, each with `--dry-run` and `--json` (one object on stdout and nothing on stderr: `exit`, a fixed
+  `reason` word, `message` holding the prose, and what the command recorded, [agents.md](agents.md); PT-026).
+  `--help` must explain setup, files, and exit codes. Built by PT-006 and PT-007;
   `--account NAME` picks a profile, a folder under the config directory holding that account's client file
   and token, `--scope` chooses `drive.file` or `drive` at the profile's first login and the token remembers it
   (PD-002, PT-020).

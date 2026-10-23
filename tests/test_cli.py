@@ -13,8 +13,8 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from md2gdoc import (  # noqa: E402
-    EXIT_CONFLICT, EXIT_MOVED, EXIT_OK, SCOPE_URL, config_dir, main, merge3, normalize, profile_dir, push_form,
-    state_path, token_scope,
+    EXIT_CONFLICT, EXIT_MOVED, EXIT_OK, SCOPE_URL, config_dir, error_object, main, merge3, normalize, profile_dir,
+    push_form, state_path, token_scope,
 )
 
 FIXTURES = ROOT / "tests" / "fixtures"
@@ -194,6 +194,7 @@ class Commands(_WithDoc):
             main(["--help"])
         self.assertEqual(e.exception.code, 0)
         for word in ("setup", "client_secret.json", "token.json", ".gdoc.json", "exit codes", "3  refused", "sync FILE",
+                     "--json",
                      "--account", "--scope", "MD2GDOC_CONFIG_DIR", "MD2GDOC_ACCOUNT", "%APPDATA%", "pip install"):
             self.assertIn(word, out.getvalue())
 
@@ -336,6 +337,65 @@ class Sync(_WithDoc):
         self.assertIn("changed while syncing", err)
         self.assertNotIn("update", drive.calls)
         self.assertIn("- [x] T-001", self.md.read_text(encoding="utf-8"))  # written; the next sync pushes it
+
+
+class Json(_WithDoc):
+    """`--json`: one object on stdout, nothing on stderr, the same exit codes."""
+
+    def run_json(self, *argv):
+        code, out, err = self.run_cmd(*argv, "--json")
+        self.assertEqual(err, "", argv)
+        self.assertEqual(out.count("\n"), 1, out)
+        obj = json.loads(out)
+        self.assertEqual(obj["exit"], code)
+        return code, obj
+
+    def test_every_command_prints_one_object(self):
+        code, obj = self.run_json("init", str(self.md))
+        self.assertEqual((code, obj["reason"], obj["pushed"]), (EXIT_OK, "created", True))
+        self.assertEqual(obj["link"], "https://docs.google.com/document/d/doc-1/edit")
+        code, obj = self.run_json("status", str(self.md), "--dry-run")
+        self.assertEqual((code, obj["reason"], obj["local_changed"], obj["dry_run"]), (EXIT_OK, "status", False, True))
+        self.assertNotIn("doc_changed", obj)
+        code, obj = self.run_json("push", str(self.md))
+        self.assertEqual((code, obj["reason"], obj["pushed"]), (EXIT_OK, "nothing_to_push", False))
+        code, obj = self.run_json("sync", str(self.md))
+        self.assertEqual((code, obj["reason"]), (EXIT_OK, "in_sync"))
+        self.md.write_text(self.md.read_text(encoding="utf-8") + "- [ ] T-006 local\n", encoding="utf-8")
+        self.drive.edit_in_ui("doc-1", "- [ ] T-002", "- [x] T-002")
+        code, obj = self.run_json("status", str(self.md))
+        self.assertEqual((obj["local_changed"], obj["doc_changed"], obj["version"]), (True, True, 6))
+        code, obj = self.run_json("pull", str(self.md))
+        self.assertEqual((code, obj["reason"]), (EXIT_MOVED, "refused_file_changed"))
+        self.assertIn("pull refused", obj["message"])
+        code, obj = self.run_json("sync", str(self.md), "--dry-run")
+        self.assertEqual((code, obj["reason"], obj["written"], obj["pushed"]), (EXIT_OK, "synced", False, False))
+        self.assertIn("+- [x] T-002", obj["diff_file"])
+        self.assertIn("+- [ ] T-006 local", obj["diff_doc"])
+        code, obj = self.run_json("sync", str(self.md))
+        self.assertEqual((code, obj["reason"], obj["written"], obj["pushed"], obj["version"]),
+                         (EXIT_OK, "synced", True, True, 7))
+        self.assertIn("+", obj["converter_diff"])  # the fake's blank line before T-006, reported, not an error
+
+    def test_a_conflict_and_an_error_are_objects_too(self):
+        self.run_json("init", str(self.md))
+        self.md.write_text(self.md.read_text(encoding="utf-8").replace("vendor", "vendor, ours"), encoding="utf-8")
+        self.drive.edit_in_ui("doc-1", "vendor", "vendor, theirs")
+        code, obj = self.run_json("sync", str(self.md))
+        self.assertEqual((code, obj["reason"], obj["conflicts"], obj["written"], obj["pushed"]),
+                         (EXIT_CONFLICT, "conflict", 1, True, False))
+        self.assertIn("<<<<<<< api-edited", self.md.read_text(encoding="utf-8"))
+        code, obj = self.run_json("push", str(self.md))
+        self.assertEqual((code, obj["reason"]), (EXIT_CONFLICT, "markers"))
+        other = Path(self.tmp.name) / "other.md"
+        other.write_text("# x\n", encoding="utf-8")
+        code, obj = self.run_json("status", str(other))
+        self.assertEqual((code, obj["reason"], obj["command"], obj["file"], obj["dry_run"]),
+                         (1, "error", "status", str(other), False))
+        self.assertIn("no state file", obj["message"])
+        obj = error_object("md2gdoc: Google error: x", ["sync", "./a.md", "--json", "--dry-run"])
+        self.assertEqual(obj, {"command": "sync", "file": "a.md", "dry_run": True, "exit": 1, "reason": "error",
+                               "message": "md2gdoc: Google error: x"})
 
 
 class Merge(unittest.TestCase):

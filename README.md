@@ -38,9 +38,11 @@ md2gdoc pull tasks.md      # write the Doc's content to the file; refused when t
 md2gdoc --help             # all of this, plus the setup steps
 ```
 
-On every command: `--dry-run` says what would happen and changes nothing; `--account NAME` picks the profile;
-`--scope drive.file` (the default) or `--scope drive` chooses the Google scope at a profile's first login. `init`
-also takes `--name` (the Doc's title) and `--folder` (a Drive folder id); `pull` takes `--force`.
+On every command: `--dry-run` says what would happen and changes nothing; `--json` prints one JSON object instead
+of prose, for agents and scripts ([docs/agents.md](docs/agents.md) has the fields and a Claude Code hook recipe);
+`--account NAME` picks the profile; `--scope drive.file` (the default) or `--scope drive` chooses the Google scope at
+a profile's first login. `init` also takes `--name` (the Doc's title) and `--folder` (a Drive folder id); `pull`
+takes `--force`.
 
 A conflict, the same line changed differently on both sides, is written to the file between `<<<<<<< api-edited`
 (the file's version) and `>>>>>>> hand-edited` (the Doc's); nothing is pushed, and `sync` and `push` exit 2 until it
@@ -76,6 +78,7 @@ Environment variables: `MD2GDOC_CONFIG_DIR`, the config directory; `MD2GDOC_ACCO
 	- [design.md](docs/design.md) - how the script works: API calls, normalizer, merge, push guard
 	- [similar.md](docs/similar.md) - what else does this, platform paths and tools on GitHub
 	- [setup.md](docs/setup.md) - one-time Google Cloud and OAuth setup
+	- [agents.md](docs/agents.md) - `--json` fields and hook recipes for AI agents
 - [tests/](tests/)
 	- [fixtures/](tests/fixtures/) - round-trip fixtures through Google's converter; the normalizer's test cases
 - [scripts/](scripts/) - repo maintenance
