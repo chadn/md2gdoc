@@ -154,3 +154,17 @@
 - Related: PT-025,PG-02
 - Tags: #outcome
 
+### PLR-20261022-15 t_qa [PT-022,PT-007,PT-008,PG-01] PT-008 outcome: Chad's first dogfood sync of chadkit/tasks.md
+
+- Date: 2026-10-22
+- Summary: good: on 2026-10-22 Chad reworded PT-022's line in the Doc and sync wrote it to the file correctly; he then edited four task lines in the file and sync pushed them to the Doc; a code block he put around --json in the Doc came back to the file as a single-backtick span; the state file reached version 20 with the snapshot equal to the file; nothing lost on either side, no conflict, PT-007's merge in real use for the first time
+- Related: PT-008,PT-007,PG-01
+- Tags: #outcome
+
+### PLR-20261022-16 t_feedback [PT-023,PT-024,PD-002,PG-04,PLR-20261022-08] Chad confirms GFM as the feature list to pin
+
+- Date: 2026-10-22
+- Source: Chad, in the session, answering the task-order report's decision 3
+- Summary: On 2026-10-22 Chad chose to keep GitHub Flavored Markdown as the list of features PT-023 and PT-024 pin with fixtures, as PD-002 names it, with PG-04's wording unchanged; this closes the doubt recorded in PLR-20261022-08 and the question in the session's recommendation of task order
+- Related: PG-04,PD-002,PT-023,PT-024
+
