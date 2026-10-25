@@ -102,6 +102,86 @@ class RawUploads(unittest.TestCase):
         self.assertEqual(normalize(fixture("03-resume-style.out.md")), expected)
 
 
+class GfmHeadingsRules(unittest.TestCase):
+    """Fixture 09: setext headings come back ATX, H4-H6 survive, every rule style comes back `---`."""
+
+    def test_pair(self):
+        expected = fixture("09-gfm-headings-rules.in.md")
+        for lost, got in [("Setext H1\n=========", "# Setext H1"), ("Setext H2\n---------", "## Setext H2"),
+                          ("\n***\n", "\n---\n"), ("\n___\n", "\n---\n"), ("\n- - -\n", "\n---\n")]:
+            self.assertIn(lost, expected)
+            expected = expected.replace(lost, got)
+        self.assertIn("###### Heading six", expected)
+        self.assertEqual(normalize(fixture("09-gfm-headings-rules.out.md")), expected)
+
+
+class GfmListsQuotes(unittest.TestCase):
+    """Fixture 10: markers survive but the blank between adjacent lists does not; a loose list stays loose; the
+    export pads a quote with empty `>` lines; indented code loses its indent; a tab survives."""
+
+    def test_push_form_is_what_was_uploaded(self):
+        self.assertEqual(push_form(fixture("10-gfm-lists-quotes.src.md")), fixture("10-gfm-lists-quotes.in.md"))
+
+    def test_export_normalizes_to_the_source_but_for_the_losses(self):
+        src = fixture("10-gfm-lists-quotes.src.md")
+        expected = src
+        for lost, got in [
+            ("- Dash bullet\n\n3. Starts", "- Dash bullet\n3. Starts"),  # the blank between adjacent lists
+            ("4. Four\n\n1) Paren", "4. Four\n1) Paren"),
+            ("> Quote with **bold**\n>\n> > Nested quote\n", ">\n> Quote with **bold**\n>\n> > Nested quote\n> >\n"),
+            ("    indented code line\n    second indented line", "indented code line\n\nsecond indented line"),
+        ]:
+            self.assertIn(lost, expected)
+            expected = expected.replace(lost, got)
+        got = normalize(fixture("10-gfm-lists-quotes.out.md"), src)
+        self.assertEqual(got, expected)
+        self.assertIn("- Loose item one\n\n- Loose item two\n", got)
+        self.assertIn("a\ttab", got)
+
+
+class GfmInlines(unittest.TestCase):
+    """Fixture 11: what each inline construct becomes; the image comes back as a data URI that pushes back."""
+
+    def test_export_normalizes_to_the_upload_but_for_the_losses(self):
+        expected = fixture("11-gfm-inlines.in.md")
+        for lost, got in [
+            ("__strong__", "**strong**"), ("_underscore italic_", "*underscore italic*"),
+            ("&amp; &lt; &copy; &#169; &#x1F600; and a non-breaking&nbsp;space", "& < \u00a9 \u00a9 \U0001f600 and a "
+             "non-breaking\u00a0space"),  # the no-break space stays one, U+00A0
+            ('![GitHub favicon](https://github.githubassets.com/favicons/favicon.png "Pic title")',
+             "![GitHub favicon][image1]"),
+            ("<https://example.com/a>", "https://example.com/a"),
+            ("<mailto:someone@example.com>", "[mailto:someone@example.com](mailto:someone@example.com)"),
+            ("Bare www.example.com and https://example.com/b and someone@example.com",
+             "Bare [www.example.com](http://www.example.com) and https://example.com/b and "
+             "[someone@example.com](mailto:someone@example.com)"),
+            ('[titled](https://example.com/c "The title")', "[titled](https://example.com/c)"),
+            ("[ref link][r1]", "[ref link](https://example.com/r1)"),
+            ("[collapsed][]", "[collapsed](https://example.com/collapsed)"),
+            ("[r1]: https://example.com/r1\n\n[collapsed]: https://example.com/collapsed\n\n"
+             "[shortcut]: https://example.com/shortcut\n", ""),
+            ("[shortcut]", "[shortcut](https://example.com/shortcut)"),
+            ("<b>bold</b>, <em>em</em>, break<br>after, <span style=\"color:red\">span</span>, "
+             "<script>alert(1)</script>.", "**bold**, *em*, break\n\nafter, span, ."),
+        ]:
+            self.assertIn(lost, expected)
+            expected = expected.replace(lost, got)
+        got = normalize(fixture("11-gfm-inlines.out.md"))
+        self.assertTrue(got.startswith(expected), got[:len(expected)])
+        self.assertRegex(got[len(expected):], r'^\[image1\]: <data:image/png;base64,[A-Za-z0-9+/=]+> "Pic title"\n$')
+        self.assertIn("~~gone~~ and **strong** and ***both*** and *star italic*", got)
+
+    def test_the_export_fed_back_in_exports_the_same(self):
+        self.assertEqual(fixture("11-gfm-inlines.round2.out.md"), fixture("11-gfm-inlines.out.md"))
+
+
+class GfmListMarkers(unittest.TestCase):
+    """Fixture 12: each marker style in its own list, a start at 3, nested mixed markers: all come back as written."""
+
+    def test_pair(self):
+        self.assertEqual(normalize(fixture("12-gfm-list-markers.out.md")), fixture("12-gfm-list-markers.in.md"))
+
+
 class Rules(unittest.TestCase):
     def test_normalize_is_idempotent_on_every_export(self):
         for path in sorted(FIXTURES.glob("*.out.md")):

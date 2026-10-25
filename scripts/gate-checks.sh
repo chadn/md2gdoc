@@ -81,12 +81,13 @@ else
 fi
 
 # Lines past 120 characters, in what a person reads or edits: added lines only, so old text is not judged; a
-# table row, a URL, the log, the task lines and a work folder's evidence files (exports kept byte for byte) are
-# exempt. Untracked files are not judged until staged. awk's length() counts bytes on macOS, so under LC_ALL=C the
-# UTF-8 continuation bytes are dropped first to count characters.
+# table row, a URL, the log, the task lines, a work folder's evidence files and a fixture's export (both kept
+# byte for byte) are exempt. Untracked files are not judged until staged. awk's length() counts bytes on macOS,
+# so under LC_ALL=C the UTF-8 continuation bytes are dropped first to count characters.
 long=$( git diff -U0 "$since" 2>/dev/null \
     | LC_ALL=C awk '/^\+\+\+ b\//{f=substr($0,7)}
            /^\+[^+]/ && f ~ /\.(md|py|sh)$/ && f !~ /chadkit\/(log|tasks)\.md/ && f !~ /chadkit\/work\/[^\/]+\// \
+           && f !~ /tests\/fixtures\/.*\.out\.md$/ \
            && (t=$0) && gsub(/[\200-\277]/, "", t) >= 0 && length(t) > 121 \
            && $0 !~ /https?:\/\// && $0 !~ /^\+\|/ \
            {print f": "length(t)-1" chars: "substr($0,2,60)"..."}' \

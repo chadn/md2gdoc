@@ -59,14 +59,18 @@ What survives a round trip, file to Doc to file. `tests/fixtures/` holds the byt
 
 | Feature | Status | Owner / evidence |
 | --- | --- | --- |
-| Headings H1-H6 | built | fixtures 01, 03 pin H1-H3; H4-H6 seen in PT-002's import test, no fixture; export wraps headings in `**` |
-| Bold, italic, links | tested | fixture 01; fixture 03 shows `_italic_` comes back as `*italic*` |
+| Headings H1-H6 | tested | fixtures 01, 03 (H1-H3), 09 (H4-H6); the export wraps every heading in `**`, which the normalizer strips |
+| Setext headings (underlined with `===` or `---`) | tested | fixture 09: text and level survive, but they come back as ATX `#` and `##`, so a pull rewrites them |
+| Bold, italic, links | tested | fixture 01; `_italic_` and `__strong__` come back as `*italic*` and `**strong**` (fixtures 03, 11), `***both***` as it was |
+| Strikethrough `~~text~~` | tested | fixture 11 |
 | Inline code (single backtick) | tested | fixtures 01, 05: backticks inside, stars, tags, table cells, task lines all survive |
 | Nested bullet and numbered lists; a list starting at 5 keeps its start | tested | fixtures 01, 03 (the start at 5); nesting comes back at 2 spaces |
+| Bullet markers `*`, `+`, `-`; numbering `1.` and `1)`; a start at 3; nested mixed markers | tested | fixture 12: each comes back as written |
+| Two tight lists back to back with a blank line between | tested | fixtures 01, 10: the blank line is dropped, so a pull joins them; where the marker or numbering style changes the lists still re-parse apart; a paragraph between them keeps the blank (fixture 12); a loose list that follows keeps it through its own whitespace line (fixture 10) |
 | Checkboxes `- [ ]` / `- [x]`, including state ticked in the Docs UI | tested | fixture 04 |
 | Tables, including bold cells | workaround | fixture 01; alignment colons come back on every column, so the normalizer writes `| --- |` and alignment is lost |
-| Blockquotes | tested | fixture 01; becomes an indented paragraph |
-| Horizontal rules | tested | fixtures 01, 03 |
+| Blockquotes, nested quotes, a list inside a quote | tested | fixtures 01, 10: text and nesting survive; in the Doc a quote is an indented paragraph; a plain quote and a quoted list come back as written, while a quote holding a nested quote comes back with an empty `>` line before its first line and after the nested one, so a pull adds them; a normalizer rule could drop them once the padding is understood |
+| Horizontal rules | tested | fixtures 01, 03, 09: `***`, `___` and `- - -` all come back as `---` |
 | Footnotes | tested | fixture 01; real Docs footnotes |
 | Escaped characters (`\-`, `\[`, `\#`, ...) | workaround | fixtures 03, 04, 07; the normalizer unescapes outside code spans, so a deliberate escape there is dropped on pull unless it keeps a line from becoming a block; the export also escapes a dash right after a code span, dropped since PT-008's real run ([chadkit/work/PT-008.md](../chadkit/work/PT-008.md)) |
 | Soft line breaks inside a paragraph or list item | workaround | fixture 06: pushed as hard breaks so the Doc keeps the file's lines; a hard break the file had comes back soft; raw, fixture 03 shows them joined |
@@ -75,13 +79,20 @@ What survives a round trip, file to Doc to file. `tests/fixtures/` holds the byt
 | Language tag on a fence | workaround | fixture 05 tests: the Doc cannot hold it; kept from the local file, empty on a fresh pull |
 | Indentation, tabs, and blank lines inside a fenced block | tested | fixture 05; pushed as entities, come back as whitespace |
 | Trailing whitespace inside a code line | idea | PT-013 [probe 4](../chadkit/work/PT-013/probe-4-whitespace-in-spans.out.md), "Trailing spaces inside code": the export moves them outside the span, so they are no longer code; an entity was not tried |
-| Indented code (four spaces) | idea | fixture 01 `.round2.out.md`: the indent is lost on re-import; the push form could rewrite it to a fence |
+| Indented code (four spaces) | tested | fixtures 01 `.round2.out.md`, 10: the indent is lost and each line becomes a paragraph, the push form treating it as one today; rewriting it to a fence in the push form is an idea no task owns |
 | Fenced code inside a list item | idea | sent as it is today and loses its shape (PT-013 [probe 1](../chadkit/work/PT-013/probe-1-raw-fences.out.md), "Fenced in a list"); a code run inside the item keeps its lines ([probe 6](../chadkit/work/PT-013/probe-6-entities-and-lists.out.md)); no test pins it |
 | Native Docs "Code block" building block | not possible | UI only, paid Workspace editions; no API request creates one |
-| Raw HTML inside markdown: inline styles such as colour | idea | fixture 01 shows the text survives; colour cannot show in a markdown export |
+| Raw HTML inside markdown: inline styles such as colour | tested | fixtures 01, 11: the text survives, the tag and its colour are gone; colour cannot show in a markdown export |
+| Raw inline HTML tags `<b>`, `<em>`, `<br>`, `<span>`, `<script>` | tested | fixture 11: `<b>` and `<em>` come back as `**` and `*`, `<br>` as a paragraph break, `<span>` as its text, `<script>` and its content dropped |
+| Entity and numeric character references (`&amp;`, `&copy;`, `&#x1F600;`, `&nbsp;`) | tested | fixture 11: decoded to the characters, `&nbsp;` to a real no-break space (U+00A0), and not re-encoded on export (`<` comes back as `\<`, which the normalizer unescapes) |
+| Autolinks `<https://...>`, `<mailto:...>` | tested | fixture 11: `<url>` comes back as the bare URL (the export writes `[url](url)`, which the normalizer collapses), `<mailto:a@b>` as `[mailto:a@b](mailto:a@b)` |
+| Bare URLs, `www.` names and e-mail addresses (GFM autolink extension) | tested | fixture 11: `https://...` comes back bare, `www.example.com` as `[www.example.com](http://www.example.com)`, an address as `[a@b](mailto:a@b)` |
+| Link titles `[text](url "title")` | tested | fixture 11: the title is dropped, the link survives |
+| Reference-style links `[text][ref]`, `[ref][]`, `[ref]` and their definitions | tested | fixture 11: each comes back as an inline link and the definitions are gone |
+| Tabs and Unicode in text: a tab, accented letters, CJK, emoji, curly quotes, an en dash | tested | fixtures 10, 11 |
 | `<details>` | not possible | its text merges into the next heading |
-| Images | idea | via `<img src>` in an HTML upload or `insertInlineImage`; not tested |
+| Images `![alt](url "title")` | tested | fixture 11: the Doc holds the image; the export writes `![alt][image1]` and a `[image1]: <data:image/png;base64,...> "title"` definition at the end, the URL gone; that form pushes back and exports the same (`.round2.out.md`) |
 | Comments and suggestions in the Doc | not possible | lost on a whole-document push; PT-009 is the remedy |
 | A list item right after a paragraph line, no blank line between | idea | the real run in [chadkit/work/PT-006.md](../chadkit/work/PT-006.md): the export puts a blank line before the list, so after a push the Doc's text differs from the file's until `pull --force` writes the blank line; a fixture and a normalizer rule could reverse it |
-| A loose list (a blank line between items) | idea | PT-007's [loose-list probe](../chadkit/work/PT-007/loose-list-probe.out.txt): the export puts a whitespace-only hard-break line after every item, which the normalizer reads as a blank line, so the whole list comes back loose and stays so; a tight list is stable over three round trips ([roundtrips probe](../chadkit/work/PT-007/roundtrips-probe.out.txt)); PT-023 may pin it |
+| A loose list (a blank line between items) | tested | fixture 10: the export puts a whitespace-only line before the first item and after each item but the last, which the normalizer reads as blank lines, so the list comes back loose; PT-007's [loose-list probe](../chadkit/work/PT-007/loose-list-probe.out.txt) showed a list loose in one place comes back loose throughout; a tight list stays tight (fixtures 04, 12) and over three round trips (PT-007's [roundtrips probe](../chadkit/work/PT-007/roundtrips-probe.out.txt)) |
 | Nested checkbox under a checkbox at deeper levels | tested | fixture 08: a child's indent is its parent's content column (6 under a checkbox, 2 under a bullet, 3 under an ordered item), and the normalizer reads levels relative to the open items |

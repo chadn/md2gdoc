@@ -1,0 +1,10 @@
+Installed 25 packages in 52ms
+09-gfm-headings-rules: 197 chars in, 199 chars out, version 4, Doc trashed
+10-gfm-lists-quotes: 305 chars in, 343 chars out, version 4, Doc trashed
+11-gfm-inlines: 853 chars in, 1703 chars out, version 4, Doc trashed
+12-gfm-list-markers: 269 chars in, 280 chars out, version 4, Doc trashed
+11-gfm-inlines: 1703 chars in, 1703 chars out, version 4, Doc trashed
+11-gfm-inlines: 845 chars in, 1695 chars out, version 4, Doc trashed
+11-gfm-inlines: 1695 chars in, 1695 chars out, version 4, Doc trashed
+11-gfm-inlines: 836 chars in, 1686 chars out, version 4, Doc trashed
+11-gfm-inlines: 1686 chars in, 1686 chars out, version 4, Doc trashed
