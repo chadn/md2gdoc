@@ -214,7 +214,9 @@ reverse.
 ### Limits worth knowing
 
 - A Doc created by hand in the Docs UI is outside `drive.file`; let the script create it, or use the
-  Secondary-account setup or Service-account setup.
+  Secondary-account setup or Service-account setup. On such a Doc the script reports Google's refusal as it comes:
+  `File not found` (404) when the account cannot see the Doc, `appNotAuthorizedToFile` (403) when it can but the
+  app may not ([chadkit/work/PT-022/](../chadkit/work/PT-022/)).
 - Quotas do not matter at any sync cadence: Drive allows 325,000 units per minute per user; the Docs API allows 60
   writes per minute per user.
 - The console shows a client secret only at creation; if it is lost, **Add Secret** on the client's page makes a
@@ -227,9 +229,6 @@ points to if the test disagrees.
 
 - [Recommended setup](#recommended-setup) step 6: the token issued on 2026-10-22 under In production still
   refreshes after 2026-10-29, which is the 7-day mark.
-- [Secondary-account setup](#secondary-account-setup): an edit made in the Docs UI on a shared Doc reaches the
-  file by `sync`, and a Doc the secondary account made by hand attaches (PT-022; the login, the attach, a push
-  and the `drive.file` refusal are done).
 - [Service-account setup](#service-account-setup): updating a shared Doc counts against the owner's quota.
 - [Service-account setup](#service-account-setup): a personal Gmail account can share a Doc with a service account.
 

@@ -1,0 +1,5 @@
+$ md2gdoc init main2.md --doc DOC_B --account default   # the main account, drive.file
+md2gdoc: Google error: <HttpError 404 when requesting https://www.googleapis.com/drive/v3/files/DOC_B/export?mimeType=text%2Fmarkdown returned "File not found: DOC_B.". Details: "[{'message': 'File not found: DOC_B.', 'domain': 'global', 'reason': 'notFound', 'location': 'fileId', 'locationType': 'parameter'}]">
+exit 1
+ls: main2.md: No such file or directory
+ls: main2.md.gdoc.json: No such file or directory

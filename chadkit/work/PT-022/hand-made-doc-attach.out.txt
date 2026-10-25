@@ -1,0 +1,19 @@
+$ md2gdoc init tank.md --doc DOC_B --account tatanka
+attached tank.md to https://docs.google.com/document/d/DOC_B/edit?usp=drivesdk
+exit 0
+$ cat tank.md
+# PT-022 Tank Created in Docs UI
+
+A Doc tank owns,
+
+- [x] created in the Docs UI by chad
+- [ ] edited locally by md2gdoc as tatanka
+- [ ] both edits present on both sides after sync
+$ cat tank.md.gdoc.json
+{
+  "doc_id": "DOC_B",
+  "link": "https://docs.google.com/document/d/DOC_B/edit?usp=drivesdk",
+  "version": 7,
+  "snapshot": "# PT-022 Tank Created in Docs UI\n\nA Doc tank owns,\n\n- [x] created in the Docs UI by chad\n- [ ] edited locally by md2gdoc as tatanka\n- [ ] both edits present on both sides after sync\n",
+  "local": "# PT-022 Tank Created in Docs UI\n\nA Doc tank owns,\n\n- [x] created in the Docs UI by chad\n- [ ] edited locally by md2gdoc as tatanka\n- [ ] both edits present on both sides after sync\n"
+}
