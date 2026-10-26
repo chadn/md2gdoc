@@ -1,4 +1,5 @@
 """Shared helpers for the PT-009 probes: one connection, a Docs client, paragraph lookup by text."""
+import copy
 import io
 import json
 import re

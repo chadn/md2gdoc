@@ -1,0 +1,63 @@
+Installed 27 packages in 59ms
+doc <carrier-doc-id>
+
+--- as made
+# **Carrier**
+
+- [ ] unticked  
+- [x] ticked  
+- [ ] tick me via docx
+
+A paragraph with **bold** and the word CHANGEME inside, and a red word later.
+
+Commented paragraph stays as it is.
+docx comment anchors: {'0': 'Commented'}
+red runs: ['red word'] | Drive version: 6
+
+docx paragraph holding 'unticked':
+<w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="00000002"><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr><w:ind w:left="720" w:hanging="360"/></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr/><w:t xml:space="preserve">unticked</w:t></w:r></w:p>
+
+docx paragraph holding 'ticked<':
+<w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="00000002"><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr><w:ind w:left="720" w:hanging="360"/></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr/><w:t xml:space="preserve">unticked</w:t></w:r></w:p>
+
+docx paragraph holding 'tick me':
+<w:p w:rsidR="00000000" w:rsidDel="00000000" w:rsidP="00000000" w:rsidRDefault="00000000" w:rsidRPr="00000000" w14:paraId="00000004"><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr><w:ind w:left="720" w:hanging="360"/></w:pPr><w:r w:rsidDel="00000000" w:rsidR="00000000" w:rsidRPr="00000000"><w:rPr/><w:t xml:space="preserve">tick me via docx</w:t></w:r></w:p>
+
+numbering.xml, the checkbox glyphs:
+  lvlText '' []
+  lvlText '' []
+  lvlText '' []
+  lvlText '' []
+  lvlText '' []
+  lvlText '' []
+  lvlText '' []
+  lvlText '' []
+  lvlText '' []
+w14:checkbox present: False
+
+--- after files.update with the unchanged .docx
+# **Carrier**
+
+* unticked  
+* ticked  
+* tick me via docx
+
+A paragraph with **bold** and the word CHANGEME inside, and a red word later.
+
+Commented paragraph stays as it is.
+docx comment anchors: {'0': 'Commented'}
+red runs: ['red word'] | Drive version: 7
+
+--- after the edited .docx (CHANGEME->CHANGED, third box given the ticked item's numbering, a paragraph added)
+# **Carrier**
+
+* unticked  
+* ticked  
+* tick me via docx
+
+A paragraph with **bold** and the word CHANGED inside, and a red word later.
+
+Added through the docx.  
+Commented paragraph stays as it is.
+docx comment anchors: {'0': 'Commented'}
+red runs: ['red word'] | Drive version: 9

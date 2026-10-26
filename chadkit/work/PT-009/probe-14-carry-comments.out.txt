@@ -1,0 +1,32 @@
+--- before: 7 comments (the .docx round trips of probes 11 and 12 re-imported the one comment each time)
+j8LBtA OPEN anchored=None quote=None replies=1 'anchored on Commented'
+c_RlTA OPEN anchored=None quote='Commented' replies=0 'anchored on Commented'
+QNY-1Q OPEN anchored=None quote=None replies=0 'anchored on Commented'
+trTERw OPEN anchored=None quote=None replies=0 'anchored on Commented'
+LwOExw OPEN anchored=None quote=None replies=0 'anchored on Commented'
+G6ScIA OPEN anchored=None quote=None replies=0 'anchored on Commented'
+ecDc5g OPEN anchored=None quote=None replies=0 'anchored on Commented'
+--- after the whole replace
+j8LBtA OPEN anchored=None quote=None replies=2 'anchored on Commented'
+c_RlTA OPEN anchored=None quote='Commented' replies=0 'anchored on Commented'
+QNY-1Q OPEN anchored=None quote=None replies=0 'anchored on Commented'
+trTERw OPEN anchored=None quote=None replies=0 'anchored on Commented'
+LwOExw OPEN anchored=None quote=None replies=0 'anchored on Commented'
+G6ScIA OPEN anchored=None quote=None replies=0 'anchored on Commented'
+ecDc5g OPEN anchored=None quote=None replies=0 'anchored on Commented'
+no place for j8LBtA
+no place for QNY-1Q
+no place for trTERw
+no place for LwOExw
+no place for G6ScIA
+no place for ecDc5g
+carried 1, deleted 1
+--- after carry-over
+j8LBtA OPEN anchored=None quote=None replies=2 'anchored on Commented'
+3vUAwg OPEN anchored='Commented' quote='Commented' replies=0 'anchored on Commented (carried over; was'
+QNY-1Q OPEN anchored=None quote=None replies=0 'anchored on Commented'
+trTERw OPEN anchored=None quote=None replies=0 'anchored on Commented'
+LwOExw OPEN anchored=None quote=None replies=0 'anchored on Commented'
+G6ScIA OPEN anchored=None quote=None replies=0 'anchored on Commented'
+ecDc5g OPEN anchored=None quote=None replies=0 'anchored on Commented'
+docx anchors: {'0': 'Commented'}

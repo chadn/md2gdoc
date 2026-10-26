@@ -1,0 +1,20 @@
+Installed 25 packages in 29ms
+--- export after an empty paragraph with a bottom border
+# **Carrier**
+
+* unticked  
+* ticked  
+  ☒tick me via docx
+
+A paragraph with **bold** and the word CHANGEME inside, and a red word later.
+
+Commented paragraph stays as it is.  
+
+
+--- a pending suggestion, three views
+SUGGESTIONS_INLINE has SUGGESTED: True
+PREVIEW_WITHOUT_SUGGESTIONS has SUGGESTED: False
+PREVIEW_SUGGESTIONS_ACCEPTED has SUGGESTED: True
+inline != without, so a pending suggestion is detectable: True
+markdown export line: ['SUGGESTED Commented paragraph stays as it is.  ']
+default view mode: SUGGESTIONS_INLINE

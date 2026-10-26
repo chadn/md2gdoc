@@ -1,0 +1,12 @@
+Installed 25 packages in 49ms
+doc <carry-doc-id>
+--- before the whole replace
+  oTG0pw OPEN anchored='ALPHA' quote='ALPHA' by '<account display name>' 'comment on ALPHA' replies=[('<account display name>', 'a reply')]
+  SodAQA OPEN anchored='BETA ' quote='BETA' by '<account display name>' 'comment on BETA' replies=[]
+--- after the whole replace
+  oTG0pw OPEN anchored=None quote='ALPHA' by '<account display name>' 'comment on ALPHA' replies=[('<account display name>', 'a reply')]
+  SodAQA OPEN anchored=None quote='BETA' by '<account display name>' 'comment on BETA' replies=[]
+--- after the carry-over
+  EhGe_w OPEN anchored='BETA ' quote='BETA' by '<account display name>' 'comment on BETA (carried; was by <account display name>' replies=[]
+  IQqHDw OPEN anchored='ALPHA' quote='ALPHA' by '<account display name>' 'comment on ALPHA (carried; was by <account display name>' replies=[('<account display name>', 'a reply (carried; was by <account display name>)')]
+docx anchors: {'0': 'ALPHA', '2': 'BETA '}
