@@ -1,0 +1,18 @@
+discovery revision: 20261021
+53 request types: acceptSuggestion, addCommentReply, addDocumentTab, createDropdownDefinition, createFooter, createFootnote, createHeader, createNamedRange, createParagraphBullets, deleteComment, deleteCommentReply, deleteContentRange, deleteDropdownDefinition, deleteFooter, deleteHeader, deleteNamedRange, deleteParagraphBullets, deletePositionedObject, deleteSuggestion, deleteTab, deleteTableColumn, deleteTableRow, insertComment, insertDate, insertDropdown, insertInlineImage, insertPageBreak, insertPerson, insertRichLink, insertSectionBreak, insertTable, insertTableColumn, insertTableRow, insertText, mergeTableCells, pinTableHeaderRows, rejectSuggestion, replaceAllText, replaceImage, replaceNamedRangeContent, unmergeTableCells, updateCommentPost, updateDocumentStyle, updateDocumentTabProperties, updateDropdownDefinitionProperties, updateDropdownProperties, updateNamedStyle, updateParagraphStyle, updateSectionStyle, updateTableCellStyle, updateTableColumnProperties, updateTableRowStyle, updateTextStyle
+Bullet: nestingLevel, listId, textStyle
+NestingLevel: textStyle, startNumber, bulletAlignment, indentFirstLine, glyphType, glyphSymbol, indentStart, glyphFormat
+  bulletAlignment enum: ['BULLET_ALIGNMENT_UNSPECIFIED', 'START', 'CENTER', 'END']
+  glyphType enum: ['GLYPH_TYPE_UNSPECIFIED', 'NONE', 'DECIMAL', 'ZERO_DECIMAL', 'UPPER_ALPHA', 'ALPHA', 'UPPER_ROMAN', 'ROMAN']
+CreateParagraphBulletsRequest: range, bulletPreset
+  bulletPreset enum: ['BULLET_GLYPH_PRESET_UNSPECIFIED', 'BULLET_DISC_CIRCLE_SQUARE', 'BULLET_DIAMONDX_ARROW3D_SQUARE', 'BULLET_CHECKBOX', 'BULLET_ARROW_DIAMOND_DISC', 'BULLET_STAR_CIRCLE_SQUARE', 'BULLET_ARROW3D_CIRCLE_SQUARE', 'BULLET_LEFTTRIANGLE_DIAMOND_DISC', 'BULLET_DIAMONDX_HOLLOWDIAMOND_SQUARE', 'BULLET_DIAMOND_CIRCLE_SQUARE', 'NUMBERED_DECIMAL_ALPHA_ROMAN', 'NUMBERED_DECIMAL_ALPHA_ROMAN_PARENS', 'NUMBERED_DECIMAL_NESTED', 'NUMBERED_UPPERALPHA_ALPHA_ROMAN', 'NUMBERED_UPPERROMAN_UPPERALPHA_DECIMAL', 'NUMBERED_ZERODECIMAL_ALPHA_ROMAN']
+WriteControl: writeMode, targetRevisionId, requiredRevisionId
+  writeMode enum: ['WRITE_MODE_UNSPECIFIED', 'EDIT', 'SUGGEST']
+InsertCommentRequest: assigneeEmailAddress, content, range
+CommentThread: replies, commentId, anchorId, headPost, status, plainTextQuote
+  status enum: ['STATUS_UNSPECIFIED', 'OPEN', 'RESOLVED']
+CommentAnchor: anchorId, ranges
+ParagraphElement: endIndex, person, equation, dropdown, columnBreak, dateElement, horizontalRule, inlineObjectElement, textRun, footnoteReference, autoText, richLink, pageBreak, startIndex
+documents.get parameters: documentId, suggestionsViewMode, commentsViewMode, includeTabsContent
+commentsViewMode: ['COMMENTS_VIEW_MODE_UNSPECIFIED', 'COMMENTS_VIEW_MODE_DEFAULT_FOR_CURRENT_ACCESS', 'COMMENTS_VIEW_MODE_OMITTED', 'COMMENTS_VIEW_MODE_INCLUDED']
+suggestionsViewMode: ['DEFAULT_FOR_CURRENT_ACCESS', 'SUGGESTIONS_INLINE', 'PREVIEW_SUGGESTIONS_ACCEPTED', 'PREVIEW_WITHOUT_SUGGESTIONS']

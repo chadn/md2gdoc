@@ -1,0 +1,134 @@
+=== 7-16 'unticked'
+{
+ "elements": [
+  {
+   "startIndex": 7,
+   "endIndex": 16,
+   "textRun": {
+    "content": "unticked\n",
+    "textStyle": {
+     "strikethrough": true
+    }
+   }
+  }
+ ],
+ "paragraphStyle": {
+  "namedStyleType": "NORMAL_TEXT",
+  "direction": "LEFT_TO_RIGHT",
+  "spacingMode": "COLLAPSE_LISTS",
+  "indentFirstLine": {
+   "magnitude": 18,
+   "unit": "PT"
+  },
+  "indentStart": {
+   "magnitude": 36,
+   "unit": "PT"
+  }
+ },
+ "bullet": {
+  "listId": "kix.o33php9xlwzg",
+  "textStyle": {
+   "strikethrough": true
+  }
+ }
+}
+=== 16-23 'ticked'
+{
+ "elements": [
+  {
+   "startIndex": 16,
+   "endIndex": 23,
+   "textRun": {
+    "content": "ticked\n",
+    "textStyle": {}
+   }
+  }
+ ],
+ "paragraphStyle": {
+  "namedStyleType": "NORMAL_TEXT",
+  "direction": "LEFT_TO_RIGHT",
+  "spacingMode": "COLLAPSE_LISTS",
+  "indentFirstLine": {
+   "magnitude": 18,
+   "unit": "PT"
+  },
+  "indentStart": {
+   "magnitude": 36,
+   "unit": "PT"
+  }
+ },
+ "bullet": {
+  "listId": "kix.o33php9xlwzg",
+  "textStyle": {}
+ }
+}
+=== 23-42 'added after ticked'
+{
+ "elements": [
+  {
+   "startIndex": 23,
+   "endIndex": 42,
+   "textRun": {
+    "content": "added after ticked\n",
+    "textStyle": {}
+   }
+  }
+ ],
+ "paragraphStyle": {
+  "namedStyleType": "NORMAL_TEXT",
+  "direction": "LEFT_TO_RIGHT",
+  "spacingMode": "COLLAPSE_LISTS",
+  "indentFirstLine": {
+   "magnitude": 18,
+   "unit": "PT"
+  },
+  "indentStart": {
+   "magnitude": 36,
+   "unit": "PT"
+  }
+ },
+ "bullet": {
+  "listId": "kix.o33php9xlwzg",
+  "textStyle": {}
+ }
+}
+=== 42-55 'plain bullet'
+{
+ "elements": [
+  {
+   "startIndex": 42,
+   "endIndex": 55,
+   "textRun": {
+    "content": "plain bullet\n",
+    "textStyle": {}
+   }
+  }
+ ],
+ "paragraphStyle": {
+  "namedStyleType": "NORMAL_TEXT",
+  "direction": "LEFT_TO_RIGHT",
+  "spacingMode": "COLLAPSE_LISTS",
+  "indentFirstLine": {
+   "magnitude": 18,
+   "unit": "PT"
+  },
+  "indentStart": {
+   "magnitude": 36,
+   "unit": "PT"
+  }
+ },
+ "bullet": {
+  "listId": "kix.i1jp8j9o35a4",
+  "textStyle": {}
+ }
+}
+=== list kix.e91xe4s7r99v nesting levels: 9
+  level 0 {'bulletAlignment': 'START', 'glyphType': 'GLYPH_TYPE_UNSPECIFIED', 'glyphFormat': '%0', 'indentFirstLine': {'magnitude': 18, 'unit': 'PT'}, 'indentStart': {'magnitude': 36, 'unit': 'PT'}, 'startNumber': 1}
+  level 1 {'bulletAlignment': 'START', 'glyphType': 'GLYPH_TYPE_UNSPECIFIED', 'glyphFormat': '%1', 'indentFirstLine': {'magnitude': 54, 'unit': 'PT'}, 'indentStart': {'magnitude': 72, 'unit': 'PT'}, 'startNumber': 1}
+=== list kix.i1jp8j9o35a4 nesting levels: 9
+  level 0 {'bulletAlignment': 'START', 'glyphSymbol': '-', 'glyphFormat': '%0', 'indentFirstLine': {'magnitude': 18, 'unit': 'PT'}, 'indentStart': {'magnitude': 36, 'unit': 'PT'}, 'startNumber': 1}
+  level 1 {'bulletAlignment': 'START', 'glyphType': 'GLYPH_TYPE_UNSPECIFIED', 'glyphFormat': '%1', 'indentFirstLine': {'magnitude': 54, 'unit': 'PT'}, 'indentStart': {'magnitude': 72, 'unit': 'PT'}, 'startNumber': 1}
+=== list kix.o33php9xlwzg nesting levels: 9
+  level 0 {'bulletAlignment': 'START', 'glyphType': 'GLYPH_TYPE_UNSPECIFIED', 'glyphFormat': '%0', 'indentFirstLine': {'magnitude': 18, 'unit': 'PT'}, 'indentStart': {'magnitude': 36, 'unit': 'PT'}, 'startNumber': 1}
+  level 1 {'bulletAlignment': 'START', 'glyphType': 'GLYPH_TYPE_UNSPECIFIED', 'glyphFormat': '%1', 'indentFirstLine': {'magnitude': 54, 'unit': 'PT'}, 'indentStart': {'magnitude': 72, 'unit': 'PT'}, 'startNumber': 1}
+top-level keys of the doc: ['body', 'commentsViewMode', 'documentId', 'documentStyle', 'lists', 'namedStyles', 'revisionId', 'suggestionsViewMode', 'title']

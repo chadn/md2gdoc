@@ -158,9 +158,12 @@ a. Whole replace via `files.update` (recommended for v1): one call, deterministi
    suggestions anchored in the Doc are lost on the next push, manual formatting in the Doc is lost, and version
    history gains one unnamed revision per push (skipping no-op pushes limits this).
 b. Targeted edits via Docs API `batchUpdate`: pull the document JSON, map paragraphs to markdown lines, delete and
-   insert only the changed paragraphs, re-apply the checkbox bullet. Untouched paragraphs keep their comments.
-   Whether the Docs API can set a checkbox's checked state is unverified; if it cannot, option b cannot tick a box
-   and would need to be combined with a. Expect several days of work and index arithmetic bugs.
+   insert only the changed paragraphs, re-apply the checkbox bullet (a box, never a tick). Untouched paragraphs keep
+   their comments.
+   Measured 2026-10-26 ([chadkit/work/PT-009.md](../chadkit/work/PT-009.md)): the Docs API cannot set a checkbox's
+   state, so b cannot tick a box and needs a for that; text, headings, lists, links, code, tables, quotes and images
+   it can edit, some with a fix-up request; comments on untouched text stay anchored where a replaces them with
+   orphans. Expect several days of work and index arithmetic bugs.
 c. Hybrid: b for small diffs, a when the diff is large or b fails. Needs b first.
 
 ## Borrowed pieces and what the tool review settled

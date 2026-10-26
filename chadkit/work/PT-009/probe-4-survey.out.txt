@@ -1,0 +1,85 @@
+Installed 25 packages in 54ms
+doc <survey-doc-id> https://docs.google.com/document/d/<survey-doc-id>/edit?usp=drivesdk
+--- paragraphs 
+   1-  13 HEADING_1    'Heading one\n' 
+  13-  90 NORMAL_TEXT  'A paragraph with bold, italic, code span, a link, and an emoji 😀 then more.\n' 
+  90- 102 HEADING_2    'Heading two\n' 
+ 102- 113 NORMAL_TEXT  'bullet one\n' bullet list=oc20wt lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 113- 127 NORMAL_TEXT  'nested bullet\n' bullet list=oc20wt lvl=1 indentStart={'magnitude': 72, 'unit': 'PT'}
+ 127- 138 NORMAL_TEXT  'bullet two\n' bullet list=oc20wt lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 138- 144 NORMAL_TEXT  'first\n' bullet list=kv6ggz lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 144- 151 NORMAL_TEXT  'second\n' bullet list=kv6ggz lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 151- 160 NORMAL_TEXT  'unticked\n' bullet list=t1hxn5 lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 160- 167 NORMAL_TEXT  'ticked\n' bullet list=t1hxn5 lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 167- 168 NORMAL_TEXT  '\n' indentStart={'magnitude': 30, 'unit': 'PT'}
+ 168- 181 NORMAL_TEXT  'a quote line\n' indentStart={'magnitude': 30, 'unit': 'PT'}
+ 181- 182 NORMAL_TEXT  '\n' indentStart={'unit': 'PT'}
+ 182- 196 NORMAL_TEXT  'print("hi")\x0b \n' 
+ 196- 197 NORMAL_TEXT  '\n' indentStart={'unit': 'PT'}
+ 197- 199 NORMAL_TEXT  '\n' 
+ 199- 200 NORMAL_TEXT  '\n' indentStart={'unit': 'PT'}
+ 216- 217 NORMAL_TEXT  '\n' indentStart={'unit': 'PT'}
+ 217- 233 NORMAL_TEXT  'Last paragraph.\n' 
+non-paragraph elements: ['sectionBreak', 'table']
+--- lists
+t1hxn5 [('GLYPH_TYPE_UNSPECIFIED', None, '%0'), (None, '-', '%1')]
+kv6ggz [('DECIMAL', None, '%0.'), (None, '-', '%1')]
+oc20wt [(None, '-', '%0'), (None, '-', '%1')]
+--- text runs of the inline paragraph and the code paragraph
+'A paragraph with ' {}
+'bold' {"bold": true}
+', ' {}
+'italic' {"italic": true}
+', ' {}
+'code span' {"foregroundColor": {"color": {"rgbColor": {"red": 0.09411765, "green": 0.5019608, "blue": 0.21960784}}}, "weightedFontFamily": {"fontFamily": "Roboto Mono", "weight": 400}}
+', a ' {}
+'link' {"underline": true, "foregroundColor": {"color": {"rgbColor": {"red": 0.06666667, "green": 0.33333334, "blue": 0.8}}}, "link": {"url": "https://example.com/x"}}
+', and an emoji 😀 then more.\n' {}
+'print("hi")' {"foregroundColor": {"color": {"rgbColor": {"red": 0.09411765, "green": 0.5019608, "blue": 0.21960784}}}, "weightedFontFamily": {"fontFamily": "Roboto Mono", "weight": 400}}
+'\x0b \n' {}
+--- quote paragraph style
+{"namedStyleType": "NORMAL_TEXT", "direction": "LEFT_TO_RIGHT", "indentFirstLine": {"magnitude": 30, "unit": "PT"}, "indentStart": {"magnitude": 30, "unit": "PT"}, "indentEnd": {"magnitude": 30, "unit": "PT"}}
+--- every element kind in body
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-chad-src-md2gdoc/afc5dd9a-1d1b-4a6d-8541-d875b5430374/scratchpad/pt009/probe4-survey.py", line 64, in <module>
+    print(el["startIndex"], el["endIndex"], kinds)
+          ~~^^^^^^^^^^^^^^
+KeyError: 'startIndex'
+Installed 25 packages in 35ms
+--- every element kind in body, and paragraph elements that are not text runs
+None 1 ['sectionBreak']
+  paragraph element 197 198 ['horizontalRule']
+200 216 ['table']
+--- table 200 216 rows 2 cols 2
+  cell 202 205 'a\n'
+  cell 205 208 'b\n'
+  cell 209 212 '1\n'
+  cell 212 215 '2\n'
+--- export
+# **Heading one**
+
+A paragraph with **bold**, *italic*, `code span`, a [link](https://example.com/x), and an emoji 😀 then more.
+
+## **Heading two**
+
+- bullet one  
+  - nested bullet  
+- bullet two  
+1. first  
+2. second  
+- [ ] unticked  
+- [x] ticked
+
+>   
+> a quote line
+
+`print("hi")`  
+ 
+
+---
+
+| a | b |
+| :---- | :---- |
+| 1 | 2 |
+
+Last paragraph.

@@ -1,0 +1,349 @@
+Installed 25 packages in 27ms
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-chad-src-md2gdoc/afc5dd9a-1d1b-4a6d-8541-d875b5430374/scratchpad/pt009/probe6-battery.py", line 21, in step
+    fn()
+  File "/private/tmp/claude-501/-Users-chad-src-md2gdoc/afc5dd9a-1d1b-4a6d-8541-d875b5430374/scratchpad/pt009/probe6-battery.py", line 34, in a_word_in_styled_paragraph
+    assert j > i
+           ^^^^^
+AssertionError
+
+=== a. a word changed and text inserted after an emoji, inside a paragraph with bold and a link
+
+=== b. a heading's text replaced
+style now: HEADING_1
+--- export
+# **Heading uno**
+
+A paragraph with **bold**, *italic*, `code span`, a [link](https://example.com/x), and an emoji 😀 then more.
+
+## **Heading two**
+
+- bullet one  
+  - nested bullet  
+- bullet two  
+1. first  
+2. second  
+- [ ] unticked  
+- [x] ticked
+
+>   
+> a quote line
+
+`print("hi")`  
+ 
+
+---
+
+| a | b |
+| :---- | :---- |
+| 1 | 2 |
+
+Last paragraph.
+
+=== c. a paragraph inserted after a heading
+inherited style: HEADING_2
+--- export with the inherited style
+# **Heading uno**
+
+A paragraph with **bold**, *italic*, `code span`, a [link](https://example.com/x), and an emoji 😀 then more.
+
+## **Heading two**
+
+## **Intro under heading two.**
+
+- bullet one  
+  - nested bullet  
+- bullet two  
+1. first  
+2. second  
+- [ ] unticked  
+- [x] ticked
+
+>   
+> a quote line
+
+`print("hi")`  
+ 
+
+---
+
+| a | b |
+| :---- | :---- |
+| 1 | 2 |
+
+Last paragraph.
+fixed style: NORMAL_TEXT
+--- export
+# **Heading uno**
+
+A paragraph with **bold**, *italic*, `code span`, a [link](https://example.com/x), and an emoji 😀 then more.
+
+## **Heading two**
+
+Intro under heading two.
+
+- bullet one  
+  - nested bullet  
+- bullet two  
+1. first  
+2. second  
+- [ ] unticked  
+- [x] ticked
+
+>   
+> a quote line
+
+`print("hi")`  
+ 
+
+---
+
+| a | b |
+| :---- | :---- |
+| 1 | 2 |
+
+Last paragraph.
+
+=== d. list items inserted: at the end, after the list, nested by a tab
+inherited: 'bullet three' bullet={'listId': 'kix.pc5poc20wt', 'textStyle': {}}
+inherited: 'after the list' bullet={'listId': 'kix.pc5poc20wt', 'textStyle': {}}
+inherited: 'nested by tab' bullet={'listId': 'kix.pc5poc20wt', 'textStyle': {}}
+--- export with inherited bullets
+# **Heading uno**
+
+A paragraph with **bold**, *italic*, `code span`, a [link](https://example.com/x), and an emoji 😀 then more.
+
+## **Heading two**
+
+Intro under heading two.
+
+- bullet one  
+- 	nested by tab  
+  - nested bullet  
+- bullet two  
+- bullet three  
+- after the list, no bullet  
+1. first  
+2. second  
+- [ ] unticked  
+- [x] ticked
+
+>   
+> a quote line
+
+`print("hi")`  
+ 
+
+---
+
+| a | b |
+| :---- | :---- |
+| 1 | 2 |
+
+Last paragraph.
+fixed: 'after the list' bullet=None indent=None
+fixed: 'nested by tab' bullet={'listId': 'kix.pc5poc20wt', 'textStyle': {}} indent={'magnitude': 36, 'unit': 'PT'}
+--- export
+# **Heading uno**
+
+A paragraph with **bold**, *italic*, `code span`, a [link](https://example.com/x), and an emoji 😀 then more.
+
+## **Heading two**
+
+Intro under heading two.
+
+* bullet one  
+* 	nested by tab  
+  * nested bullet  
+* bullet two  
+* bullet three
+
+after the list, no bullet
+
+1. first  
+2. second  
+- [ ] unticked  
+- [x] ticked
+
+>   
+> a quote line
+
+`print("hi")`  
+ 
+
+---
+
+| a | b |
+| :---- | :---- |
+| 1 | 2 |
+
+Last paragraph.
+
+=== e. a numbered item deleted
+--- export
+# **Heading uno**
+
+A paragraph with **bold**, *italic*, `code span`, a [link](https://example.com/x), and an emoji 😀 then more.
+
+## **Heading two**
+
+Intro under heading two.
+
+* bullet one  
+* 	nested by tab  
+  * nested bullet  
+* bullet two  
+* bullet three
+
+after the list, no bullet
+
+1. first  
+- [ ] unticked  
+- [x] ticked
+
+>   
+> a quote line
+
+`print("hi")`  
+ 
+
+---
+
+| a | b |
+| :---- | :---- |
+| 1 | 2 |
+
+Last paragraph.
+
+=== f. a link and two code paragraphs added
+--- export
+# **Heading uno**
+
+A paragraph with **bold**, *italic*, `code span`, a [link](https://example.com/x), and an emoji 😀 then more.
+
+## **Heading two**
+
+Intro under heading two.
+
+* bullet one  
+* 	nested by tab  
+  * nested bullet  
+* bullet two  
+* bullet three
+
+after the list, no bullet
+
+1. first  
+- [ ] unticked  
+- [x] ticked
+
+>   
+> a quote line
+
+`print("hi")`  
+ 
+
+---
+
+| a | b |
+| :---- | :---- |
+| 1 | 2 |
+
+Last paragraph.  
+See [the site](https://example.org/) for more.  
+`x = 1  # font only`  
+`y = 2  # font and colour`
+
+=== g. a 2x2 table inserted and filled
+tables now: 2 new one at 305 317
+--- export
+# **Heading uno**
+
+A paragraph with **bold**, *italic*, `code span`, a [link](https://example.com/x), and an emoji 😀 then more.
+
+## **Heading two**
+
+Intro under heading two.
+
+* bullet one  
+* 	nested by tab  
+  * nested bullet  
+* bullet two  
+* bullet three
+
+after the list, no bullet
+
+1. first  
+- [ ] unticked  
+- [x] ticked
+
+>   
+> a quote line
+
+`print("hi")`  
+ 
+
+---
+
+| a | b |
+| :---- | :---- |
+| 1 | 2 |
+
+Last paragraph.
+
+| h1 | h2 |
+| :---- | :---- |
+| v1 | v2 |
+
+See [the site](https://example.org/) for more.  
+`x = 1  # font only`  
+`y = 2  # font and colour`
+
+=== i. a rule typed as --- and a quote by indents
+--- export
+# **Heading uno**
+
+A paragraph with **bold**, *italic*, `code span`, a [link](https://example.com/x), and an emoji 😀 then more.
+
+## **Heading two**
+
+Intro under heading two.
+
+* bullet one  
+* 	nested by tab  
+  * nested bullet  
+* bullet two  
+* bullet three
+
+after the list, no bullet
+
+1. first  
+- [ ] unticked  
+- [x] ticked
+
+>   
+> a quote line
+
+`print("hi")`  
+ 
+
+---
+
+| a | b |
+| :---- | :---- |
+| 1 | 2 |
+
+Last paragraph.  
+\---  
+> quoted by the API
+
+| h1 | h2 |
+| :---- | :---- |
+| v1 | v2 |
+
+See [the site](https://example.org/) for more.  
+`x = 1  # font only`  
+`y = 2  # font and colour`
+
+=== j. an inline image from a URL
+image lines: ['Last paragraph.![][image1]  ', '[image1]: <data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAA']

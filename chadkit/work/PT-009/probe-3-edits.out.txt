@@ -1,0 +1,18 @@
+export before:
+# **Probe**
+
+- [ ] unticked  
+- [x] ticked  
+- plain bullet
+
+Text.
+BULLET_CHECKBOX applied to 56-62
+export after:
+# **Probe**
+
+- [ ] ~~unticked~~  
+- [x] ticked  
+- [ ] added after ticked  
+- plain bullet
+
+- [ ] Text.

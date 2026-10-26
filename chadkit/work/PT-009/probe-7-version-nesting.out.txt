@@ -1,0 +1,16 @@
+Installed 25 packages in 52ms
+=== Drive version after a batchUpdate
+before: 10 right after: 10
+after 5s more: 10
+after 15s more: 10
+after 30s more: 10
+after 60s more: 11
+
+=== a fresh three-level list from tabbed paragraphs in one createParagraphBullets
+'level a': text='level a\n' bullet={'listId': 'kix.3420st6pnp1a', 'textStyle': {'underline': False}} indentStart={'magnitude': 36, 'unit': 'PT'}
+'level b': text='level b\n' bullet={'listId': 'kix.3420st6pnp1a', 'nestingLevel': 1, 'textStyle': {'underline': False}} indentStart={'magnitude': 72, 'unit': 'PT'}
+'level c': text='level c\n' bullet={'listId': 'kix.3420st6pnp1a', 'nestingLevel': 2, 'textStyle': {'underline': False}} indentStart={'magnitude': 108, 'unit': 'PT'}
+--- export lines
+* level a  
+  * level b  
+    * level c

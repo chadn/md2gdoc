@@ -1,0 +1,10 @@
+Installed 25 packages in 41ms
+ready: '\tnested by tab\n' None None
+after: 'nested by tab\n' {'listId': 'kix.o0gqmwlco2qd', 'textStyle': {'underline': False}} same list as 'bullet one': True
+* bullet one  
+* nested by tab  
+  * nested bullet  
+* bullet two  
+* nested fresh  
+* bullet three
+after the list, no bullet

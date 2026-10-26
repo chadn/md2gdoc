@@ -1,0 +1,66 @@
+Downloading lxml (8.2MiB)
+ Downloaded lxml
+Installed 27 packages in 53ms
+doc <comments-doc-id> https://docs.google.com/document/d/<comments-doc-id>/edit?usp=drivesdk
+--- paragraphs as converted
+   1-  64 NORMAL_TEXT  'Alpha paragraph, edited within: the word CHANGEME is replaced.\n' 
+  64-  98 NORMAL_TEXT  'Beta paragraph, deleted entirely.\n' 
+  98- 160 NORMAL_TEXT  'Gamma paragraph, untouched; a paragraph is inserted after it.\n' 
+ 160- 222 NORMAL_TEXT  'Epsilon paragraph, whole text replaced by delete plus insert.\n' 
+ 222- 278 NORMAL_TEXT  'Delta paragraph with a red word set by hand, untouched.\n' 
+non-paragraph elements: ['sectionBreak']
+red runs: ['red word']
+--- docx export as converted: 4 comments, 4 anchored
+  comment 0 'comment on Alpha' anchored on 'Alpha'
+  comment 1 'comment on Beta' anchored on 'Beta'
+  comment 2 'comment on Gamma' anchored on 'Gamma'
+  comment 3 'comment on Epsilon' anchored on 'Epsilon'
+--- drive comments.list as converted
+   {"content": "comment on Gamma", "anchor": "kix.cmt2", "quotedFileContent": null, "resolved": false, "deleted": false}
+   {"content": "comment on Beta", "anchor": "kix.cmt1", "quotedFileContent": null, "resolved": false, "deleted": false}
+   {"content": "comment on Alpha", "anchor": "kix.cmt0", "quotedFileContent": null, "resolved": false, "deleted": false}
+   {"content": "comment on Epsilon", "anchor": "kix.cmt3", "quotedFileContent": null, "resolved": false, "deleted": false}
+--- paragraphs after targeted edits
+   1-  63 NORMAL_TEXT  'Alpha paragraph, edited within: the word CHANGED is replaced.\n' 
+  63- 125 NORMAL_TEXT  'Gamma paragraph, untouched; a paragraph is inserted after it.\n' 
+ 125- 152 NORMAL_TEXT  'New paragraph after Gamma.\n' 
+ 152- 182 NORMAL_TEXT  'Epsilon rewritten by the API.\n' 
+ 182- 238 NORMAL_TEXT  'Delta paragraph with a red word set by hand, untouched.\n' 
+non-paragraph elements: ['sectionBreak']
+red runs: ['red word']
+--- docx export after targeted edits: 2 comments, 2 anchored
+  comment 0 'comment on Alpha' anchored on 'Alpha'
+  comment 1 'comment on Gamma' anchored on 'Gamma'
+--- drive comments.list after targeted edits
+   {"content": "comment on Gamma", "anchor": "kix.cmt2", "quotedFileContent": null, "resolved": false, "deleted": false}
+   {"content": "comment on Beta", "anchor": "kix.cmt1", "quotedFileContent": null, "resolved": false, "deleted": false}
+   {"content": "comment on Alpha", "anchor": "kix.cmt0", "quotedFileContent": null, "resolved": false, "deleted": false}
+   {"content": "comment on Epsilon", "anchor": "kix.cmt3", "quotedFileContent": null, "resolved": false, "deleted": false}
+--- markdown export after targeted edits
+Alpha paragraph, edited within: the word CHANGED is replaced.
+
+Gamma paragraph, untouched; a paragraph is inserted after it.
+
+New paragraph after Gamma.
+
+Epsilon rewritten by the API.
+
+Delta paragraph with a red word set by hand, untouched.
+--- paragraphs after whole replace
+   1-  63 NORMAL_TEXT  'Alpha paragraph, edited within: the word CHANGED is replaced.\n' 
+  63-  64 NORMAL_TEXT  '\n' indentStart={'unit': 'PT'}
+  64- 126 NORMAL_TEXT  'Gamma paragraph, untouched; a paragraph is inserted after it.\n' 
+ 126- 127 NORMAL_TEXT  '\n' indentStart={'unit': 'PT'}
+ 127- 154 NORMAL_TEXT  'New paragraph after Gamma.\n' 
+ 154- 155 NORMAL_TEXT  '\n' indentStart={'unit': 'PT'}
+ 155- 185 NORMAL_TEXT  'Epsilon rewritten by the API.\n' 
+ 185- 186 NORMAL_TEXT  '\n' indentStart={'unit': 'PT'}
+ 186- 242 NORMAL_TEXT  'Delta paragraph with a red word set by hand, untouched.\n' 
+non-paragraph elements: ['sectionBreak']
+red runs: []
+--- docx export after whole replace: 0 comments, 0 anchored
+--- drive comments.list after whole replace
+   {"content": "comment on Gamma", "anchor": "kix.cmt2", "quotedFileContent": null, "resolved": false, "deleted": false}
+   {"content": "comment on Beta", "anchor": "kix.cmt1", "quotedFileContent": null, "resolved": false, "deleted": false}
+   {"content": "comment on Alpha", "anchor": "kix.cmt0", "quotedFileContent": null, "resolved": false, "deleted": false}
+   {"content": "comment on Epsilon", "anchor": "kix.cmt3", "quotedFileContent": null, "resolved": false, "deleted": false}

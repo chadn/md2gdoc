@@ -1,0 +1,15 @@
+Installed 25 packages in 41ms
+after deleteParagraphBullets, 'nested bullet' indent: {'magnitude': 36, 'unit': 'PT'} text: 'nested bullet\n'
+'bullet one': level=0 list=z49vi2
+'nested by tab': level=1 list=z49vi2
+'nested bullet': level=1 list=z49vi2
+'bullet two': level=0 list=z49vi2
+'nested fresh': level=0 list=z49vi2
+'bullet three': level=0 list=z49vi2
+* bullet one  
+  * nested by tab  
+  * nested bullet  
+* bullet two  
+* nested fresh  
+* bullet three
+after the list, no bullet

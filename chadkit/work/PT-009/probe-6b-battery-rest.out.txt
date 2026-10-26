@@ -1,0 +1,221 @@
+Installed 25 packages in 68ms
+
+=== a. a word changed and text inserted after an emoji, inside a paragraph with bold and a link
+python index of 'more': 70 utf-16 index: 71
+--- export
+# **Heading uno**
+
+A paragraph with **bold**, *italic*, `code span`, a [link](https://example.com/x), and an emoji 😀 (inserted after the emoji by utf-16 index) then MORE.
+
+## **Heading two**
+
+Intro under heading two.
+
+* bullet one  
+* 	nested by tab  
+  * nested bullet  
+* bullet two  
+* bullet three
+
+after the list, no bullet
+
+1. first  
+- [ ] unticked  
+- [x] ticked
+
+>   
+> a quote line
+
+`print("hi")`  
+ 
+
+---
+
+| a | b |
+| :---- | :---- |
+| 1 | 2 |
+
+Last paragraph.![][image1]  
+\---  
+> quoted by the API
+
+| h1 | h2 |
+| :---- | :---- |
+| v1 | v2 |
+
+See [the site](https://example.org/) for more.  
+`x = 1  # font only`  
+`y = 2  # font and colour`
+
+
+=== d2. nesting an existing list item: by indent, and by delete+create with a tab
+after indent 72/54: bullet {'listId': 'kix.pc5poc20wt', 'textStyle': {}}
+--- export after indenting
+* bullet one  
+* 	nested by tab  
+  * nested bullet  
+* bullet two  
+* bullet three
+after the list, no bullet
+text after deleteParagraphBullets: '\tnested fresh\n'
+after delete+create with tab: bullet {'listId': 'kix.pc5poc20wt', 'textStyle': {'underline': False}} text 'nested fresh\n'
+same list as 'bullet two': True
+--- export
+# **Heading uno**
+
+A paragraph with **bold**, *italic*, `code span`, a [link](https://example.com/x), and an emoji 😀 (inserted after the emoji by utf-16 index) then MORE.
+
+## **Heading two**
+
+Intro under heading two.
+
+* bullet one  
+* 	nested by tab  
+  * nested bullet  
+* bullet two  
+* nested fresh  
+* bullet three
+
+after the list, no bullet
+
+1. first  
+- [ ] unticked  
+- [x] ticked
+
+>   
+> a quote line
+
+`print("hi")`  
+ 
+
+---
+
+| a | b |
+| :---- | :---- |
+| 1 | 2 |
+
+Last paragraph.![][image1]  
+\---  
+> quoted by the API
+
+| h1 | h2 |
+| :---- | :---- |
+| v1 | v2 |
+
+See [the site](https://example.org/) for more.  
+`x = 1  # font only`  
+`y = 2  # font and colour`
+
+
+=== k. a heading's level changed
+--- export
+# **Heading uno**
+
+A paragraph with **bold**, *italic*, `code span`, a [link](https://example.com/x), and an emoji 😀 (inserted after the emoji by utf-16 index) then MORE.
+
+### **Heading two**
+
+Intro under heading two.
+
+* bullet one  
+* 	nested by tab  
+  * nested bullet  
+* bullet two  
+* nested fresh  
+* bullet three
+
+after the list, no bullet
+
+1. first  
+- [ ] unticked  
+- [x] ticked
+
+>   
+> a quote line
+
+`print("hi")`  
+ 
+
+---
+
+| a | b |
+| :---- | :---- |
+| 1 | 2 |
+
+Last paragraph.![][image1]  
+\---  
+> quoted by the API
+
+| h1 | h2 |
+| :---- | :---- |
+| v1 | v2 |
+
+See [the site](https://example.org/) for more.  
+`x = 1  # font only`  
+`y = 2  # font and colour`
+
+
+=== o. writeControl.requiredRevisionId as a push guard; Drive version after batchUpdate
+first write ok; response revisionId differs from the one sent: True
+stale write refused: 400 The required revision ID 'AHj4eMReAM0b8fEnNPNsQHUjcBF-5Ewz4G6GYYBIUlzOmRA99YE2AwH-Tgtjp3sTBFTBW_8g6VxJmKdveqnsX9fPUOYYrl2bHjemNlP92lk' does not match the latest revision.
+Drive version moved on a batchUpdate: 8 -> 8
+
+=== p. SUGGEST write mode
+response: {"replies": [{}], "writeControl": {"requiredRevisionId": "AHj4eMR0y83HpntmOAZtOZqkR3cbn1cPb7dFx4Cn1AZX3yHhSqMAc2TixCRoKi1CBCcIYhyzk52p0ScgpJIELwaQ_mf5OU7blFxcv8D7IQU"}, "documentId": "<survey-doc-id>", "suggestionResponses": [{"createdSuggestionIds": ["suggest.2m7tfh86yn
+run: 'SUGGESTED ' suggestedInsertionIds: ['suggest.2m7tfh86ynx3']
+export line: ['SUGGESTED (bump) (rev-guarded) Last paragraph.![][image1]  ']
+
+=== r. a highlight set by hand and the suggestion, then the script's whole replace
+highlighted before whole replace: ['bullet two\n']
+suggested before whole replace: ['SUGGESTED ']
+paragraphs before: 29 export lines: 46
+highlighted after whole replace: []
+suggested after whole replace: []
+paragraphs after: 35 export lines: 47
+--- export
+# **Heading uno**
+
+A paragraph with **bold**, *italic*, `code span`, a [link](https://example.com/x), and an emoji 😀 (inserted after the emoji by utf-16 index) then MORE.
+
+### **Heading two**
+
+Intro under heading two.
+
+* bullet one  
+* nested by tab  
+  * nested bullet  
+* bullet two  
+* nested fresh  
+* bullet three
+
+after the list, no bullet
+
+1. first  
+- [ ] unticked  
+- [x] ticked
+
+>   
+> a quote line
+
+print("hi")
+
+---
+
+| a | b |
+| :---- | :---- |
+| 1 | 2 |
+
+SUGGESTED (bump) (rev-guarded) Last paragraph.![][image1] \---
+
+> quoted by the API
+
+| h1 | h2 |
+| :---- | :---- |
+| v1 | v2 |
+
+See [the site](https://example.org/) for more.
+
+x \= 1  \# font only
+
+y \= 2  \# font and colour
+
