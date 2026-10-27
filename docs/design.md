@@ -59,7 +59,14 @@ how far the current state has got; where the two differ, the end state wins and 
   `files.update(fileId, media_body=<text/markdown>)`, `files.export(fileId, mimeType="text/markdown")` (10 MB
   limit), `files.get(fileId, fields="id,modifiedTime,headRevisionId,version")`, `revisions.list(fileId)`.
 - The real v3 API queries by `name`; the Claude connector queried by `title`. Do not copy connector syntax into code.
-- No API names a version. No API creates a code block. No API inserts HTML into an existing Doc.
+- No API names a version. No API creates a code block. No API inserts HTML into an existing Doc. No API ticks a
+  checkbox: the Docs API has no request for its state, and none of four Word checkbox forms in a `.docx` imports as
+  a checklist (PT-009).
+- The Drive API cannot anchor a comment where a Doc shows it (Google's comments guide; not probed); Docs API
+  `insertComment` can, and a `.docx` with anchored comments
+  (python-docx 1.2 `add_comment`) converts to a Doc that has them. Drive `comments.list` keeps listing a comment
+  whose anchor a push removed; the `.docx` export (`files.export` as `.docx`, `word/comments.xml` plus the range
+  marks in `word/document.xml`) and the Docs API's `commentsViewMode` show whether it is still anchored.
 - Quotas: Drive 325,000 units/min per user; Docs API 60 writes/min per user. Irrelevant at any sync cadence.
 - Docs API `batchUpdate` is the only way to edit part of a Doc. It addresses UTF-16 indexes that shift after every
   insert, so it is the expensive path; see "Whole-document replace" below.
@@ -155,8 +162,8 @@ how far the current state has got; where the two differ, the end state wins and 
 Not necessarily, but the alternative is costly. Options, in order of effort:
 
 a. Whole replace via `files.update` (recommended for v1): one call, deterministic. Side effects: comments and
-   suggestions anchored in the Doc are lost on the next push, manual formatting in the Doc is lost, and version
-   history gains one unnamed revision per push (skipping no-op pushes limits this).
+   suggestions anchored in the Doc are orphaned on the next push (listed, their anchors gone), manual formatting in
+   the Doc is lost, and version history gains one unnamed revision per push (skipping no-op pushes limits this).
 b. Targeted edits via Docs API `batchUpdate`: pull the document JSON, map paragraphs to markdown lines, delete and
    insert only the changed paragraphs, re-apply the checkbox bullet (a box, never a tick). Untouched paragraphs keep
    their comments.
@@ -164,7 +171,18 @@ b. Targeted edits via Docs API `batchUpdate`: pull the document JSON, map paragr
    state, so b cannot tick a box and needs a for that; text, headings, lists, links, code, tables, quotes and images
    it can edit, some with a fix-up request; comments on untouched text stay anchored where a replaces them with
    orphans. Expect several days of work and index arithmetic bugs.
-c. Hybrid: b for small diffs, a when the diff is large or b fails. Needs b first.
+c. Hybrid: b for small diffs, a when the diff is large or b fails. Needs b first. Chosen 2026-10-26 under PT-009,
+   with the comments carried over each a: read every open comment's anchored text and replies before the replace,
+   `insertComment` and `addCommentReply` at that text after it, delete the orphan. Measured on two comments
+   ([chadkit/work/PT-009.md](../chadkit/work/PT-009.md), probe 14b): the carried thread is authored by the token's
+   user with the original author named in its body, and a comment on text the push changed has no place.
+d. The *docx carrier*: send a `.docx` through `files.update` instead of markdown, gdoc's path
+   ([similar.md](similar.md)). Measured 2026-10-26 ([chadkit/work/PT-009.md](../chadkit/work/PT-009.md), probes 11, 12
+   and 14) on one comment and one red word: the export's `.docx` carries both with their ranges, and sent back edited
+   both survive; but the import turns the checklist into plain bullets even when the export goes back unchanged, adds
+   a copy of the comment per trip (7 after 6), and makes no checklist from any of four Word checkbox forms (U+2610 or
+   U+2611 level text, MS Gothic, Wingdings F0A8, a `w14:checkbox` control). Rejected: the duplicates alone rule it
+   out.
 
 ## Borrowed pieces and what the tool review settled
 

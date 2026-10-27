@@ -33,7 +33,10 @@ churns without content changes. Merge is three-way on normalized lines with a st
 
 ## Consequences
 
-- Comments, suggestions, images, and manual formatting added in the Doc are lost on the next push.
+- Comments, suggestions, images, and manual formatting added in the Doc are lost on the next push. Amended
+  2026-10-26 (PT-009): the Docs API cannot set a checkbox's state, so C' cannot tick a box; a whole replace
+  orphans comments rather than deleting them; the rest of what C' can do is measured in
+  [chadkit/work/PT-009.md](../work/PT-009.md).
 - Version history gains one unnamed revision per push; no-op pushes are skipped to limit this.
 - Fenced code blocks do not survive the converter as written. Amended 2026-10-21 (PT-013): the push sends them
   as code runs, which do; [docs/features.md](../../docs/features.md) lists what that loses.
