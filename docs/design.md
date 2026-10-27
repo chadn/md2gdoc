@@ -188,12 +188,9 @@ b. Targeted edits via Docs API `batchUpdate`: pull the document JSON, map paragr
    it can edit, some with a fix-up request; comments on untouched text stay anchored where a replaces them with
    orphans. Expect several days of work and index arithmetic bugs.
 c. Hybrid: b for small diffs, a when the diff is large or b fails. Needs b first. Built 2026-10-26 (PT-009, the
-   *write path* under Script design): b for a diff of prose, headings, blank lines and level-0 list items, a when
-   the diff ticks or unticks a box (`tick`), touches a nested item (`nesting`), starts a bullet or numbered list or
-   changes a list's kind or marker (`list`), holds a table, code, a quote, an image, a rule or HTML (`structure`),
-   runs two prose lines together or two kinds of list (`layout`), loosens a list (`blank`), uses inline syntax the
-   path does not write (`inline`), or when the Doc's paragraphs do not match its export (`mapping`), a pending
-   suggestion is in them (`suggestion`), or the Docs API is not enabled (`docs_api`). Before each a the comments
+   *write path* under Script design): b for a diff of prose, headings, blank lines and level-0 list items, a for
+   the rest; which change goes which way, with the `why` word each, is the table "Which push writes what" in
+   [features.md](features.md), kept there alone so the lists do not drift. Before each a the comments
    are read, after it each is written again at its text with its replies, and the orphan deleted. Measured on two
    comments ([chadkit/work/PT-009.md](../chadkit/work/PT-009.md), probe 14b and the live proof): the carried thread
    is authored by the token's user with the original author named in its body, and a comment on text the push

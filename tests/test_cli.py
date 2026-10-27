@@ -815,6 +815,36 @@ class Plan(unittest.TestCase):
             self.plan(None, ("4-space indent\n", "4-space indent\n- [ ] a box after the child\n"))
         self.assertEqual(e.exception.args, ("nesting",))
 
+    def test_the_cells_of_the_features_table_hold(self):
+        """One case per cell of features.md "Which push writes what" that no other test pins."""
+        in_place = (
+            ("## Open\n\n", "## Open\n\n- [ ] a box after the heading\n"),
+            ("## Notes\n", "## Notes\n\n### A new heading\n"),
+            ("\n## Notes\n\n", "\n"),
+            ("    - [ ] sub-task with 4-space indent\n", ""),
+            ("- [ ] T-002 Call the vendor (due 2026-10-24)\n", ""),
+        )
+        for old, new in in_place:
+            self.assertTrue(self.plan(None, (old, new)), (old, new))
+        for why, old, new in (
+            ("layout", "and **bold**\n", "and **bold**\n- a bullet after the checklist\n"),
+            ("list", "    - [ ] sub-task", "- [ ] sub-task"),
+            ("list", "Last synced: 2026-10-21", "- Last synced: 2026-10-21"),
+        ):
+            with self.assertRaises(Fallback, msg=(old, new)) as e:
+                self.plan(None, (old, new))
+            self.assertEqual(e.exception.args, (why,), (old, new))
+        doc = json.loads((FIXTURES / "13-list-kinds.doc.json").read_text(encoding="utf-8"))
+        old = normalize((FIXTURES / "13-list-kinds.out.md").read_text(encoding="utf-8"))
+        self.assertTrue(plan_edits(doc, old, old.replace("- Dash two\n", "- Dash two\n- Dash three\n")))
+        for why, a, b in (("list", "- Dash one\n", "- Dash zero\n- Dash one\n"),
+                          ("layout", "- Dash two\n", "- Dash two\n- [ ] a box after the bullets\n"),
+                          ("layout", "- Dash two", "1. Dash two"),
+                          ("list", "+ Plus one\n+ Plus two", "1. Plus one\n2. Plus two")):
+            with self.assertRaises(Fallback, msg=(a, b)) as e:
+                plan_edits(doc, old, old.replace(a, b))
+            self.assertEqual(e.exception.args, (why,), (a, b))
+
     def test_a_first_line_goes_in_before_the_first_paragraph(self):
         reqs = self.plan(None, "Top line\n\n" + self.old)
         self.assertEqual(reqs[0], {"insertText": {"location": {"index": 1}, "text": "Top line\n"}})
@@ -875,6 +905,14 @@ class Plan(unittest.TestCase):
             self.assertEqual(self.kinds(reqs)[:2], ["deleteContentRange", "insertText"], word)
         reqs = plan_edits(doc, old, old.replace("- [ ] open box\n", "- [ ] open box\n- [ ] second box\n"))
         self.assertEqual(self.kinds(reqs), ["insertText", "updateTextStyle"])
+        # an item put into a numbered list renumbers the rest in the file; the Doc numbers them itself
+        reqs = plan_edits(doc, old, old.replace("3. Three\n4. Four\n", "3. Three\n4. Three and a half\n5. Four\n"))
+        # the diff pairs "4. Four" with the new line and adds "5. Four" after it: the extra first, then the edit
+        self.assertEqual(self.kinds(reqs), ["insertText", "updateTextStyle", "deleteContentRange", "insertText",
+                                            "updateTextStyle"])
+        with self.assertRaises(Fallback) as e:
+            plan_edits(doc, old, old.replace("4. Four", "4) Four"))
+        self.assertEqual(e.exception.args, ("list",))
 
 
 class Carry(unittest.TestCase):

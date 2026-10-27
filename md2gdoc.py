@@ -433,6 +433,8 @@ class Line:
             self.kind, self.level, body = "item", len(m.group(1)) // 4, m.group(4)
             self.marker, self.state = m.group(2), (m.group(3) or "").lower()
             self.list = "box" if m.group(3) is not None else "ordered" if m.group(2)[0].isdigit() else "bullet"
+            if self.list == "ordered":
+                self.marker = m.group(2)[-1]  # the Doc numbers the items itself; only `.` against `)` matters
         elif text.startswith((" ", "\t", ">", "|", "```", "~~~", "---", "***", "<", "![", "[^", "=")):
             self.kind = "other"
         self.body = body

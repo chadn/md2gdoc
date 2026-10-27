@@ -42,4 +42,6 @@ churns without content changes. Merge is three-way on normalized lines with a st
   as code runs, which do; [docs/features.md](../../docs/features.md) lists what that loses.
 - Under `drive.file` the script sees only Docs it created; a hand-made Doc needs the broader `drive` scope.
 - C' stays open as a later upgrade (hybrid: targeted edits for small diffs); PT-009 is the remedy, to take up when
-  comments, suggestions, or formatting in a Doc matter to someone.
+  comments, suggestions, or formatting in a Doc matter to someone. Amended 2026-10-26 (PT-009): built; the edit path
+  sends `requiredRevisionId` as its write control, read seconds before within one command; the guard stays the
+  normalized export, never the id.

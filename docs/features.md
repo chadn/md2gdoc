@@ -37,9 +37,29 @@ Converter rows describe what Google's markdown import and export do, which the s
 | Comments carried over a whole replace: each written again at its text, its replies after it, the orphan deleted | tested | [tests/test_cli.py](../tests/test_cli.py); the live run above: the tick's replace carried both comments and the reply; each is authored by the token's user and names the author in its body; one on text the push changed stays an orphan, named in the output; an orphan by another user stays listed, since the API deletes a comment for its author only ([DeleteCommentRequest](https://developers.google.com/workspace/docs/api/reference/rest/v1/documents/request#DeleteCommentRequest), not measured) |
 | `push` a `.docx` body, which keeps comments and formatting, without the import turning the checklist into bullets or copying each comment | not possible | the checklist comes back as bullets even when an unchanged export goes back, and each trip adds a copy of the comment, 7 after 6; none of four Word checkbox forms imports as a checklist ([chadkit/work/PT-009.md](../chadkit/work/PT-009.md), probes 11, 12, 14; [design.md](design.md) option d) |
 | Write edits as suggestions a person accepts in the Doc | idea | the Docs API's `SUGGEST` write mode, "apply all updates as suggestions" per [WriteControl](https://developers.google.com/workspace/docs/api/reference/rest/v1/documents/batchUpdate#WriteControl), measured on one `insertText` ([chadkit/work/PT-009.md](../chadkit/work/PT-009.md)); the targeted-edit path it needs exists (PT-009) |
+| Which changes a push edits in place and which replace the whole Doc | tested | the table below; [tests/test_cli.py](../tests/test_cli.py) (`Plan`), the live run above |
 | Agent hooks: auto-pull before an agent reads a synced file, auto-push after it writes | built | [agents.md](agents.md), a Claude Code hook recipe, not code in the script (PD-002); gdoc ships these as code ([similar.md](similar.md)) |
 | Sync several files or a folder in one run | idea | - |
 | Named versions of a Doc | not possible | no API names a revision; `files.copy` a titled snapshot instead |
+
+### Which push writes what
+
+A push edits the changed paragraphs in place when every change in the diff is in the first column; one change or Doc
+state from the second column, anywhere, replaces the whole Doc, with the comments carried over and the suggestions
+and hand formatting lost. The word in brackets is what `--json` reports as `why` ([agents.md](agents.md)); the
+mechanism and the measurements are in [design.md](design.md), "Whole-document replace". The `Plan` tests in
+[tests/test_cli.py](../tests/test_cli.py) pin each row's path and word; the live run proves three cells in a Doc.
+
+| Change | In place | Whole replace |
+| --- | --- | --- |
+| Prose paragraph | text changed, added, removed; a blank line between blocks | two lines of one paragraph, or prose right after a list item with no blank (`layout`) |
+| Heading | text, level, added, removed | an item rewritten as a heading (`list`) |
+| Bulleted or numbered list | an item's text; a new item after an item of the same list, the numbers after it renumbered or not (a file left unrenumbered reads back renumbered, reported as `converter_diff`); an item removed | a new list where none is, or a new first item (`list`); a marker (`-` to `*`, `1.` to `1)`) changed (`list`); the kind (bullet to numbered) changed (`list`, `layout` when one item among others); a blank line between items (`blank`) |
+| Checklist | an item's text; a new unticked item, after a checklist item, prose or a heading; an item removed | a box ticked or unticked, or a new item born ticked (`tick`); a new box right after a bullet or numbered item (`layout`) |
+| Nested item | untouched ones stay as they are; one removed; prose or a heading added after one | its text changed, or a new item right after one (`nesting`); its level changed (`list`) |
+| Inline styles | code span, `**bold**`, `*italic*`, `~~struck~~`, `[text](url)`, escapes | `_italic_`, an entity, raw HTML, an image mid-line, a link title (`inline`) |
+| Table, fenced code, blockquote, rule, image, HTML block, footnote | - | every push of a Doc that holds one, changed or not (`structure`) |
+| The Doc itself | - | a line break inside a paragraph (Shift+Enter), a title or subtitle, an indented paragraph, a second section (`structure`); a pending suggestion (`suggestion`); its paragraphs not matching its export (`mapping`); the Docs API not enabled in the Cloud project (`docs_api`) |
 
 ## Setup and access
 
