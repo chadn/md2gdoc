@@ -15,7 +15,9 @@ model (`chadkit model` says where it is).
 | `#migration` | Adoption of ChadKit into a repository that already has history to consolidate | - | adoption, brownfield, import, onboarding | tag |
 | `#docs` | Work on the documents under `docs/` and the README: the feature list, the similar-solutions list, and what a user reads before syncing | - | documentation (as a tag) | tag |
 | `native Doc` | A Google Docs document (`application/vnd.google-apps.document`), not a `.md` file stored in Drive | - | Google file | domain |
-| `push` | Markdown file to Doc: replace the whole Doc with the file's push form, same link | - | - | domain |
+| `push` | Markdown file to Doc, same link: the *edit path* where the diff allows, else the *whole replace* | - | - | domain |
+| `edit path` | A push as Docs API requests on the changed paragraphs only, so comments and formatting elsewhere stay (PT-009) | - | targeted edits, hybrid | domain |
+| `whole replace` | A push as `files.update` with the file's push form, which re-imports the whole Doc and orphans its comments; the script then carries them over | - | full replace, fallback | domain |
 | `pull` | Doc to markdown file: export the Doc as markdown and normalize it | - | download, fetch | domain |
 | `attach` | `init FILE --doc ID`: bind a new or empty markdown file to a Doc that exists, writing the state file and a first pull; the only way to sync a Doc the script did not create | - | - | domain |
 | `sync` | Pull, three-way merge against the snapshot, then push; the only command that writes both sides | - | - | domain |

@@ -34,7 +34,7 @@ md2gdoc init tasks.md      # create the Doc from the file, write tasks.md.gdoc.j
 md2gdoc init notes.md --doc ID  # attach a new file to the Doc with that id; needs a --scope drive profile
 md2gdoc sync tasks.md      # merge both sides' changes since the last sync: write the file, push the Doc
 md2gdoc status tasks.md    # which side changed since the last sync
-md2gdoc push tasks.md      # replace the Doc from the file; refused when the Doc changed since the last sync
+md2gdoc push tasks.md      # write the file's changes to the Doc; refused when the Doc changed since the last sync
 md2gdoc pull tasks.md      # write the Doc's content to the file; refused when the file changed, unless --force
 md2gdoc --help             # all of this, plus the setup steps
 ```
@@ -48,6 +48,11 @@ takes `--force`.
 A conflict, the same line changed differently on both sides, is written to the file between `<<<<<<< api-edited`
 (the file's version) and `>>>>>>> hand-edited` (the Doc's); nothing is pushed, and `sync` and `push` exit 2 until it
 is resolved.
+
+A push edits the changed lines in place, so comments and formatting elsewhere in the Doc stay. A diff that ticks a
+box, nests a list item, or touches a table, code, an image or a rule replaces the whole Doc instead, and the comments
+are written again at their text, by you, each naming its author ([docs/design.md](docs/design.md), "Whole-document
+replace", says what falls back and why).
 
 Exit codes: 0 done; 1 usage, setup or Google error; 2 conflict; 3 refused, the other side changed since the last
 sync.

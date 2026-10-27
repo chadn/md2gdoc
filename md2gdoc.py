@@ -11,8 +11,10 @@
 
 This file is the whole tool. The text layer, `normalize()` and `push_form()`, follows docs/design.md "Script
 design" with tests/fixtures/ as its evidence (PT-005). The commands `init`, `pull`, `push`, `sync` and `status`,
-the state file and the merge follow the same section (PT-006, PT-007). The Google client libraries are imported only on
-the auth path, so the text layer and the tests run without them.
+the state file and the merge follow the same section (PT-006, PT-007). The write path, `plan_edits` and `write_doc`,
+edits the Doc in place where it can and replaces it where it cannot, carrying the comments over (PT-009, "Whole-document
+replace" there). The Google client libraries are imported only on the auth path, so the text layer and the tests run
+without them.
 """
 
 from __future__ import annotations
@@ -331,6 +333,434 @@ def has_markers(text: str) -> bool:
     return any(_MARKER.match(line) for line in text.split("\n"))
 
 
+# ---- Targeted edits (PT-009, PD-001 option C'): a push edits the Doc's paragraphs when it can, replaces it when
+# it cannot, and carries the comments over a replace. The rules are measured in chadkit/work/PT-009.md.
+
+_HEADING_LINE = re.compile(r"^(#{1,6}) (.+)$")
+_ITEM_LINE = re.compile(r"^((?:    )*)([-*+]|\d+[.)]) (?:\[([ xX])\] )?(.*)$")
+_INTRAWORD = re.compile(r"\w")
+_HOLD = re.compile(r"&#?\w+;|<[\w/!]|!\[")  # an entity, a tag or autolink, an image: not written by the edit path
+_RESET = "bold,italic,strikethrough,underline,weightedFontFamily,foregroundColor,backgroundColor,link"
+_LINK_COLOR = {"color": {"rgbColor": {"red": 0.06666667, "green": 0.33333334, "blue": 0.8}}}
+_MONO = {"fontFamily": "Roboto Mono", "weight": 400}
+_PRESETS = {"box": "BULLET_CHECKBOX"}
+
+
+class Fallback(Exception):
+    """The edit path cannot write this diff; the one argument names why, a word the output carries."""
+
+
+def _u16(s: str) -> int:
+    """Length in UTF-16 code units, the unit of every Docs API index."""
+    return len(s.encode("utf-16-le")) // 2
+
+
+def inline(md: str) -> tuple[str, list[tuple[int, int, dict]]]:
+    """A line's plain text and its styled spans, (start, end, textStyle) in characters, from the inline syntax the
+    edit path writes: code spans, `**bold**`, `*italic*`, `~~struck~~`, `[text](url)` and escapes. Anything else
+    raises Fallback("inline")."""
+    plain: list[str] = []
+    spans: list[tuple[int, int, dict]] = []
+    open_: dict[str, int] = {}
+    pos, n = 0, len(md)
+
+    def at() -> int:
+        return sum(len(p) for p in plain)
+
+    while pos < n:
+        c = md[pos]
+        if c == "\\" and pos + 1 < n:
+            plain.append(md[pos + 1])
+            pos += 2
+        elif c == "`":
+            m = _SPAN.match(md, pos)
+            if not m:
+                raise Fallback("inline")
+            start = at()
+            plain.append(m.group(2).strip(" ") if m.group(2).strip(" ") else m.group(2))
+            spans.append((start, at(), {"weightedFontFamily": _MONO}))
+            pos = m.end()
+        elif md.startswith(("**", "~~"), pos) or c == "*":
+            tok = md[pos:pos + 2] if md.startswith(("**", "~~"), pos) else "*"
+            style = {"**": "bold", "*": "italic", "~~": "strikethrough"}[tok]
+            if style in open_:
+                spans.append((open_.pop(style), at(), {style: True}))
+            else:
+                open_[style] = at()
+            pos += len(tok)
+        elif c == "_":
+            if not (pos > 0 and _INTRAWORD.match(md[pos - 1]) and pos + 1 < n and _INTRAWORD.match(md[pos + 1])):
+                raise Fallback("inline")
+            plain.append(c)
+            pos += 1
+        elif c == "[":
+            close = md.find("]", pos)
+            if close > pos and close + 1 < n and md[close + 1] == "(":
+                end = md.find(")", close)
+                url = md[close + 2:end] if end > close else ""
+                text = md[pos + 1:close]
+                if not url or " " in url or any(ch in text for ch in "`*[]~\\"):
+                    raise Fallback("inline")
+                start = at()
+                plain.append(text)
+                spans.append((start, at(), {"link": {"url": url}, "underline": True, "foregroundColor": _LINK_COLOR}))
+                pos = end + 1
+            else:
+                plain.append(c)
+                pos += 1
+        elif c in "&<!" and _HOLD.match(md, pos):
+            raise Fallback("inline")
+        else:
+            plain.append(c)
+            pos += 1
+    if open_:
+        raise Fallback("inline")
+    return "".join(plain), spans
+
+
+class Line:
+    """One normalized line read for the edit path: its kind and the parts the Doc holds separately."""
+
+    def __init__(self, text: str):
+        self.text = text
+        self.kind, self.level, self.marker, self.state, self.heading = "para", 0, "", "", 0
+        body = text
+        if text == "":
+            self.kind = "blank"
+        elif m := _HEADING_LINE.match(text):
+            self.kind, self.heading, body = "heading", len(m.group(1)), m.group(2)
+        elif m := _ITEM_LINE.match(text):
+            self.kind, self.level, body = "item", len(m.group(1)) // 4, m.group(4)
+            self.marker, self.state = m.group(2), (m.group(3) or "").lower()
+            self.list = "box" if m.group(3) is not None else "ordered" if m.group(2)[0].isdigit() else "bullet"
+        elif text.startswith((" ", "\t", ">", "|", "```", "~~~", "---", "***", "<", "![", "[^", "=")):
+            self.kind = "other"
+        self.body = body
+
+    def rendered(self) -> tuple[str, list[tuple[int, int, dict]]]:
+        return inline(self.body)
+
+
+class Para:
+    """One body paragraph of `documents.get`, with what the mapping compares."""
+
+    def __init__(self, el: dict, lists: dict):
+        p = el["paragraph"]
+        self.start, self.end = el["startIndex"], el["endIndex"]
+        runs = []
+        for e in p["elements"]:
+            if "textRun" not in e:
+                raise Fallback("structure")
+            r = e["textRun"]
+            if r.get("suggestedInsertionIds") or r.get("suggestedDeletionIds"):
+                raise Fallback("suggestion")
+            runs.append(r["content"])
+        self.plain = "".join(runs)[:-1]
+        if "\u000b" in self.plain:
+            raise Fallback("structure")
+        style = p.get("paragraphStyle", {})
+        named = style.get("namedStyleType", "NORMAL_TEXT")
+        self.heading = int(named[-1]) if named.startswith("HEADING_") else 0
+        if not self.heading and named != "NORMAL_TEXT":
+            raise Fallback("structure")
+        bullet = p.get("bullet")
+        self.list, self.level = "", 0
+        if bullet:
+            self.level = bullet.get("nestingLevel", 0)
+            glyph = lists[bullet["listId"]]["listProperties"]["nestingLevels"][self.level]
+            kind = glyph.get("glyphType", "GLYPH_TYPE_UNSPECIFIED")
+            self.list = "bullet" if glyph.get("glyphSymbol") else "box" if kind == "GLYPH_TYPE_UNSPECIFIED" \
+                else "ordered"
+        elif style.get("indentStart", {}).get("magnitude"):
+            raise Fallback("structure")
+        self.line: Line | None = None  # the normalized line this paragraph maps to
+
+    @property
+    def kind(self) -> str:
+        return "item" if self.list else "heading" if self.heading else "para" if self.plain else "blank"
+
+
+def _paragraphs(doc: dict) -> list[Para]:
+    """The body's paragraphs in order, an empty one a blank line; a table or a second section is a Fallback."""
+    out: list[Para] = []
+    for i, el in enumerate(doc["body"]["content"]):
+        if "paragraph" in el:
+            out.append(Para(el, doc.get("lists", {})))
+        elif "sectionBreak" not in el or i:
+            raise Fallback("structure")
+    return out
+
+
+def _lines(text: str) -> list[Line]:
+    """The lines as the Doc holds them: a blank line is an empty paragraph, except the one the export writes on each
+    side of a heading, which no paragraph holds. Checked for a layout the edit path can place: two prose lines in a
+    row would be one paragraph, a blank between list items makes the list loose, two kinds of list side by side are
+    unmeasured."""
+    lines = [Line(raw) for raw in text.rstrip("\n").split("\n")]
+    out: list[Line] = []
+    for i, line in enumerate(lines):
+        if line.kind == "other":
+            raise Fallback("structure")
+        if line.kind == "blank" and ((i and lines[i - 1].kind == "heading")
+                                     or (i + 1 < len(lines) and lines[i + 1].kind == "heading")):
+            continue
+        out.append(line)
+    for prev, line in zip(out, out[1:]):
+        if line.kind == "para" and prev.kind in ("para", "item"):
+            raise Fallback("layout")
+        if line.kind == "item" and prev.kind == "item" and prev.list != line.list and line.level == prev.level:
+            raise Fallback("layout")
+    for a, b, c in zip(out, out[1:], out[2:]):
+        if b.kind == "blank" and a.kind == c.kind == "item":
+            raise Fallback("blank")
+    return out
+
+
+def _check(para: Para, line: Line) -> None:
+    """The paragraph holds this line: same kind, level, heading and plain text, else the mapping is off."""
+    if (para.kind, para.level, para.heading) != (line.kind, line.level, line.heading):
+        raise Fallback("mapping")
+    if line.kind == "item" and para.list != line.list:
+        raise Fallback("mapping")
+    if para.plain != line.rendered()[0]:
+        raise Fallback("mapping")
+
+
+def _styles(start: int, plain: str, spans: list[tuple[int, int, dict]]) -> list[dict]:
+    """Reset every text style over the paragraph's text, then set each span's; indexes from `start`."""
+    if not plain:
+        return []
+    out = [{"updateTextStyle": {"range": {"startIndex": start, "endIndex": start + _u16(plain)}, "textStyle": {},
+                                "fields": _RESET}}]
+    for a, b, style in spans:
+        if b > a:
+            out.append({"updateTextStyle": {"range": {"startIndex": start + _u16(plain[:a]),
+                                                      "endIndex": start + _u16(plain[:b])},
+                                            "textStyle": style, "fields": ",".join(style)}})
+    return out
+
+
+def _named(start: int, end: int, heading: int) -> dict:
+    return {"updateParagraphStyle": {"range": {"startIndex": start, "endIndex": end},
+                                     "paragraphStyle": {"namedStyleType": f"HEADING_{heading}" if heading
+                                                        else "NORMAL_TEXT"}, "fields": "namedStyleType"}}
+
+
+def _edit(para: Para, line: Line) -> list[dict]:
+    """Rewrite one paragraph to hold `line`: the smallest text change, every style set again, the kind fixed up."""
+    old = para.line
+    assert old is not None
+    if line.kind == "item":
+        if old.kind != "item" or (old.list, old.level, old.marker) != (line.list, line.level, line.marker):
+            raise Fallback("list")
+        if old.state != line.state:
+            raise Fallback("tick")
+    elif old.kind == "item" and line.kind == "heading":
+        raise Fallback("list")
+    if line.level:
+        raise Fallback("nesting")
+    plain, spans = line.rendered()
+    before = para.plain
+    i = 0
+    while i < min(len(before), len(plain)) and before[i] == plain[i]:
+        i += 1
+    j = 0
+    while j < min(len(before), len(plain)) - i and before[-1 - j] == plain[-1 - j]:
+        j += 1
+    reqs: list[dict] = []
+    at = para.start + _u16(before[:i])
+    if before[i:len(before) - j]:
+        reqs.append({"deleteContentRange": {"range": {"startIndex": at,
+                                                      "endIndex": at + _u16(before[i:len(before) - j])}}})
+    if plain[i:len(plain) - j]:
+        reqs.append({"insertText": {"location": {"index": at}, "text": plain[i:len(plain) - j]}})
+    reqs.extend(_styles(para.start, plain, spans))
+    end = para.start + _u16(plain) + 1
+    if line.kind != "item":
+        if old.kind == "item":
+            reqs.append({"deleteParagraphBullets": {"range": {"startIndex": para.start, "endIndex": end}}})
+        if old.heading != line.heading or old.kind == "item":
+            reqs.append(_named(para.start, end, line.heading))
+    return reqs
+
+
+def _insert(lines: list[Line], at: int, after: bool, anchor: Para) -> list[dict]:
+    """New paragraphs beside `anchor`: after it (at its text's end) or before it (at its start). Each inherits the
+    anchor's style and bullet, so each is reset and fixed up; a list item is written only where it inherits a
+    bullet of its own kind, a checkbox also fresh."""
+    reqs: list[dict] = []
+    for line in reversed(lines):  # each insert at the same point, so the last line goes in first
+        if line.level:
+            raise Fallback("nesting")
+        plain, spans = line.rendered()
+        inherits = anchor.kind == "item"
+        if line.kind == "item":
+            if anchor.level:
+                raise Fallback("nesting")
+            if line.state == "x":
+                raise Fallback("tick")
+            if inherits and anchor.line is not None and (anchor.line.list, anchor.line.marker) != (line.list,
+                                                                                                    line.marker):
+                raise Fallback("list")
+            if not inherits and line.list not in _PRESETS:
+                raise Fallback("list")
+        start = at + 1 if after else at
+        reqs.append({"insertText": {"location": {"index": at}, "text": "\n" + plain if after else plain + "\n"}})
+        reqs.extend(_styles(start, plain, spans))
+        end = start + _u16(plain) + 1
+        if line.kind != "item":
+            if inherits:
+                reqs.append({"deleteParagraphBullets": {"range": {"startIndex": start, "endIndex": end}}})
+            if anchor.heading != line.heading:
+                reqs.append(_named(start, end, line.heading))
+        elif not inherits:
+            if anchor.heading:
+                reqs.append(_named(start, end, 0))
+            reqs.append({"createParagraphBullets": {"range": {"startIndex": start, "endIndex": end},
+                                                    "bulletPreset": _PRESETS[line.list]}})
+    return reqs
+
+
+def plan_edits(doc: dict, old_text: str, new_text: str) -> list[dict]:
+    """The batchUpdate requests that turn the Doc, whose normalized export is `old_text`, into `new_text`; raises
+    Fallback when the whole replace must do it. Hunks are written from the end of the Doc backwards, so no index
+    moves under a later request."""
+    import difflib
+
+    paras = _paragraphs(doc)
+    old, new = _lines(old_text), _lines(new_text)
+    if len(paras) != len(old):
+        raise Fallback("mapping")
+    for para, line in zip(paras, old):
+        _check(para, line)
+        para.line = line
+    reqs: list[dict] = []
+    ops = difflib.SequenceMatcher(None, [l.text for l in old], [l.text for l in new], autojunk=False).get_opcodes()
+    for tag, i1, i2, j1, j2 in reversed(ops):
+        if tag == "equal":
+            continue
+        pairs = min(i2 - i1, j2 - j1)
+        if j2 - j1 > pairs:  # more new lines than paragraphs: the extras go in first, after the last paragraph kept
+            extra = new[j1 + pairs:j2]
+            if pairs or i1:
+                anchor = paras[i1 + pairs - 1]
+                reqs.extend(_insert(extra, anchor.end - 1, True, anchor))
+            else:
+                reqs.extend(_insert(extra, paras[0].start, False, paras[0]))
+        elif i2 - i1 > pairs:  # paragraphs with no line left: one range, through the previous newline at the end
+            first, last = paras[i1 + pairs], paras[i2 - 1]
+            if last is paras[-1]:
+                if first is paras[0]:
+                    raise Fallback("structure")
+                reqs.append({"deleteContentRange": {"range": {"startIndex": paras[i1 + pairs - 1].end - 1,
+                                                              "endIndex": last.end - 1}}})
+            else:
+                reqs.append({"deleteContentRange": {"range": {"startIndex": first.start, "endIndex": last.end}}})
+        for k in reversed(range(pairs)):
+            reqs.extend(_edit(paras[i1 + k], new[j1 + k]))
+    return reqs
+
+
+def _body(body: dict) -> list[tuple[int, int, str]]:
+    """(start, end, text) per body paragraph, the text as wide as the indexes: an element that is not a text run
+    (an image, a rule, a footnote mark) stands in as one placeholder per index it takes."""
+    out = []
+    for el in body["content"]:
+        if "paragraph" in el:
+            text = "".join(e["textRun"]["content"] if "textRun" in e else "\ufffc" * (e["endIndex"] - e["startIndex"])
+                           for e in el["paragraph"]["elements"])
+            out.append((el["startIndex"], el["endIndex"], text))
+    return out
+
+
+def anchored_comments(resp: dict) -> list[dict]:
+    """The open comments of a `documents.get` with comments: author, content, replies, the anchored text, the plain
+    text of the paragraph it starts in and its offset there, so a carry-over can find the place again."""
+    tab = resp["tabs"][0]["documentTab"]
+    anchors = tab.get("commentAnchors", {})
+    paras = _body(tab["body"])
+    out = []
+    for c in resp.get("comments", []):
+        if c.get("status", "OPEN") != "OPEN":
+            continue
+        a = anchors.get(c.get("anchorId", ""))
+        r = a["ranges"][0] if a and a.get("ranges") else None
+        para = next(((s, t) for s, e, t in paras if r and s <= r["startIndex"] < e), None)
+        text = offset = None
+        if r and para:
+            offset = r["startIndex"] - para[0]
+            text = "".join(t for _, _, t in paras)[r["startIndex"] - paras[0][0]:r["endIndex"] - paras[0][0]]
+        out.append({"id": c["commentId"], "author": c["headPost"]["author"].get("displayName", "?"),
+                    "content": c["headPost"]["content"], "anchored": text,
+                    "para": para[1][:-1] if para else None, "offset": offset,
+                    "replies": [(p["author"].get("displayName", "?"), p["content"]) for p in c.get("replies", [])]})
+    return out
+
+
+def _place(doc: dict, c: dict) -> tuple[int, int] | None:
+    """Where a carried comment goes in the replaced Doc: its text at the same offset of the paragraph that held it,
+    else elsewhere in that paragraph, else the one place its text occurs; None when the push changed that text."""
+    paras = _body(doc["body"])
+    text = c["anchored"]
+    if not text:
+        return None
+    for start, _, plain in paras:
+        if plain[:-1] == c["para"]:
+            i = c["offset"] if plain.startswith(text, c["offset"]) else plain.find(text)
+            if i >= 0:
+                return start + i, start + i + len(text)
+    body = "".join(t for _, _, t in paras)
+    if body.count(text) == 1:
+        i = body.index(text)
+        return paras[0][0] + i, paras[0][0] + i + len(text)
+    return None
+
+
+def carry_comments(d, doc_id: str, comments: list[dict]) -> dict:
+    """After a whole replace: each comment read before it is written again at its text, its replies after it, and
+    the orphan deleted; written by the token's user, who names the author. Counts for the output."""
+    out = {"carried": 0, "unplaced": [], "undeleted": 0}
+    if not comments:
+        return out
+    doc = d.get_doc(doc_id)
+    for c in comments:
+        place = _place(doc, c)
+        if place is None:
+            out["unplaced"].append(c["anchored"] or c["content"][:40])
+            continue
+        new_id = d.insert_comment(doc_id, place[0], place[1],
+                                  f"{c['content']}\n\n(carried over a sync; by {c['author']})")
+        for author, content in c["replies"]:
+            d.reply(doc_id, new_id, f"{content}\n\n(carried over a sync; by {author})")
+        try:
+            d.delete_comment(doc_id, c["id"])
+        except Exception:  # another user's comment: Google refuses, the orphan stays listed
+            out["undeleted"] += 1
+        out["carried"] += 1
+    return out
+
+
+def write_doc(d, doc_id: str, old_text: str, text: str) -> dict:
+    """Push `text` over a Doc whose normalized export is `old_text`: by edits when `plan_edits` can, else by the
+    whole replace with the comments carried over. Returns what `--json` and the prose report."""
+    try:
+        doc = d.get_doc(doc_id)
+        reqs = plan_edits(doc, old_text, normalize(text))
+    except Fallback as e:
+        why = e.args[0]
+    except Exception as e:  # the Docs API not enabled in the Cloud project: the push as before PT-009
+        if getattr(getattr(e, "resp", None), "status", None) != 403 or not any(
+                word in str(e) for word in ("accessNotConfigured", "SERVICE_DISABLED", "has not been used")):
+            raise
+        why = "docs_api"
+    else:
+        d.batch_update(doc_id, reqs, doc.get("revisionId"))
+        return {"write": "edits", "requests": len(reqs)}
+    comments = anchored_comments(d.get_doc(doc_id, comments=True)) if why != "docs_api" else []
+    d.update(doc_id, push_form(text))
+    return {"write": "replace", "why": why, **carry_comments(d, doc_id, comments)}
+
+
 # The commands. Exit codes: 0 done, 1 usage, setup or Google error, 2 a conflict (sync), 3 the Doc changed since
 # the last sync so a push was refused.
 
@@ -351,7 +781,10 @@ commands:
                  profile; refused with --name or --folder, or when FILE holds text
   pull FILE      export the Doc, undo the converter's noise, write FILE; refused when FILE changed since the
                  last sync, unless --force
-  push FILE      replace the Doc's content from FILE; refused when the Doc changed since the last sync
+  push FILE      write FILE's changes to the Doc; refused when the Doc changed since the last sync. Changed
+                 lines are edited in place through the Docs API, so comments and formatting elsewhere stay;
+                 a diff that ticks a box, nests a list, or touches a table, code, an image or a rule replaces
+                 the whole Doc, and the comments are written again at their text, by you, naming each author
   sync FILE      merge both sides' changes since the last sync, write FILE, push the Doc; a line changed
                  differently on both sides is written to FILE between <<<<<<< api-edited (FILE's version) and
                  >>>>>>> hand-edited (the Doc's), nothing is pushed, and the exit code is 2
@@ -360,13 +793,14 @@ commands:
   --json         on any command: one JSON object on stdout and nothing else: command, file, exit, reason (a
                  fixed word: created, attached, pulled, pushed, synced, status, in_sync, nothing_to_push,
                  conflict, markers, refused_doc_changed, refused_file_changed, error), message (the prose), and per
-                 command written, pushed, conflicts, version, link, the diffs; for agents (docs/agents.md)
+                 command written, pushed, conflicts, version, link, the diffs, write (edits or replace, with
+                 requests, or why and the comments carried); for agents (docs/agents.md)
   --account NAME on any command: the profile to use (default: $MD2GDOC_ACCOUNT, else `default`)
   --scope NAME   on any command: `drive.file` (default) or `drive`; chosen at a profile's first login, then
                  remembered in its token
 
 setup (once per profile; the full walkthrough is docs/setup.md at github.com/chadn/md2gdoc):
-  1. a Google Cloud project with the Drive API enabled and an OAuth consent screen, scope
+  1. a Google Cloud project with the Drive API and the Google Docs API enabled and an OAuth consent screen, scope
      https://www.googleapis.com/auth/drive.file only (.../auth/drive for a `--scope drive` profile),
      published (In production)
   2. an OAuth client of type Desktop app, its JSON saved as {CLIENT_FILE} in the profile's folder (below)
@@ -429,12 +863,14 @@ def diff(a: str, b: str, a_name: str, b_name: str) -> str:
 
 
 class Drive:
-    """The four Drive calls the commands make; tests pass a fake with the same methods."""
+    """The Drive calls the commands make, and the Docs API calls of the edit path; tests pass a fake with the same
+    methods."""
 
     def __init__(self, creds):
         from googleapiclient.discovery import build  # lazy: the text layer runs without the libraries
 
         self.api = build("drive", "v3", credentials=creds, cache_discovery=False)
+        self.docs = build("docs", "v1", credentials=creds, cache_discovery=False)
 
     @staticmethod
     def _media(markdown: str):
@@ -462,6 +898,33 @@ class Drive:
     def version(self, doc_id: str) -> int:
         f = self.api.files().get(fileId=doc_id, fields="version", supportsAllDrives=True).execute()
         return int(f["version"])
+
+    def get_doc(self, doc_id: str, comments: bool = False) -> dict:
+        """The document JSON; with `comments`, the tabs form that carries the comment threads and their anchors (the
+        API wants the three parameters together)."""
+        if not comments:
+            return self.docs.documents().get(documentId=doc_id).execute()
+        return self.docs.documents().get(documentId=doc_id, includeTabsContent=True,
+                                         suggestionsViewMode="SUGGESTIONS_INLINE",
+                                         commentsViewMode="COMMENTS_VIEW_MODE_INCLUDED").execute()
+
+    def batch_update(self, doc_id: str, requests: list[dict], revision_id: str | None = None) -> dict:
+        """One `batchUpdate`; with `revision_id`, refused by Google (400) when the Doc moved since that read."""
+        body: dict = {"requests": requests}
+        if revision_id:
+            body["writeControl"] = {"requiredRevisionId": revision_id}
+        return self.docs.documents().batchUpdate(documentId=doc_id, body=body).execute()
+
+    def insert_comment(self, doc_id: str, start: int, end: int, content: str) -> str:
+        r = self.batch_update(doc_id, [{"insertComment": {"content": content,
+                                                          "range": {"startIndex": start, "endIndex": end}}}])
+        return r["replies"][0]["insertComment"]["commentThread"]["commentId"]
+
+    def reply(self, doc_id: str, comment_id: str, content: str) -> None:
+        self.batch_update(doc_id, [{"addCommentReply": {"commentId": comment_id, "post": {"content": content}}}])
+
+    def delete_comment(self, doc_id: str, comment_id: str) -> None:
+        self.batch_update(doc_id, [{"deleteComment": {"commentId": comment_id}}])
 
     def lookup(self, doc_id: str) -> dict:
         """The same fields `create` returns, for a Doc that exists (a `drive.file` token gets 404 notFound on one it did
@@ -630,8 +1093,7 @@ def cmd_push(args, drive) -> int:
     if args.dry_run:
         changes = diff(state["local"], local, f"{md} (last sync)", f"{md} (local)")
         return _finish(args, out, EXIT_OK, "pushed", pushed=False, diff=changes, lines=[changes])
-    d.update(state["doc_id"], push_form(text))
-    return _record(args, out, md, text, {"doc_id": state["doc_id"], "link": state["link"]}, d, "pushed")
+    return _write(args, out, md, text, state, d, doc_text, "pushed")
 
 
 def cmd_status(args, drive) -> int:
@@ -703,20 +1165,42 @@ def cmd_sync(args, drive) -> int:
     if normalize(d.export(state["doc_id"]), text) != theirs:
         return _finish(args, out, EXIT_MOVED, "refused_doc_changed", pushed=False, errors=[
             "push refused: the Doc changed while syncing; run sync again"])
-    d.update(state["doc_id"], push_form(merged))
-    return _record(args, out, md, merged, {"doc_id": state["doc_id"], "link": state["link"]}, d, "synced")
+    return _write(args, out, md, merged, state, d, theirs, "synced")
 
 
-def _record(args, out: dict, md: Path, text: str, state: dict, d: Drive, verb: str) -> int:
-    """After a create or an update: export once more and store what the Doc now holds as the snapshot."""
+def _write(args, out: dict, md: Path, text: str, state: dict, d: Drive, doc_text: str, verb: str) -> int:
+    """The write of push and sync: edits when the diff allows, else the whole replace with the comments carried,
+    then the record; `doc_text` is the Doc's normalized export the guard just compared."""
+    try:
+        wrote = write_doc(d, state["doc_id"], doc_text, text)
+    except Exception as e:
+        if "revision" not in str(e).lower():
+            raise
+        return _finish(args, out, EXIT_MOVED, "refused_doc_changed", pushed=False, errors=[
+            f"{verb[:-2]} refused: the Doc changed while writing; run it again"])
+    how = f"{wrote['requests']} edits" if wrote["write"] == "edits" else f"a whole replace ({wrote['why']})"
+    if wrote.get("carried") or wrote.get("unplaced"):
+        how += f", {wrote['carried']} comments carried"
+        if wrote["unplaced"]:
+            how += f", {len(wrote['unplaced'])} not placed (their text changed)"
+    errors = [f"{len(wrote['unplaced'])} comments could not be carried; they stay in the Doc's comment list "
+              f"without an anchor: {'; '.join(repr(t) for t in wrote['unplaced'])}"] if wrote.get("unplaced") else []
+    return _record(args, out, md, text, {"doc_id": state["doc_id"], "link": state["link"]}, d, verb, how, errors,
+                   **wrote)
+
+
+def _record(args, out: dict, md: Path, text: str, state: dict, d: Drive, verb: str, how: str = "",
+            errors: list[str] = (), **fields) -> int:
+    """After a create or a write: export once more and store what the Doc now holds as the snapshot."""
     snapshot = normalize(d.export(state["doc_id"]), text)
     state.update(version=d.version(state["doc_id"]), snapshot=snapshot, local=normalize(text))
     save_state(md, state)
     lost = diff(normalize(text), snapshot, f"{md} (local)", f"{md} (Doc)")
-    errors = [f"the Doc holds a different text; `pull --force` would write it back (docs/features.md lists what "
-              f"the converter loses):\n{lost}"] if lost else []
+    errors = [*errors] + ([f"the Doc holds a different text; `pull --force` would write it back (docs/features.md "
+                           f"lists what the converter loses):\n{lost}"] if lost else [])
     return _finish(args, out, EXIT_OK, verb, pushed=True, doc_id=state["doc_id"], link=state["link"],
-                   version=state["version"], converter_diff=lost, lines=[f"{verb} {state['link']}"], errors=errors)
+                   version=state["version"], converter_diff=lost, **fields,
+                   lines=[f"{verb} {state['link']}" + (f" by {how}" if how else "")], errors=errors)
 
 
 class _Parser(argparse.ArgumentParser):
@@ -731,7 +1215,7 @@ def main(argv: list[str] | None = None, drive=connect) -> int:
     sub = parser.add_subparsers(dest="command", required=True, metavar="command")
     for name, fn, what in (("init", cmd_init, "create the Doc and the state file"),
                            ("pull", cmd_pull, "write the Doc's content to the file"),
-                           ("push", cmd_push, "replace the Doc's content from the file"),
+                           ("push", cmd_push, "write the file's changes to the Doc"),
                            ("sync", cmd_sync, "merge both sides' changes, write the file, push the Doc"),
                            ("status", cmd_status, "which side changed")):
         p = sub.add_parser(name, help=what)

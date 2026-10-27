@@ -1,0 +1,396 @@
+
+doc <probe-1-doc-id>
+--- paragraphs pristine
+   1-  14 HEADING_1    'Shared Tasks\n' 
+  14-  38 NORMAL_TEXT  'Last synced: 2026-10-21\n' 
+  38-  43 HEADING_2    'Open\n' 
+  43- 140 NORMAL_TEXT  'T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 140- 179 NORMAL_TEXT  'T-002 Call the vendor (due 2026-10-24)\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 179- 208 NORMAL_TEXT  'sub-task with 4-space indent\n' bullet list=a19vxc lvl=1 indentStart={'magnitude': 72, 'unit': 'PT'}
+ 208- 250 NORMAL_TEXT  'T-003 Done item with inline code and bold\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 250- 256 HEADING_2    'Notes\n' 
+ 256- 330 NORMAL_TEXT  'Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word.\n' 
+non-paragraph elements: ['sectionBreak']
+lists: {"kix.crahvta19vxc": {"bulletAlignment": "START", "glyphType": "GLYPH_TYPE_UNSPECIFIED", "glyphFormat": "%0", "indentFirstLine": {"magnitude": 18, "unit": "PT"}, "indentStart": {"magnitude": 36, "unit": "PT"}, "textStyle": {"bold": false, "italic": false, "underline": false, "strikethrough": false, "smallCaps": false, "backgroundColor": {}, "foregroundColor": {"color": {"rgbColor": {}}}, "fontSize": {"magnitude": 11, "unit": "PT"}, "weightedFontFamily": {"fontFamily": "Arial", "weight": 400}, "baselineOffset": "NONE"}, "startNumber": 1}}
+--- export pristine
+# **Shared Tasks**
+
+Last synced: 2026-10-21
+
+## **Open**
+
+- [ ] T-001 \[PG-003\] \[\#repo,\#spike\] Prove in-place update keeps the link \- see [https\://example.com/doc](https://example.com/doc)  
+- [ ] T-002 Call the vendor (due 2026-10-24)  
+      - [ ] sub-task with 4-space indent  
+- [x] T-003 Done item with `inline code` and **bold**
+
+## **Notes**
+
+Plain paragraph with a \- dash, an & ampersand, 50% and a\_snake\_case word.
+=== a: insert \nT-004 after the ticked item
+--- paragraphs a: insert \nT-004 after the ticked item
+   1-  14 HEADING_1    'Shared Tasks\n' 
+  14-  38 NORMAL_TEXT  'Last synced: 2026-10-21\n' 
+  38-  43 HEADING_2    'Open\n' 
+  43- 140 NORMAL_TEXT  'T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 140- 179 NORMAL_TEXT  'T-002 Call the vendor (due 2026-10-24)\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 179- 208 NORMAL_TEXT  'sub-task with 4-space indent\n' bullet list=a19vxc lvl=1 indentStart={'magnitude': 72, 'unit': 'PT'}
+ 208- 250 NORMAL_TEXT  'T-003 Done item with inline code and bold\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 250- 282 NORMAL_TEXT  'T-004 new after the ticked item\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 282- 288 HEADING_2    'Notes\n' 
+ 288- 362 NORMAL_TEXT  'Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word.\n' 
+non-paragraph elements: ['sectionBreak']
+--- export
+# **Shared Tasks**
+
+Last synced: 2026-10-21
+
+## **Open**
+
+- [ ] T-001 \[PG-003\] \[\#repo,\#spike\] Prove in-place update keeps the link \- see [https\://example.com/doc](https://example.com/doc)  
+- [ ] T-002 Call the vendor (due 2026-10-24)  
+      - [ ] sub-task with 4-space indent  
+- [x] T-003 Done item with `inline code` and **bold**  
+- [ ] **T-004 new after the ticked item**
+
+## **Notes**
+
+Plain paragraph with a \- dash, an & ampersand, 50% and a\_snake\_case word.
+=== b: insert 'T-000 before the first\n' at the first item's start
+--- paragraphs b: insert 'T-000 before the first\n' at the first item's start
+   1-  14 HEADING_1    'Shared Tasks\n' 
+  14-  38 NORMAL_TEXT  'Last synced: 2026-10-21\n' 
+  38-  43 HEADING_2    'Open\n' 
+  43-  66 NORMAL_TEXT  'T-000 before the first\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+  66- 163 NORMAL_TEXT  'T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 163- 202 NORMAL_TEXT  'T-002 Call the vendor (due 2026-10-24)\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 202- 231 NORMAL_TEXT  'sub-task with 4-space indent\n' bullet list=a19vxc lvl=1 indentStart={'magnitude': 72, 'unit': 'PT'}
+ 231- 273 NORMAL_TEXT  'T-003 Done item with inline code and bold\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 273- 305 NORMAL_TEXT  'T-004 new after the ticked item\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 305- 311 HEADING_2    'Notes\n' 
+ 311- 385 NORMAL_TEXT  'Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word.\n' 
+non-paragraph elements: ['sectionBreak']
+--- export
+# **Shared Tasks**
+
+Last synced: 2026-10-21
+
+## **Open**
+
+- [ ] T-000 before the first  
+- [ ] T-001 \[PG-003\] \[\#repo,\#spike\] Prove in-place update keeps the link \- see [https\://example.com/doc](https://example.com/doc)  
+- [ ] T-002 Call the vendor (due 2026-10-24)  
+      - [ ] sub-task with 4-space indent  
+- [x] T-003 Done item with `inline code` and **bold**  
+- [ ] **T-004 new after the ticked item**
+
+## **Notes**
+
+Plain paragraph with a \- dash, an & ampersand, 50% and a\_snake\_case word.
+=== c: append ' ADDED' then reset every text style over the paragraph, then bold 'dash'
+--- paragraphs c: append ' ADDED' then reset every text style over the paragraph, then bold 'dash'
+   1-  14 HEADING_1    'Shared Tasks\n' 
+  14-  38 NORMAL_TEXT  'Last synced: 2026-10-21\n' 
+  38-  43 HEADING_2    'Open\n' 
+  43-  66 NORMAL_TEXT  'T-000 before the first\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+  66- 163 NORMAL_TEXT  'T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 163- 202 NORMAL_TEXT  'T-002 Call the vendor (due 2026-10-24)\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 202- 231 NORMAL_TEXT  'sub-task with 4-space indent\n' bullet list=a19vxc lvl=1 indentStart={'magnitude': 72, 'unit': 'PT'}
+ 231- 273 NORMAL_TEXT  'T-003 Done item with inline code and bold\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 273- 305 NORMAL_TEXT  'T-004 new after the ticked item\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 305- 311 HEADING_2    'Notes\n' 
+ 311- 391 NORMAL_TEXT  'Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word. ADDED\n' 
+non-paragraph elements: ['sectionBreak']
+--- export
+# **Shared Tasks**
+
+Last synced: 2026-10-21
+
+## **Open**
+
+- [ ] T-000 before the first  
+- [ ] T-001 \[PG-003\] \[\#repo,\#spike\] Prove in-place update keeps the link \- see [https\://example.com/doc](https://example.com/doc)  
+- [ ] T-002 Call the vendor (due 2026-10-24)  
+      - [ ] sub-task with 4-space indent  
+- [x] T-003 Done item with `inline code` and **bold**  
+- [ ] **T-004 new after the ticked item**
+
+## **Notes**
+
+Plain paragraph with a \- **dash**, an & ampersand, 50% and a\_snake\_case word. ADDED
+=== d: insert 'Top line\n' at index 1
+--- paragraphs d: insert 'Top line\n' at index 1
+   1-  10 HEADING_1    'Top line\n' 
+  10-  23 HEADING_1    'Shared Tasks\n' 
+  23-  47 NORMAL_TEXT  'Last synced: 2026-10-21\n' 
+  47-  52 HEADING_2    'Open\n' 
+  52-  75 NORMAL_TEXT  'T-000 before the first\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+  75- 172 NORMAL_TEXT  'T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 172- 211 NORMAL_TEXT  'T-002 Call the vendor (due 2026-10-24)\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 211- 240 NORMAL_TEXT  'sub-task with 4-space indent\n' bullet list=a19vxc lvl=1 indentStart={'magnitude': 72, 'unit': 'PT'}
+ 240- 282 NORMAL_TEXT  'T-003 Done item with inline code and bold\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 282- 314 NORMAL_TEXT  'T-004 new after the ticked item\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 314- 320 HEADING_2    'Notes\n' 
+ 320- 400 NORMAL_TEXT  'Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word. ADDED\n' 
+non-paragraph elements: ['sectionBreak']
+--- export
+# **Top line**
+
+# **Shared Tasks**
+
+Last synced: 2026-10-21
+
+## **Open**
+
+- [ ] T-000 before the first  
+- [ ] T-001 \[PG-003\] \[\#repo,\#spike\] Prove in-place update keeps the link \- see [https\://example.com/doc](https://example.com/doc)  
+- [ ] T-002 Call the vendor (due 2026-10-24)  
+      - [ ] sub-task with 4-space indent  
+- [x] T-003 Done item with `inline code` and **bold**  
+- [ ] **T-004 new after the ticked item**
+
+## **Notes**
+
+Plain paragraph with a \- **dash**, an & ampersand, 50% and a\_snake\_case word. ADDED
+=== d2: NORMAL_TEXT on it
+--- paragraphs d2: NORMAL_TEXT on it
+   1-  10 NORMAL_TEXT  'Top line\n' 
+  10-  23 HEADING_1    'Shared Tasks\n' 
+  23-  47 NORMAL_TEXT  'Last synced: 2026-10-21\n' 
+  47-  52 HEADING_2    'Open\n' 
+  52-  75 NORMAL_TEXT  'T-000 before the first\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+  75- 172 NORMAL_TEXT  'T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 172- 211 NORMAL_TEXT  'T-002 Call the vendor (due 2026-10-24)\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 211- 240 NORMAL_TEXT  'sub-task with 4-space indent\n' bullet list=a19vxc lvl=1 indentStart={'magnitude': 72, 'unit': 'PT'}
+ 240- 282 NORMAL_TEXT  'T-003 Done item with inline code and bold\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 282- 314 NORMAL_TEXT  'T-004 new after the ticked item\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 314- 320 HEADING_2    'Notes\n' 
+ 320- 400 NORMAL_TEXT  'Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word. ADDED\n' 
+non-paragraph elements: ['sectionBreak']
+--- export
+Top line
+
+# **Shared Tasks**
+
+Last synced: 2026-10-21
+
+## **Open**
+
+- [ ] T-000 before the first  
+- [ ] T-001 \[PG-003\] \[\#repo,\#spike\] Prove in-place update keeps the link \- see [https\://example.com/doc](https://example.com/doc)  
+- [ ] T-002 Call the vendor (due 2026-10-24)  
+      - [ ] sub-task with 4-space indent  
+- [x] T-003 Done item with `inline code` and **bold**  
+- [ ] **T-004 new after the ticked item**
+
+## **Notes**
+
+Plain paragraph with a \- **dash**, an & ampersand, 50% and a\_snake\_case word. ADDED
+=== e: Done -> Finished inside the styled item, reset, re-span
+--- paragraphs e: Done -> Finished inside the styled item, reset, re-span
+   1-  10 NORMAL_TEXT  'Top line\n' 
+  10-  23 HEADING_1    'Shared Tasks\n' 
+  23-  47 NORMAL_TEXT  'Last synced: 2026-10-21\n' 
+  47-  52 HEADING_2    'Open\n' 
+  52-  75 NORMAL_TEXT  'T-000 before the first\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+  75- 172 NORMAL_TEXT  'T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 172- 211 NORMAL_TEXT  'T-002 Call the vendor (due 2026-10-24)\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 211- 240 NORMAL_TEXT  'sub-task with 4-space indent\n' bullet list=a19vxc lvl=1 indentStart={'magnitude': 72, 'unit': 'PT'}
+ 240- 286 NORMAL_TEXT  'T-003 Finished item with inline code and bold\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 286- 318 NORMAL_TEXT  'T-004 new after the ticked item\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 318- 324 HEADING_2    'Notes\n' 
+ 324- 404 NORMAL_TEXT  'Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word. ADDED\n' 
+non-paragraph elements: ['sectionBreak']
+--- export
+Top line
+
+# **Shared Tasks**
+
+Last synced: 2026-10-21
+
+## **Open**
+
+- [ ] T-000 before the first  
+- [ ] T-001 \[PG-003\] \[\#repo,\#spike\] Prove in-place update keeps the link \- see [https\://example.com/doc](https://example.com/doc)  
+- [ ] T-002 Call the vendor (due 2026-10-24)  
+      - [ ] sub-task with 4-space indent  
+- [x] T-003 Finished item with `inline code` and **bold**  
+- [ ] **T-004 new after the ticked item**
+
+## **Notes**
+
+Plain paragraph with a \- **dash**, an & ampersand, 50% and a\_snake\_case word. ADDED
+=== f: insert '\nfresh item' after the Notes paragraph and createParagraphBullets on it
+--- paragraphs f: insert '\nfresh item' after the Notes paragraph and createParagraphBullets on it
+   1-  10 NORMAL_TEXT  'Top line\n' 
+  10-  23 HEADING_1    'Shared Tasks\n' 
+  23-  47 NORMAL_TEXT  'Last synced: 2026-10-21\n' 
+  47-  52 HEADING_2    'Open\n' 
+  52-  75 NORMAL_TEXT  'T-000 before the first\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+  75- 172 NORMAL_TEXT  'T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 172- 211 NORMAL_TEXT  'T-002 Call the vendor (due 2026-10-24)\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 211- 240 NORMAL_TEXT  'sub-task with 4-space indent\n' bullet list=a19vxc lvl=1 indentStart={'magnitude': 72, 'unit': 'PT'}
+ 240- 286 NORMAL_TEXT  'T-003 Finished item with inline code and bold\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 286- 318 NORMAL_TEXT  'T-004 new after the ticked item\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 318- 324 HEADING_2    'Notes\n' 
+ 324- 404 NORMAL_TEXT  'Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word. ADDED\n' 
+ 404- 415 NORMAL_TEXT  'fresh item\n' bullet list=d8dj4z lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+non-paragraph elements: ['sectionBreak']
+--- export
+Top line
+
+# **Shared Tasks**
+
+Last synced: 2026-10-21
+
+## **Open**
+
+- [ ] T-000 before the first  
+- [ ] T-001 \[PG-003\] \[\#repo,\#spike\] Prove in-place update keeps the link \- see [https\://example.com/doc](https://example.com/doc)  
+- [ ] T-002 Call the vendor (due 2026-10-24)  
+      - [ ] sub-task with 4-space indent  
+- [x] T-003 Finished item with `inline code` and **bold**  
+- [ ] **T-004 new after the ticked item**
+
+## **Notes**
+
+Plain paragraph with a \- **dash**, an & ampersand, 50% and a\_snake\_case word. ADDED
+
+* fresh item
+=== g: insert '\nfresh box' after it, deleteParagraphBullets, createParagraphBullets BULLET_CHECKBOX
+--- paragraphs g: insert '\nfresh box' after it, deleteParagraphBullets, createParagraphBullets BULLET_CHECKBOX
+   1-  10 NORMAL_TEXT  'Top line\n' 
+  10-  23 HEADING_1    'Shared Tasks\n' 
+  23-  47 NORMAL_TEXT  'Last synced: 2026-10-21\n' 
+  47-  52 HEADING_2    'Open\n' 
+  52-  75 NORMAL_TEXT  'T-000 before the first\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+  75- 172 NORMAL_TEXT  'T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 172- 211 NORMAL_TEXT  'T-002 Call the vendor (due 2026-10-24)\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 211- 240 NORMAL_TEXT  'sub-task with 4-space indent\n' bullet list=a19vxc lvl=1 indentStart={'magnitude': 72, 'unit': 'PT'}
+ 240- 286 NORMAL_TEXT  'T-003 Finished item with inline code and bold\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 286- 318 NORMAL_TEXT  'T-004 new after the ticked item\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 318- 324 HEADING_2    'Notes\n' 
+ 324- 404 NORMAL_TEXT  'Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word. ADDED\n' 
+ 404- 415 NORMAL_TEXT  'fresh item\n' bullet list=d8dj4z lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 415- 425 NORMAL_TEXT  'fresh box\n' bullet list=cayiqd lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+non-paragraph elements: ['sectionBreak']
+--- export
+Top line
+
+# **Shared Tasks**
+
+Last synced: 2026-10-21
+
+## **Open**
+
+- [ ] T-000 before the first  
+- [ ] T-001 \[PG-003\] \[\#repo,\#spike\] Prove in-place update keeps the link \- see [https\://example.com/doc](https://example.com/doc)  
+- [ ] T-002 Call the vendor (due 2026-10-24)  
+      - [ ] sub-task with 4-space indent  
+- [x] T-003 Finished item with `inline code` and **bold**  
+- [ ] **T-004 new after the ticked item**
+
+## **Notes**
+
+Plain paragraph with a \- **dash**, an & ampersand, 50% and a\_snake\_case word. ADDED
+
+* fresh item  
+- [ ] fresh box
+=== h: link on 'vendor'
+--- paragraphs h: link on 'vendor'
+   1-  10 NORMAL_TEXT  'Top line\n' 
+  10-  23 HEADING_1    'Shared Tasks\n' 
+  23-  47 NORMAL_TEXT  'Last synced: 2026-10-21\n' 
+  47-  52 HEADING_2    'Open\n' 
+  52-  75 NORMAL_TEXT  'T-000 before the first\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+  75- 172 NORMAL_TEXT  'T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 172- 211 NORMAL_TEXT  'T-002 Call the vendor (due 2026-10-24)\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 211- 240 NORMAL_TEXT  'sub-task with 4-space indent\n' bullet list=a19vxc lvl=1 indentStart={'magnitude': 72, 'unit': 'PT'}
+ 240- 286 NORMAL_TEXT  'T-003 Finished item with inline code and bold\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 286- 318 NORMAL_TEXT  'T-004 new after the ticked item\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 318- 324 HEADING_2    'Notes\n' 
+ 324- 404 NORMAL_TEXT  'Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word. ADDED\n' 
+ 404- 415 NORMAL_TEXT  'fresh item\n' bullet list=d8dj4z lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 415- 425 NORMAL_TEXT  'fresh box\n' bullet list=cayiqd lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+non-paragraph elements: ['sectionBreak']
+--- export
+Top line
+
+# **Shared Tasks**
+
+Last synced: 2026-10-21
+
+## **Open**
+
+- [ ] T-000 before the first  
+- [ ] T-001 \[PG-003\] \[\#repo,\#spike\] Prove in-place update keeps the link \- see [https\://example.com/doc](https://example.com/doc)  
+- [ ] T-002 Call the [vendor](https://example.com/v) (due 2026-10-24)  
+      - [ ] sub-task with 4-space indent  
+- [x] T-003 Finished item with `inline code` and **bold**  
+- [ ] **T-004 new after the ticked item**
+
+## **Notes**
+
+Plain paragraph with a \- **dash**, an & ampersand, 50% and a\_snake\_case word. ADDED
+
+* fresh item  
+- [ ] fresh box
+=== i: delete the last paragraph through the previous newline
+--- paragraphs i: delete the last paragraph through the previous newline
+   1-  10 NORMAL_TEXT  'Top line\n' 
+  10-  23 HEADING_1    'Shared Tasks\n' 
+  23-  47 NORMAL_TEXT  'Last synced: 2026-10-21\n' 
+  47-  52 HEADING_2    'Open\n' 
+  52-  75 NORMAL_TEXT  'T-000 before the first\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+  75- 172 NORMAL_TEXT  'T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 172- 211 NORMAL_TEXT  'T-002 Call the vendor (due 2026-10-24)\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 211- 240 NORMAL_TEXT  'sub-task with 4-space indent\n' bullet list=a19vxc lvl=1 indentStart={'magnitude': 72, 'unit': 'PT'}
+ 240- 286 NORMAL_TEXT  'T-003 Finished item with inline code and bold\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 286- 318 NORMAL_TEXT  'T-004 new after the ticked item\n' bullet list=a19vxc lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+ 318- 324 HEADING_2    'Notes\n' 
+ 324- 404 NORMAL_TEXT  'Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word. ADDED\n' 
+ 404- 415 NORMAL_TEXT  'fresh item\n' bullet list=d8dj4z lvl=0 indentStart={'magnitude': 36, 'unit': 'PT'}
+non-paragraph elements: ['sectionBreak']
+--- export
+Top line
+
+# **Shared Tasks**
+
+Last synced: 2026-10-21
+
+## **Open**
+
+- [ ] T-000 before the first  
+- [ ] T-001 \[PG-003\] \[\#repo,\#spike\] Prove in-place update keeps the link \- see [https\://example.com/doc](https://example.com/doc)  
+- [ ] T-002 Call the [vendor](https://example.com/v) (due 2026-10-24)  
+      - [ ] sub-task with 4-space indent  
+- [x] T-003 Finished item with `inline code` and **bold**  
+- [ ] **T-004 new after the ticked item**
+
+## **Notes**
+
+Plain paragraph with a \- **dash**, an & ampersand, 50% and a\_snake\_case word. ADDED
+
+* fresh item
+final normalized export:
+Top line
+
+# Shared Tasks
+
+Last synced: 2026-10-21
+
+## Open
+
+- [ ] T-000 before the first
+- [ ] T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc
+- [ ] T-002 Call the [vendor](https://example.com/v) (due 2026-10-24)
+    - [ ] sub-task with 4-space indent
+- [x] T-003 Finished item with `inline code` and **bold**
+- [ ] **T-004 new after the ticked item**
+
+## Notes
+
+Plain paragraph with a - **dash**, an & ampersand, 50% and a_snake_case word. ADDED
+
+* fresh item
+

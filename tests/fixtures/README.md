@@ -33,6 +33,14 @@ below.
   export fed back in, byte for byte the same as `.out.md` (the image's data URI survives a push).
 - 12-gfm-list-markers: each marker style in its own list, a start at 3, nested mixed markers (PT-023). A pair:
   normalize(out) == in.
+- [04-task-list.doc.json](04-task-list.doc.json): the `documents.get` of a Doc made from
+  [04-task-list.in.md](04-task-list.in.md) through the script's own import (PT-009,
+  [build-probe-1.py](../../chadkit/work/PT-009/build-probe-1.py)), `documentId` and `revisionId` masked, document
+  and named styles dropped; the edit planner's test bed.
+- 13-list-kinds: fixture 12's lists plus a checklist and a paragraph with every inline style, made and exported
+  through the script (PT-009, [build-probe-2.py](../../chadkit/work/PT-009/build-probe-2.py) and
+  [build-probe-2b.py](../../chadkit/work/PT-009/build-probe-2b.py)); `.doc.json` is its `documents.get`, masked
+  as 04's. A pair: normalize(out) == normalize(in).
 
 Trailing double spaces on list lines are part of Google's export; keep them when copying. PT-013's probes went
 through the same converter and are kept as evidence, not test cases (recovered from the session transcript), under

@@ -1,0 +1,68 @@
+
+$ md2gdoc init live.md --name PT-009 live proof --json
+{"command": "init", "file": "live.md", "dry_run": false, "pushed": true, "doc_id": "<live-doc-id>", "link": "https://docs.google.com/document/d/<live-doc-id>/edit?usp=drivesdk", "version": 5, "converter_diff": "", "exit": 0, "reason": "created", "message": "created https://docs.google.com/document/d/<live-doc-id>/edit?usp=drivesdk"}
+exit 0
+
+$ comments.py add
+added 2 comments and a reply
+
+$ comments.py show
+--- 2 open comments
+  anchored='vendor' in 'T-002 Call the vendor (due 2026-10-24)' content='a comment on vendor' replies=[('<account display name>', 'a reply about the vendor')]
+  anchored='ampersand' in 'Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word.' content='a comment on ampersand' replies=[]
+  docx anchors: {'0': 'vendor', '2': 'ampersand'}
+
+--- edit: Call -> Phone the vendor; a new paragraph under Notes; T-004 after T-003
+
+$ md2gdoc push live.md --json
+{"command": "push", "file": "live.md", "dry_run": false, "doc_id": "<live-doc-id>", "link": "https://docs.google.com/document/d/<live-doc-id>/edit?usp=drivesdk", "pushed": true, "version": 7, "converter_diff": "", "write": "edits", "requests": 10, "exit": 0, "reason": "pushed", "message": "pushed https://docs.google.com/document/d/<live-doc-id>/edit?usp=drivesdk by 10 edits"}
+exit 0
+
+$ md2gdoc status live.md
+live.md: unchanged since the last sync
+Doc https://docs.google.com/document/d/<live-doc-id>/edit?usp=drivesdk: unchanged (version 7 -> 7)
+exit 0
+
+$ comments.py show
+--- 2 open comments
+  anchored='vendor' in 'T-002 Phone the vendor (due 2026-10-24)' content='a comment on vendor' replies=[('<account display name>', 'a reply about the vendor')]
+  anchored='ampersand' in 'Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word.' content='a comment on ampersand' replies=[]
+  docx anchors: {'0': 'vendor', '2': 'ampersand'}
+
+--- edit: tick T-002; T-003 Done -> Finished
+
+$ md2gdoc sync live.md --json
+{"command": "sync", "file": "live.md", "dry_run": false, "doc_id": "<live-doc-id>", "link": "https://docs.google.com/document/d/<live-doc-id>/edit?usp=drivesdk", "written": false, "pushed": true, "version": 8, "converter_diff": "", "write": "replace", "why": "tick", "carried": 2, "unplaced": [], "undeleted": 0, "exit": 0, "reason": "synced", "message": "synced https://docs.google.com/document/d/<live-doc-id>/edit?usp=drivesdk by a whole replace (tick), 2 comments carried"}
+exit 0
+
+$ comments.py show
+--- 2 open comments
+  anchored='ampersand' in 'Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word.' content='a comment on ampersand\n\n(carried over a sync; by <account display name>)' replies=[]
+  anchored='vendor' in 'T-002 Phone the vendor (due 2026-10-24)' content='a comment on vendor\n\n(carried over a sync; by <account display name>)' replies=[('<account display name>', 'a reply about the vendor\n\n(carried over a sync; by <account display name>)')]
+  docx anchors: {'0': 'vendor', '2': 'ampersand'}
+
+$ md2gdoc sync live.md
+in sync: neither live.md nor the Doc changed since the last sync
+exit 0
+
+--- the file after the run
+# Shared Tasks
+
+Last synced: 2026-10-21
+
+## Open
+
+- [ ] T-001 [PG-003] [#repo,#spike] Prove in-place update keeps the link - see https://example.com/doc
+- [x] T-002 Phone the vendor (due 2026-10-24)
+    - [ ] sub-task with 4-space indent
+- [x] T-003 Finished item with `inline code` and **bold**
+- [ ] T-004 a new box, inherited from T-003
+
+## Notes
+
+A new paragraph, written by the edit path.
+
+Plain paragraph with a - dash, an & ampersand, 50% and a_snake_case word.
+
+--- the state file's snapshot equals its local text:
+True version 8

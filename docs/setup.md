@@ -18,7 +18,8 @@ it created; nothing else in your Drive is visible to it. Uses 2 APIs
    Name it `md2gdoc`, or anything.
 2. Enable two APIs: [enable Drive API](https://console.cloud.google.com/flows/enableapi?apiid=drive.googleapis.com)
    and [enable Docs API](https://console.cloud.google.com/flows/enableapi?apiid=docs.googleapis.com). Drive reads
-   and writes whole Docs; the Docs API edits part of one (PT-009) and costs nothing to enable now.
+   and writes whole Docs; the Docs API edits part of one and carries the comments over a replace (PT-009); without
+   it the script replaces the whole Doc on every push, as before PT-009, and says so.
 3. Configure consent: [Google Auth platform > Branding](https://console.cloud.google.com/auth/branding). If it says
    the platform is not configured yet, click **Get started**:
    - App name `md2gdoc`, your email as support email, **Next**.
@@ -58,7 +59,7 @@ the markdown is the only file the script writes into one.
 
 | Choice | Why | Alternative |
 |---|---|---|
-| Drive API and Docs API | Drive reads and writes whole Docs (`files.export`, `files.update`), creates and finds them; Docs edits part of a Doc, see [Docs API](#docs-api) | Drive alone, if targeted edits are never wanted |
+| Drive API and Docs API | Drive reads and writes whole Docs (`files.export`, `files.update`), creates and finds them; Docs edits part of a Doc, see [Docs API](#docs-api) | Drive alone works: every push then replaces the whole Doc and orphans its comments |
 | `drive.file` | Narrowest scope that can write; non-sensitive, so no Google verification | `drive`, see [Other setups](#other-setups) |
 | OAuth Desktop app client | Script runs on your machine, one browser login, then unattended | Service-account setup |
 | External + In production | Testing status expires the token after 7 days; `drive.file` needs no verification to publish | Internal for Workspace accounts; [Testing status](#testing-status) |
@@ -163,8 +164,9 @@ Side effects:
 
 ### Docs API
 
-Enabled in step 2; needed only to edit part of a Doc instead of replacing all of it (`documents.batchUpdate`,
-PT-009). It works with every setup above.
+Enabled in step 2; used by every push that can edit part of the Doc instead of replacing all of it, and by the
+comment carry-over when it cannot (`documents.batchUpdate`, PT-009). It works with every setup above; without it
+the push replaces the whole Doc and reports `write: replace`, `why: docs_api`.
 
 - `batchUpdate` accepts `drive.file`: Google's Docs API scopes page lists it as non-sensitive and recommended, so
   no scope change is needed. Confirmed 2026-10-22 with an insert on a scratch Doc under this project's client.

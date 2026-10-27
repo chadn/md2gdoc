@@ -149,13 +149,29 @@ how far the current state has got; where the two differ, the end state wins and 
   content moved. The Drive `version` is stored and shown but never trusted alone, since a match is not proof
   ("What is not proven", item 2; PT-007 may let it skip the export once PT-018 reads the UI case). `pull` has the
   mirror guard on the file, lifted by `--force`. Skip the push when the file's normalized text is what the last
-  sync sent, so no empty revisions. Do not use `revisionId` (see [similar.md](similar.md)).
+  sync sent, so no empty revisions. Do not use `revisionId` as the guard (see [similar.md](similar.md)); the edit
+  path sends it as the batch's write control, read seconds before, so a Doc that moved in between is refused.
 - After a successful push, pull once more and store the new `version` and snapshot. In `sync` the guard is a
   second export right before the push, compared to the one the merge read: a Doc that changed meanwhile refuses the
   push with exit 3, and the merge already written to the file waits for the next run. The `version` is not
   consulted, since a UI edit moves it late (item 2). When one side is unchanged since the last sync the other side
   is the result without a merge, so the converter's own difference between the two stored texts (the blank line
   before a list, [features.md](features.md)) never reads as a conflict.
+
+- The *write path* (PT-009): `write_doc` reads the document JSON and `plan_edits` maps its paragraphs to the lines
+  of the Doc's normalized export, one to one, an empty paragraph to a blank line except the blank the export writes
+  on each side of a heading, which no paragraph holds; every pair must agree on kind, level and plain text, else
+  the whole replace. The lines are then diffed against the file's and each hunk becomes requests, the hunks taken
+  from the end of the Doc backwards so no index moves under a later one: a changed line is the smallest text change
+  inside its paragraph (so a comment on an untouched word stays), then every text style reset and the line's spans
+  set again, then the paragraph's style or bullet fixed; new lines go in after the paragraph before them (before
+  the first), inherit its style and bullet, and are reset and fixed the same way, a list item only where it
+  inherits a bullet of its kind, a checkbox also fresh; deleted lines go in one range, the last through the newline
+  before it. The batch carries `requiredRevisionId` from the read, so a Doc that moved in between is refused (exit
+  3). The replace path reads the comments first (`documents.get` with comments), replaces, then re-inserts each at
+  its text, preferring the same offset of the paragraph that held it. The fallback reasons are the words under
+  "Whole-document replace" below; `--json` carries them ([agents.md](agents.md)). Measured on the fixtures' Docs
+  and a live run, [chadkit/work/PT-009.md](../chadkit/work/PT-009.md), "The build".
 
 ## Whole-document replace: must every push replace the Doc?
 
@@ -171,11 +187,17 @@ b. Targeted edits via Docs API `batchUpdate`: pull the document JSON, map paragr
    state, so b cannot tick a box and needs a for that; text, headings, lists, links, code, tables, quotes and images
    it can edit, some with a fix-up request; comments on untouched text stay anchored where a replaces them with
    orphans. Expect several days of work and index arithmetic bugs.
-c. Hybrid: b for small diffs, a when the diff is large or b fails. Needs b first. Chosen 2026-10-26 under PT-009,
-   with the comments carried over each a: read every open comment's anchored text and replies before the replace,
-   `insertComment` and `addCommentReply` at that text after it, delete the orphan. Measured on two comments
-   ([chadkit/work/PT-009.md](../chadkit/work/PT-009.md), probe 14b): the carried thread is authored by the token's
-   user with the original author named in its body, and a comment on text the push changed has no place.
+c. Hybrid: b for small diffs, a when the diff is large or b fails. Needs b first. Built 2026-10-26 (PT-009, the
+   *write path* under Script design): b for a diff of prose, headings, blank lines and level-0 list items, a when
+   the diff ticks or unticks a box (`tick`), touches a nested item (`nesting`), starts a bullet or numbered list or
+   changes a list's kind or marker (`list`), holds a table, code, a quote, an image, a rule or HTML (`structure`),
+   runs two prose lines together or two kinds of list (`layout`), loosens a list (`blank`), uses inline syntax the
+   path does not write (`inline`), or when the Doc's paragraphs do not match its export (`mapping`), a pending
+   suggestion is in them (`suggestion`), or the Docs API is not enabled (`docs_api`). Before each a the comments
+   are read, after it each is written again at its text with its replies, and the orphan deleted. Measured on two
+   comments ([chadkit/work/PT-009.md](../chadkit/work/PT-009.md), probe 14b and the live proof): the carried thread
+   is authored by the token's user with the original author named in its body, and a comment on text the push
+   changed has no place.
 d. The *docx carrier*: send a `.docx` through `files.update` instead of markdown, gdoc's path
    ([similar.md](similar.md)). Measured 2026-10-26 ([chadkit/work/PT-009.md](../chadkit/work/PT-009.md), probes 11, 12
    and 14) on one comment and one red word: the export's `.docx` carries both with their ranges, and sent back edited
@@ -199,7 +221,8 @@ d. The *docx carrier*: send a `.docx` through `files.update` instead of markdown
   Google issues new ids without content changes and uses a text fingerprint instead; gdoc uses the Drive `version`
   integer and still records false conflicts when someone only touches formatting in the UI. The push guard
   therefore reads `version`, and on a mismatch exports and compares normalized text to the snapshot; only a real
-  content change aborts the push. `revisionId` is not stored at all.
+  content change aborts the push. `revisionId` is not stored at all; the edit path reads it and sends it back
+  within one command (PT-009).
 - None of the three does checkboxes, so there is nothing to fork. Build, borrowing three pieces:
   gdoc-sync `src/gdoc_sync/merge.py` (diff3 via `git merge-file` with pure-Python fallback, no Google deps),
   md-gdoc `src/md_gdoc/unescape.py` `clean()` (the escape list), gdoc `gdoc/api/drive.py` `update_doc_content`

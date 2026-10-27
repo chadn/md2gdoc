@@ -1,0 +1,3490 @@
+{
+ "title": "PT-009 build probe 2",
+ "documentId": "<doc-id>",
+ "revisionId": "<revision-id>",
+ "body": {
+  "content": [
+   {
+    "endIndex": 1,
+    "sectionBreak": {
+     "sectionStyle": {
+      "columnSeparatorStyle": "NONE",
+      "contentDirection": "LEFT_TO_RIGHT",
+      "sectionType": "CONTINUOUS"
+     }
+    }
+   },
+   {
+    "startIndex": 1,
+    "endIndex": 14,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 1,
+       "endIndex": 14,
+       "textRun": {
+        "content": "List markers\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "headingId": "h.ei9d5nk9i9kk",
+      "namedStyleType": "HEADING_1",
+      "direction": "LEFT_TO_RIGHT"
+     }
+    }
+   },
+   {
+    "startIndex": 14,
+    "endIndex": 21,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 14,
+       "endIndex": 21,
+       "textRun": {
+        "content": "Stars:\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT"
+     }
+    }
+   },
+   {
+    "startIndex": 21,
+    "endIndex": 22,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 21,
+       "endIndex": 22,
+       "textRun": {
+        "content": "\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spaceAbove": {
+       "unit": "PT"
+      },
+      "spaceBelow": {
+       "unit": "PT"
+      },
+      "indentFirstLine": {
+       "unit": "PT"
+      },
+      "indentStart": {
+       "unit": "PT"
+      }
+     }
+    }
+   },
+   {
+    "startIndex": 22,
+    "endIndex": 31,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 22,
+       "endIndex": 31,
+       "textRun": {
+        "content": "Star one\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spacingMode": "COLLAPSE_LISTS",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      }
+     },
+     "bullet": {
+      "listId": "kix.kazvstzgic3u",
+      "textStyle": {}
+     }
+    }
+   },
+   {
+    "startIndex": 31,
+    "endIndex": 40,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 31,
+       "endIndex": 40,
+       "textRun": {
+        "content": "Star two\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spacingMode": "COLLAPSE_LISTS",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      }
+     },
+     "bullet": {
+      "listId": "kix.kazvstzgic3u",
+      "textStyle": {}
+     }
+    }
+   },
+   {
+    "startIndex": 40,
+    "endIndex": 41,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 40,
+       "endIndex": 41,
+       "textRun": {
+        "content": "\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spaceAbove": {
+       "unit": "PT"
+      },
+      "spaceBelow": {
+       "unit": "PT"
+      },
+      "indentFirstLine": {
+       "unit": "PT"
+      },
+      "indentStart": {
+       "unit": "PT"
+      }
+     }
+    }
+   },
+   {
+    "startIndex": 41,
+    "endIndex": 49,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 41,
+       "endIndex": 49,
+       "textRun": {
+        "content": "Pluses:\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT"
+     }
+    }
+   },
+   {
+    "startIndex": 49,
+    "endIndex": 50,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 49,
+       "endIndex": 50,
+       "textRun": {
+        "content": "\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spaceAbove": {
+       "unit": "PT"
+      },
+      "spaceBelow": {
+       "unit": "PT"
+      },
+      "indentFirstLine": {
+       "unit": "PT"
+      },
+      "indentStart": {
+       "unit": "PT"
+      }
+     }
+    }
+   },
+   {
+    "startIndex": 50,
+    "endIndex": 59,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 50,
+       "endIndex": 59,
+       "textRun": {
+        "content": "Plus one\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spacingMode": "COLLAPSE_LISTS",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      }
+     },
+     "bullet": {
+      "listId": "kix.4tk8bxkxs2g",
+      "textStyle": {}
+     }
+    }
+   },
+   {
+    "startIndex": 59,
+    "endIndex": 68,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 59,
+       "endIndex": 68,
+       "textRun": {
+        "content": "Plus two\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spacingMode": "COLLAPSE_LISTS",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      }
+     },
+     "bullet": {
+      "listId": "kix.4tk8bxkxs2g",
+      "textStyle": {}
+     }
+    }
+   },
+   {
+    "startIndex": 68,
+    "endIndex": 69,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 68,
+       "endIndex": 69,
+       "textRun": {
+        "content": "\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spaceAbove": {
+       "unit": "PT"
+      },
+      "spaceBelow": {
+       "unit": "PT"
+      },
+      "indentFirstLine": {
+       "unit": "PT"
+      },
+      "indentStart": {
+       "unit": "PT"
+      }
+     }
+    }
+   },
+   {
+    "startIndex": 69,
+    "endIndex": 77,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 69,
+       "endIndex": 77,
+       "textRun": {
+        "content": "Dashes:\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT"
+     }
+    }
+   },
+   {
+    "startIndex": 77,
+    "endIndex": 78,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 77,
+       "endIndex": 78,
+       "textRun": {
+        "content": "\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spaceAbove": {
+       "unit": "PT"
+      },
+      "spaceBelow": {
+       "unit": "PT"
+      },
+      "indentFirstLine": {
+       "unit": "PT"
+      },
+      "indentStart": {
+       "unit": "PT"
+      }
+     }
+    }
+   },
+   {
+    "startIndex": 78,
+    "endIndex": 87,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 78,
+       "endIndex": 87,
+       "textRun": {
+        "content": "Dash one\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spacingMode": "COLLAPSE_LISTS",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      }
+     },
+     "bullet": {
+      "listId": "kix.yl5nm48tpjh",
+      "textStyle": {}
+     }
+    }
+   },
+   {
+    "startIndex": 87,
+    "endIndex": 96,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 87,
+       "endIndex": 96,
+       "textRun": {
+        "content": "Dash two\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spacingMode": "COLLAPSE_LISTS",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      }
+     },
+     "bullet": {
+      "listId": "kix.yl5nm48tpjh",
+      "textStyle": {}
+     }
+    }
+   },
+   {
+    "startIndex": 96,
+    "endIndex": 97,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 96,
+       "endIndex": 97,
+       "textRun": {
+        "content": "\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spaceAbove": {
+       "unit": "PT"
+      },
+      "spaceBelow": {
+       "unit": "PT"
+      },
+      "indentFirstLine": {
+       "unit": "PT"
+      },
+      "indentStart": {
+       "unit": "PT"
+      }
+     }
+    }
+   },
+   {
+    "startIndex": 97,
+    "endIndex": 117,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 97,
+       "endIndex": 117,
+       "textRun": {
+        "content": "Ordered from three:\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT"
+     }
+    }
+   },
+   {
+    "startIndex": 117,
+    "endIndex": 118,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 117,
+       "endIndex": 118,
+       "textRun": {
+        "content": "\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spaceAbove": {
+       "unit": "PT"
+      },
+      "spaceBelow": {
+       "unit": "PT"
+      },
+      "indentFirstLine": {
+       "unit": "PT"
+      },
+      "indentStart": {
+       "unit": "PT"
+      }
+     }
+    }
+   },
+   {
+    "startIndex": 118,
+    "endIndex": 124,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 118,
+       "endIndex": 124,
+       "textRun": {
+        "content": "Three\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spacingMode": "COLLAPSE_LISTS",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      }
+     },
+     "bullet": {
+      "listId": "kix.ynl2voh179k",
+      "textStyle": {}
+     }
+    }
+   },
+   {
+    "startIndex": 124,
+    "endIndex": 129,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 124,
+       "endIndex": 129,
+       "textRun": {
+        "content": "Four\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spacingMode": "COLLAPSE_LISTS",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      }
+     },
+     "bullet": {
+      "listId": "kix.ynl2voh179k",
+      "textStyle": {}
+     }
+    }
+   },
+   {
+    "startIndex": 129,
+    "endIndex": 130,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 129,
+       "endIndex": 130,
+       "textRun": {
+        "content": "\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spaceAbove": {
+       "unit": "PT"
+      },
+      "spaceBelow": {
+       "unit": "PT"
+      },
+      "indentFirstLine": {
+       "unit": "PT"
+      },
+      "indentStart": {
+       "unit": "PT"
+      }
+     }
+    }
+   },
+   {
+    "startIndex": 130,
+    "endIndex": 151,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 130,
+       "endIndex": 151,
+       "textRun": {
+        "content": "Ordered with parens:\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT"
+     }
+    }
+   },
+   {
+    "startIndex": 151,
+    "endIndex": 152,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 151,
+       "endIndex": 152,
+       "textRun": {
+        "content": "\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spaceAbove": {
+       "unit": "PT"
+      },
+      "spaceBelow": {
+       "unit": "PT"
+      },
+      "indentFirstLine": {
+       "unit": "PT"
+      },
+      "indentStart": {
+       "unit": "PT"
+      }
+     }
+    }
+   },
+   {
+    "startIndex": 152,
+    "endIndex": 162,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 152,
+       "endIndex": 162,
+       "textRun": {
+        "content": "Paren one\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spacingMode": "COLLAPSE_LISTS",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      }
+     },
+     "bullet": {
+      "listId": "kix.x72ve0ctciap",
+      "textStyle": {}
+     }
+    }
+   },
+   {
+    "startIndex": 162,
+    "endIndex": 172,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 162,
+       "endIndex": 172,
+       "textRun": {
+        "content": "Paren two\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spacingMode": "COLLAPSE_LISTS",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      }
+     },
+     "bullet": {
+      "listId": "kix.x72ve0ctciap",
+      "textStyle": {}
+     }
+    }
+   },
+   {
+    "startIndex": 172,
+    "endIndex": 173,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 172,
+       "endIndex": 173,
+       "textRun": {
+        "content": "\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spaceAbove": {
+       "unit": "PT"
+      },
+      "spaceBelow": {
+       "unit": "PT"
+      },
+      "indentFirstLine": {
+       "unit": "PT"
+      },
+      "indentStart": {
+       "unit": "PT"
+      }
+     }
+    }
+   },
+   {
+    "startIndex": 173,
+    "endIndex": 185,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 173,
+       "endIndex": 185,
+       "textRun": {
+        "content": "Nested mix:\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT"
+     }
+    }
+   },
+   {
+    "startIndex": 185,
+    "endIndex": 186,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 185,
+       "endIndex": 186,
+       "textRun": {
+        "content": "\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spaceAbove": {
+       "unit": "PT"
+      },
+      "spaceBelow": {
+       "unit": "PT"
+      },
+      "indentFirstLine": {
+       "unit": "PT"
+      },
+      "indentStart": {
+       "unit": "PT"
+      }
+     }
+    }
+   },
+   {
+    "startIndex": 186,
+    "endIndex": 198,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 186,
+       "endIndex": 198,
+       "textRun": {
+        "content": "Dash parent\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spacingMode": "COLLAPSE_LISTS",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      }
+     },
+     "bullet": {
+      "listId": "kix.zbfok1gzukuv",
+      "textStyle": {}
+     }
+    }
+   },
+   {
+    "startIndex": 198,
+    "endIndex": 209,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 198,
+       "endIndex": 209,
+       "textRun": {
+        "content": "Star child\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spacingMode": "COLLAPSE_LISTS",
+      "indentFirstLine": {
+       "magnitude": 54,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 72,
+       "unit": "PT"
+      }
+     },
+     "bullet": {
+      "listId": "kix.zbfok1gzukuv",
+      "nestingLevel": 1,
+      "textStyle": {}
+     }
+    }
+   },
+   {
+    "startIndex": 209,
+    "endIndex": 225,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 209,
+       "endIndex": 225,
+       "textRun": {
+        "content": "Plus grandchild\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spacingMode": "COLLAPSE_LISTS",
+      "indentFirstLine": {
+       "magnitude": 90,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 108,
+       "unit": "PT"
+      }
+     },
+     "bullet": {
+      "listId": "kix.zbfok1gzukuv",
+      "nestingLevel": 2,
+      "textStyle": {}
+     }
+    }
+   },
+   {
+    "startIndex": 225,
+    "endIndex": 231,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 225,
+       "endIndex": 231,
+       "textRun": {
+        "content": "Boxes\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "headingId": "h.fny7y4kckq19",
+      "namedStyleType": "HEADING_2",
+      "direction": "LEFT_TO_RIGHT"
+     }
+    }
+   },
+   {
+    "startIndex": 231,
+    "endIndex": 240,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 231,
+       "endIndex": 240,
+       "textRun": {
+        "content": "open box\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spacingMode": "COLLAPSE_LISTS",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      }
+     },
+     "bullet": {
+      "listId": "kix.jvcffgjd8gyb",
+      "textStyle": {}
+     }
+    }
+   },
+   {
+    "startIndex": 240,
+    "endIndex": 251,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 240,
+       "endIndex": 251,
+       "textRun": {
+        "content": "ticked box\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spacingMode": "COLLAPSE_LISTS",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      }
+     },
+     "bullet": {
+      "listId": "kix.jvcffgjd8gyb",
+      "textStyle": {}
+     }
+    }
+   },
+   {
+    "startIndex": 251,
+    "endIndex": 252,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 251,
+       "endIndex": 252,
+       "textRun": {
+        "content": "\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT",
+      "spaceAbove": {
+       "unit": "PT"
+      },
+      "spaceBelow": {
+       "unit": "PT"
+      },
+      "indentFirstLine": {
+       "unit": "PT"
+      },
+      "indentStart": {
+       "unit": "PT"
+      }
+     }
+    }
+   },
+   {
+    "startIndex": 252,
+    "endIndex": 305,
+    "paragraph": {
+     "elements": [
+      {
+       "startIndex": 252,
+       "endIndex": 269,
+       "textRun": {
+        "content": "A paragraph with ",
+        "textStyle": {}
+       }
+      },
+      {
+       "startIndex": 269,
+       "endIndex": 275,
+       "textRun": {
+        "content": "italic",
+        "textStyle": {
+         "italic": true
+        }
+       }
+      },
+      {
+       "startIndex": 275,
+       "endIndex": 277,
+       "textRun": {
+        "content": ", ",
+        "textStyle": {}
+       }
+      },
+      {
+       "startIndex": 277,
+       "endIndex": 283,
+       "textRun": {
+        "content": "struck",
+        "textStyle": {
+         "strikethrough": true
+        }
+       }
+      },
+      {
+       "startIndex": 283,
+       "endIndex": 290,
+       "textRun": {
+        "content": " and a ",
+        "textStyle": {}
+       }
+      },
+      {
+       "startIndex": 290,
+       "endIndex": 294,
+       "textRun": {
+        "content": "link",
+        "textStyle": {
+         "underline": true,
+         "foregroundColor": {
+          "color": {
+           "rgbColor": {
+            "red": 0.06666667,
+            "green": 0.33333334,
+            "blue": 0.8
+           }
+          }
+         },
+         "link": {
+          "url": "https://example.com/l"
+         }
+        }
+       }
+      },
+      {
+       "startIndex": 294,
+       "endIndex": 299,
+       "textRun": {
+        "content": " and ",
+        "textStyle": {}
+       }
+      },
+      {
+       "startIndex": 299,
+       "endIndex": 303,
+       "textRun": {
+        "content": "code",
+        "textStyle": {
+         "foregroundColor": {
+          "color": {
+           "rgbColor": {
+            "red": 0.09411765,
+            "green": 0.5019608,
+            "blue": 0.21960784
+           }
+          }
+         },
+         "weightedFontFamily": {
+          "fontFamily": "Roboto Mono",
+          "weight": 400
+         }
+        }
+       }
+      },
+      {
+       "startIndex": 303,
+       "endIndex": 305,
+       "textRun": {
+        "content": ".\n",
+        "textStyle": {}
+       }
+      }
+     ],
+     "paragraphStyle": {
+      "namedStyleType": "NORMAL_TEXT",
+      "direction": "LEFT_TO_RIGHT"
+     }
+    }
+   }
+  ]
+ },
+ "lists": {
+  "kix.4tk8bxkxs2g": {
+   "listProperties": {
+    "nestingLevels": [
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "+",
+      "glyphFormat": "%0",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%1",
+      "indentFirstLine": {
+       "magnitude": 54,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 72,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%2",
+      "indentFirstLine": {
+       "magnitude": 90,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 108,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "●",
+      "glyphFormat": "%3",
+      "indentFirstLine": {
+       "magnitude": 126,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 144,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%4",
+      "indentFirstLine": {
+       "magnitude": 162,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 180,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%5",
+      "indentFirstLine": {
+       "magnitude": 198,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 216,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "●",
+      "glyphFormat": "%6",
+      "indentFirstLine": {
+       "magnitude": 234,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 252,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%7",
+      "indentFirstLine": {
+       "magnitude": 270,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 288,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%8",
+      "indentFirstLine": {
+       "magnitude": 306,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 324,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     }
+    ]
+   }
+  },
+  "kix.jvcffgjd8gyb": {
+   "listProperties": {
+    "nestingLevels": [
+     {
+      "bulletAlignment": "START",
+      "glyphType": "GLYPH_TYPE_UNSPECIFIED",
+      "glyphFormat": "%0",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "●",
+      "glyphFormat": "%1",
+      "indentFirstLine": {
+       "magnitude": 54,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 72,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "+",
+      "glyphFormat": "%2",
+      "indentFirstLine": {
+       "magnitude": 90,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 108,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "●",
+      "glyphFormat": "%3",
+      "indentFirstLine": {
+       "magnitude": 126,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 144,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%4",
+      "indentFirstLine": {
+       "magnitude": 162,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 180,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%5",
+      "indentFirstLine": {
+       "magnitude": 198,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 216,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "●",
+      "glyphFormat": "%6",
+      "indentFirstLine": {
+       "magnitude": 234,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 252,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%7",
+      "indentFirstLine": {
+       "magnitude": 270,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 288,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%8",
+      "indentFirstLine": {
+       "magnitude": 306,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 324,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     }
+    ]
+   }
+  },
+  "kix.kazvstzgic3u": {
+   "listProperties": {
+    "nestingLevels": [
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "●",
+      "glyphFormat": "%0",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%1",
+      "indentFirstLine": {
+       "magnitude": 54,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 72,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%2",
+      "indentFirstLine": {
+       "magnitude": 90,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 108,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "●",
+      "glyphFormat": "%3",
+      "indentFirstLine": {
+       "magnitude": 126,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 144,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%4",
+      "indentFirstLine": {
+       "magnitude": 162,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 180,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%5",
+      "indentFirstLine": {
+       "magnitude": 198,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 216,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "●",
+      "glyphFormat": "%6",
+      "indentFirstLine": {
+       "magnitude": 234,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 252,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%7",
+      "indentFirstLine": {
+       "magnitude": 270,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 288,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%8",
+      "indentFirstLine": {
+       "magnitude": 306,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 324,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     }
+    ]
+   }
+  },
+  "kix.x72ve0ctciap": {
+   "listProperties": {
+    "nestingLevels": [
+     {
+      "bulletAlignment": "START",
+      "glyphType": "DECIMAL",
+      "glyphFormat": "%0)",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%1",
+      "indentFirstLine": {
+       "magnitude": 54,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 72,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%2",
+      "indentFirstLine": {
+       "magnitude": 90,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 108,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "●",
+      "glyphFormat": "%3",
+      "indentFirstLine": {
+       "magnitude": 126,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 144,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%4",
+      "indentFirstLine": {
+       "magnitude": 162,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 180,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%5",
+      "indentFirstLine": {
+       "magnitude": 198,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 216,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "●",
+      "glyphFormat": "%6",
+      "indentFirstLine": {
+       "magnitude": 234,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 252,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%7",
+      "indentFirstLine": {
+       "magnitude": 270,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 288,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%8",
+      "indentFirstLine": {
+       "magnitude": 306,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 324,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     }
+    ]
+   }
+  },
+  "kix.yl5nm48tpjh": {
+   "listProperties": {
+    "nestingLevels": [
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "-",
+      "glyphFormat": "%0",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%1",
+      "indentFirstLine": {
+       "magnitude": 54,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 72,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%2",
+      "indentFirstLine": {
+       "magnitude": 90,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 108,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "●",
+      "glyphFormat": "%3",
+      "indentFirstLine": {
+       "magnitude": 126,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 144,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%4",
+      "indentFirstLine": {
+       "magnitude": 162,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 180,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%5",
+      "indentFirstLine": {
+       "magnitude": 198,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 216,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "●",
+      "glyphFormat": "%6",
+      "indentFirstLine": {
+       "magnitude": 234,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 252,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%7",
+      "indentFirstLine": {
+       "magnitude": 270,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 288,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%8",
+      "indentFirstLine": {
+       "magnitude": 306,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 324,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     }
+    ]
+   }
+  },
+  "kix.ynl2voh179k": {
+   "listProperties": {
+    "nestingLevels": [
+     {
+      "bulletAlignment": "START",
+      "glyphType": "DECIMAL",
+      "glyphFormat": "%0.",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 3
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%1",
+      "indentFirstLine": {
+       "magnitude": 54,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 72,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%2",
+      "indentFirstLine": {
+       "magnitude": 90,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 108,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "●",
+      "glyphFormat": "%3",
+      "indentFirstLine": {
+       "magnitude": 126,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 144,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%4",
+      "indentFirstLine": {
+       "magnitude": 162,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 180,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%5",
+      "indentFirstLine": {
+       "magnitude": 198,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 216,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "●",
+      "glyphFormat": "%6",
+      "indentFirstLine": {
+       "magnitude": 234,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 252,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%7",
+      "indentFirstLine": {
+       "magnitude": 270,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 288,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%8",
+      "indentFirstLine": {
+       "magnitude": 306,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 324,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     }
+    ]
+   }
+  },
+  "kix.zbfok1gzukuv": {
+   "listProperties": {
+    "nestingLevels": [
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "-",
+      "glyphFormat": "%0",
+      "indentFirstLine": {
+       "magnitude": 18,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 36,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "●",
+      "glyphFormat": "%1",
+      "indentFirstLine": {
+       "magnitude": 54,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 72,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "+",
+      "glyphFormat": "%2",
+      "indentFirstLine": {
+       "magnitude": 90,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 108,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "●",
+      "glyphFormat": "%3",
+      "indentFirstLine": {
+       "magnitude": 126,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 144,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%4",
+      "indentFirstLine": {
+       "magnitude": 162,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 180,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%5",
+      "indentFirstLine": {
+       "magnitude": 198,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 216,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "●",
+      "glyphFormat": "%6",
+      "indentFirstLine": {
+       "magnitude": 234,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 252,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "○",
+      "glyphFormat": "%7",
+      "indentFirstLine": {
+       "magnitude": 270,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 288,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     },
+     {
+      "bulletAlignment": "START",
+      "glyphSymbol": "■",
+      "glyphFormat": "%8",
+      "indentFirstLine": {
+       "magnitude": 306,
+       "unit": "PT"
+      },
+      "indentStart": {
+       "magnitude": 324,
+       "unit": "PT"
+      },
+      "textStyle": {
+       "bold": false,
+       "italic": false,
+       "underline": false,
+       "strikethrough": false,
+       "smallCaps": false,
+       "backgroundColor": {},
+       "foregroundColor": {
+        "color": {
+         "rgbColor": {}
+        }
+       },
+       "fontSize": {
+        "magnitude": 11,
+        "unit": "PT"
+       },
+       "weightedFontFamily": {
+        "fontFamily": "Arial",
+        "weight": 400
+       },
+       "baselineOffset": "NONE"
+      },
+      "startNumber": 1
+     }
+    ]
+   }
+  }
+ }
+}

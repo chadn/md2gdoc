@@ -3,6 +3,7 @@
 import io
 import json
 import os
+import re
 import sys
 import tempfile
 import unittest
@@ -13,20 +14,140 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from md2gdoc import (  # noqa: E402
-    EXIT_CONFLICT, EXIT_MOVED, EXIT_OK, SCOPE_URL, config_dir, error_object, main, merge3, normalize, profile_dir,
-    push_form, state_path, token_scope,
+    EXIT_CONFLICT, EXIT_MOVED, EXIT_OK, SCOPE_URL, Fallback, anchored_comments, carry_comments, config_dir,
+    error_object, inline, main, merge3, normalize, plan_edits, profile_dir, push_form, state_path, token_scope,
+    write_doc,
 )
 
 FIXTURES = ROOT / "tests" / "fixtures"
 
 
+_PREFIX = re.compile(r"^((?:    )*(?:[-*+]|\d+[.)]) (?:\[[ xX]\] )?|#{1,6} )?(.*)$")
+_MARKUP = re.compile(r"\*\*|~~|`")
+_PRESETS = {"BULLET_CHECKBOX": "- [ ] ", "BULLET_DISC_CIRCLE_SQUARE": "* ", "NUMBERED_DECIMAL_ALPHA_ROMAN": "1. "}
+
+
+class FakeHttpError(Exception):
+    """What googleapiclient raises: the status on `resp.status`, the reason in the text."""
+
+    def __init__(self, status, text):
+        super().__init__(f"<HttpError {status} {text}>")
+        self.resp = type("Resp", (), {"status": status})()
+
+
+class FakeDoc:
+    """A Doc as paragraphs of (prefix, markdown text): the prefix is what the export writes before the text, `# `,
+    `- [ ] `, `    - `, or nothing. Indexes count as the Docs API does: the body starts at 1, a paragraph is its
+    plain text plus a newline. `updateTextStyle` is ignored, so a paragraph keeps the inline markup it had."""
+
+    def __init__(self, markdown: str):
+        lines = markdown.rstrip("\n").split("\n")
+        self.paras = [list(_PREFIX.match(line).groups("")) for i, line in enumerate(lines) if line.strip() or not (
+            (i and lines[i - 1].startswith("#")) or (i + 1 < len(lines) and lines[i + 1].startswith("#")))]
+
+    @staticmethod
+    def plain(md: str) -> str:
+        return _MARKUP.sub("", md)
+
+    @staticmethod
+    def md_offset(md: str, plain_offset: int) -> int:
+        """The index in the markdown text of the plain-text offset, past any markup before it."""
+        i = seen = 0
+        while seen < plain_offset or (i < len(md) and _MARKUP.match(md, i)):
+            m = _MARKUP.match(md, i)
+            if m:
+                i = m.end()
+            else:
+                i, seen = i + 1, seen + 1
+        return i
+
+    def locate(self, index: int) -> tuple[int, int]:
+        """(paragraph number, plain offset) of a Docs index; the offset equal to the text's length is its newline."""
+        at = 1
+        for n, (_, md) in enumerate(self.paras):
+            size = len(self.plain(md)) + 1
+            if index < at + size:
+                return n, index - at
+            at += size
+        raise IndexError(index)
+
+    def markdown(self) -> str:
+        """The export's layout: a blank line on each side of a heading, else only an empty paragraph is one."""
+        out: list[str] = []
+        for prefix, md in self.paras:
+            if out and (prefix.startswith("#") or out[-1].startswith("#")) and out[-1] != "":
+                out.append("")
+            out.append(prefix + md)
+        return "\n".join(out) + "\n"
+
+    def json(self) -> dict:
+        content = [{"startIndex": 0, "endIndex": 1, "sectionBreak": {}}]
+        at = 1
+        for prefix, md in self.paras:
+            plain = self.plain(md) + "\n"
+            p: dict = {"elements": [{"startIndex": at, "endIndex": at + len(plain),
+                                     "textRun": {"content": plain, "textStyle": {}}}],
+                       "paragraphStyle": {"namedStyleType": f"HEADING_{len(prefix) - 1}" if prefix.startswith("#")
+                                          else "NORMAL_TEXT"}}
+            if prefix and not prefix.startswith("#"):
+                kind = "box" if "[" in prefix else "ordered" if prefix.lstrip()[0].isdigit() else "bullet"
+                p["bullet"] = {"listId": f"kix.{kind}", "nestingLevel": (len(prefix) - len(prefix.lstrip())) // 4}
+                if not p["bullet"]["nestingLevel"]:
+                    del p["bullet"]["nestingLevel"]
+            content.append({"startIndex": at, "endIndex": at + len(plain), "paragraph": p})
+            at += len(plain)
+        levels = {"box": {"glyphType": "GLYPH_TYPE_UNSPECIFIED"}, "bullet": {"glyphSymbol": "-"},
+                  "ordered": {"glyphType": "DECIMAL"}}
+        return {"body": {"content": content},
+                "lists": {f"kix.{k}": {"listProperties": {"nestingLevels": [v] * 9}} for k, v in levels.items()}}
+
+    def apply(self, req: dict) -> None:
+        kind, body = next(iter(req.items()))
+        if kind == "insertText":
+            n, o = self.locate(body["location"]["index"])
+            prefix, md = self.paras[n]
+            i = self.md_offset(md, o)
+            parts = body["text"].split("\n")
+            self.paras[n][1] = md[:i] + parts[0]
+            tail = md[i:]
+            for k, part in enumerate(parts[1:], 1):
+                self.paras.insert(n + k, [prefix, part + (tail if k == len(parts) - 1 else "")])
+            if len(parts) == 1:
+                self.paras[n][1] += tail
+        elif kind == "deleteContentRange":
+            n1, o1 = self.locate(body["range"]["startIndex"])
+            n2, o2 = self.locate(body["range"]["endIndex"])
+            md1, md2 = self.paras[n1][1], self.paras[n2][1]
+            self.paras[n1][1] = md1[:self.md_offset(md1, o1)] + md2[self.md_offset(md2, o2):]
+            del self.paras[n1 + 1:n2 + 1]
+        elif kind == "updateParagraphStyle":
+            n, _ = self.locate(body["range"]["startIndex"])
+            named = body["paragraphStyle"]["namedStyleType"]
+            prefix = self.paras[n][0]
+            self.paras[n][0] = "#" * int(named[-1]) + " " if named.startswith("HEADING_") else (
+                "" if prefix.startswith("#") else prefix)
+        elif kind == "deleteParagraphBullets":
+            n, _ = self.locate(body["range"]["startIndex"])
+            if not self.paras[n][0].startswith("#"):
+                self.paras[n][0] = ""
+        elif kind == "createParagraphBullets":
+            n, _ = self.locate(body["range"]["startIndex"])
+            self.paras[n][0] = _PRESETS[body["bulletPreset"]]
+        elif kind != "updateTextStyle":
+            raise ValueError(kind)
+
+
 class FakeDrive:
-    """Holds one Doc as the markdown last uploaded; exports it through fixture 04's known noise."""
+    """Holds one Doc as the markdown last written; exports it through fixture 04's known noise. The Docs API side is
+    `FakeDoc`; comments are anchored to a text, and a whole replace orphans them as Google does."""
 
     def __init__(self):
         self.docs: dict[str, str] = {}
         self.versions: dict[str, int] = {}
+        self.revisions: dict[str, int] = {}
+        self.comments: dict[str, list[dict]] = {}
         self.calls: list[str] = []
+        self.docs_api_enabled = True
 
     def create(self, name, markdown, folder):
         self.calls.append("create")
@@ -48,6 +169,9 @@ class FakeDrive:
         self.calls.append("update")
         self.docs[doc_id] = markdown
         self.versions[doc_id] += 1
+        self.revisions[doc_id] = self.revisions.get(doc_id, 0) + 1
+        for c in self.comments.get(doc_id, []):
+            c["anchored"] = None
         return self.versions[doc_id]
 
     def version(self, doc_id):
@@ -60,6 +184,59 @@ class FakeDrive:
         return {"doc_id": doc_id, "link": f"https://docs.google.com/document/d/{doc_id}/edit",
                 "version": self.versions[doc_id]}
 
+    def get_doc(self, doc_id, comments=False):
+        self.calls.append("get_doc")
+        if not self.docs_api_enabled:
+            raise FakeHttpError(403, "Google Docs API has not been used in project ... accessNotConfigured")
+        doc = FakeDoc(self.docs[doc_id]).json()
+        doc["revisionId"] = f"rev-{self.revisions.get(doc_id, 0)}"
+        if not comments:
+            return doc
+        body = "".join(el["paragraph"]["elements"][0]["textRun"]["content"] for el in doc["body"]["content"][1:])
+        anchors, threads = {}, []
+        for c in self.comments.get(doc_id, []):
+            if c["anchored"] is not None and c["anchored"] in body:
+                i = body.index(c["anchored"]) + 1
+                anchors[f"anchor-{c['id']}"] = {"ranges": [{"startIndex": i, "endIndex": i + len(c["anchored"])}]}
+            threads.append({"commentId": c["id"], "status": c.get("status", "OPEN"), "anchorId": f"anchor-{c['id']}",
+                            "headPost": {"author": {"displayName": c["author"]}, "content": c["content"]},
+                            "replies": [{"author": {"displayName": a}, "content": t} for a, t in c["replies"]]})
+        return {"tabs": [{"documentTab": {"body": doc["body"], "commentAnchors": anchors}}], "comments": threads}
+
+    def batch_update(self, doc_id, requests, revision_id=None):
+        self.calls.append("batch_update")
+        if revision_id and revision_id != f"rev-{self.revisions.get(doc_id, 0)}":
+            raise FakeHttpError(400, "The provided revision ID does not match the latest revision")
+        doc = FakeDoc(self.docs[doc_id])
+        for req in requests:
+            doc.apply(req)
+        self.docs[doc_id] = doc.markdown()
+        self.versions[doc_id] += 1
+        self.revisions[doc_id] = self.revisions.get(doc_id, 0) + 1
+        return {}
+
+    def comment_in_ui(self, doc_id, anchored, content, author="A Reader", replies=()):
+        cs = self.comments.setdefault(doc_id, [])
+        cs.append({"id": f"c{len(cs) + 1}", "author": author, "content": content, "anchored": anchored,
+                   "replies": list(replies)})
+
+    def insert_comment(self, doc_id, start, end, content):
+        self.calls.append("insert_comment")
+        body = "".join(FakeDoc.plain(md) + "\n" for _, md in FakeDoc(self.docs[doc_id]).paras)
+        self.comment_in_ui(doc_id, body[start - 1:end - 1], content, author="token user")
+        return self.comments[doc_id][-1]["id"]
+
+    def reply(self, doc_id, comment_id, content):
+        self.calls.append("reply")
+        next(c for c in self.comments[doc_id] if c["id"] == comment_id)["replies"].append(("token user", content))
+
+    def delete_comment(self, doc_id, comment_id):
+        self.calls.append("delete_comment")
+        c = next(c for c in self.comments[doc_id] if c["id"] == comment_id)
+        if c["author"] != "token user":
+            raise FakeHttpError(403, "The caller does not have permission to delete this comment")
+        self.comments[doc_id].remove(c)
+
     def make_by_hand(self, markdown):
         """A Doc the script did not create, as the Docs UI would leave it."""
         doc_id = f"hand-{len(self.docs) + 1}"
@@ -69,6 +246,7 @@ class FakeDrive:
     def edit_in_ui(self, doc_id, old, new):
         self.docs[doc_id] = self.docs[doc_id].replace(old, new)
         self.versions[doc_id] += 1
+        self.revisions[doc_id] = self.revisions.get(doc_id, 0) + 1
 
 
 class _WithDoc(unittest.TestCase):
@@ -322,7 +500,8 @@ class Sync(_WithDoc):
         for line in ("- [x] T-001", "- [x] T-002", "- [x] T-003 Reworded locally", "- [ ] T-004 typed in the Doc"):
             self.assertIn(line, text)
         self.assertEqual(self.drive.docs["doc-1"], push_form(text))
-        self.assertEqual(self.drive.calls, ["export", "export", "export", "update", "export"])  # the guard export
+        # the guard export, then the edit path reads the Doc, falls back on the tick and reads the comments
+        self.assertEqual(self.drive.calls, ["export", "export", "export", "get_doc", "get_doc", "update", "export"])
         state = json.loads(state_path(self.md).read_text(encoding="utf-8"))
         self.assertEqual((state["version"], state["local"], state["snapshot"]), (8, text, text))
         code, out, _ = self.run_cmd("sync", str(self.md))
@@ -551,3 +730,289 @@ class Profiles(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Inline(unittest.TestCase):
+    """`inline`: a line's plain text and spans from the syntax the edit path writes; anything else falls back."""
+
+    def test_plain_and_escapes(self):
+        self.assertEqual(inline(r"T-001 [PG-003] a \- dash, a_snake_case word"),
+                         ("T-001 [PG-003] a - dash, a_snake_case word", []))
+
+    def test_spans_in_characters(self):
+        plain, spans = inline("Done with `inline code` and **bold**, *it* and ~~no~~ [vendor](https://e.com/v)")
+        self.assertEqual(plain, "Done with inline code and bold, it and no vendor")
+        self.assertEqual([(a, b, list(st)) for a, b, st in spans], [
+            (10, 21, ["weightedFontFamily"]), (26, 30, ["bold"]), (32, 34, ["italic"]), (39, 41, ["strikethrough"]),
+            (42, 48, ["link", "underline", "foregroundColor"])])
+        self.assertEqual(spans[-1][2]["link"], {"url": "https://e.com/v"})
+
+    def test_what_falls_back(self):
+        for md in ("_italic_", "an <b>tag</b>", "![img](u)", "&amp;", "**open", "a `tick", '[t](u "title")',
+                   "[`code`](u)"):
+            with self.assertRaises(Fallback, msg=md):
+                inline(md)
+
+
+class Plan(unittest.TestCase):
+    """`plan_edits` against the `documents.get` of fixture 04's Doc, kept in `04-task-list.doc.json`: the requests a
+    diff becomes, and the diffs that must fall back to the whole replace."""
+
+    def setUp(self):
+        self.doc = json.loads((FIXTURES / "04-task-list.doc.json").read_text(encoding="utf-8"))
+        self.old = normalize((FIXTURES / "04-task-list.out.md").read_text(encoding="utf-8"))
+
+    def plan(self, old, new):
+        return plan_edits(self.doc, self.old.replace(old, new) if old else self.old, self.old.replace(*new)
+                          if isinstance(new, tuple) else new)
+
+    def kinds(self, reqs):
+        return [next(iter(r)) for r in reqs]
+
+    def test_a_word_change_edits_the_middle_and_restyles_the_paragraph(self):
+        reqs = self.plan(None, ("Call the vendor", "Phone the vendor"))
+        # the T-002 paragraph starts at 140; "Call" is at offset 6
+        self.assertEqual(reqs[:2], [{"deleteContentRange": {"range": {"startIndex": 146, "endIndex": 150}}},
+                                    {"insertText": {"location": {"index": 146}, "text": "Phone"}}])
+        self.assertEqual(reqs[2]["updateTextStyle"]["range"], {"startIndex": 140, "endIndex": 140 + 39})
+        self.assertEqual(len(reqs), 3)
+
+    def test_a_styled_line_edit_sets_every_span_again(self):
+        reqs = self.plan(None, ("T-003 Done item", "T-003 Finished item"))
+        self.assertEqual(self.kinds(reqs), ["deleteContentRange", "insertText", "updateTextStyle", "updateTextStyle",
+                                            "updateTextStyle"])
+        self.assertEqual(reqs[3]["updateTextStyle"]["textStyle"]["weightedFontFamily"]["fontFamily"], "Roboto Mono")
+        self.assertEqual(reqs[4]["updateTextStyle"]["textStyle"], {"bold": True})
+
+    def test_a_heading_edit_keeps_the_style_and_a_level_change_sets_it(self):
+        reqs = self.plan(None, ("## Notes", "## Remarks"))
+        self.assertEqual(self.kinds(reqs), ["deleteContentRange", "insertText", "updateTextStyle"])
+        reqs = self.plan(None, ("## Notes", "### Notes"))
+        self.assertEqual(reqs[-1]["updateParagraphStyle"]["paragraphStyle"], {"namedStyleType": "HEADING_3"})
+
+    def test_new_lines_go_in_after_the_paragraph_before_them(self):
+        reqs = self.plan(None, ("and **bold**\n", "and **bold**\n- [ ] T-004 new box\n"))
+        self.assertEqual(reqs[0], {"insertText": {"location": {"index": 249}, "text": "\nT-004 new box"}})
+        self.assertEqual(reqs[1]["updateTextStyle"]["range"], {"startIndex": 250, "endIndex": 263})
+        self.assertEqual(self.kinds(reqs), ["insertText", "updateTextStyle"])  # the box is inherited
+
+    def test_a_paragraph_after_a_list_drops_the_bullet_and_after_a_heading_the_style(self):
+        reqs = self.plan(None, ("and **bold**\n", "and **bold**\n\nA closing line.\n"))
+        self.assertEqual(self.kinds(reqs), ["insertText", "updateTextStyle", "deleteParagraphBullets", "insertText",
+                                            "deleteParagraphBullets"])  # the line, then its blank, both inherit
+        # the blank after a heading is no paragraph; the one before the list is, and both inherit the heading style
+        reqs = self.plan(None, ("## Open\n", "## Open\n\nAn intro.\n"))
+        self.assertEqual(self.kinds(reqs), ["insertText", "updateParagraphStyle", "insertText", "updateTextStyle",
+                                            "updateParagraphStyle"])
+        self.assertEqual(reqs[0], {"insertText": {"location": {"index": 42}, "text": "\n"}})
+        self.assertEqual(reqs[-1]["updateParagraphStyle"]["paragraphStyle"], {"namedStyleType": "NORMAL_TEXT"})
+
+    def test_lines_after_a_nested_item_drop_its_bullet_and_a_new_item_there_falls_back(self):
+        reqs = self.plan(None, ("4-space indent\n", "4-space indent\n\nSome prose here.\n\n"))
+        self.assertEqual(self.kinds(reqs), ["insertText", "deleteParagraphBullets", "insertText", "updateTextStyle",
+                                            "deleteParagraphBullets", "insertText", "deleteParagraphBullets"])
+        with self.assertRaises(Fallback) as e:
+            self.plan(None, ("4-space indent\n", "4-space indent\n- [ ] a box after the child\n"))
+        self.assertEqual(e.exception.args, ("nesting",))
+
+    def test_a_first_line_goes_in_before_the_first_paragraph(self):
+        reqs = self.plan(None, "Top line\n\n" + self.old)
+        self.assertEqual(reqs[0], {"insertText": {"location": {"index": 1}, "text": "Top line\n"}})
+        self.assertEqual(reqs[-1]["updateParagraphStyle"]["range"], {"startIndex": 1, "endIndex": 10})
+
+    def test_a_fresh_checkbox_is_created_and_a_fresh_bullet_falls_back(self):
+        reqs = self.plan(None, ("word.\n", "word.\n\n- [ ] a box under the notes\n"))
+        # the box goes in first, then the blank line before it, an empty paragraph
+        self.assertEqual(self.kinds(reqs), ["insertText", "updateTextStyle", "createParagraphBullets", "insertText"])
+        self.assertEqual(reqs[2]["createParagraphBullets"]["bulletPreset"], "BULLET_CHECKBOX")
+        self.assertEqual(reqs[3], {"insertText": {"location": {"index": 329}, "text": "\n"}})
+        with self.assertRaises(Fallback) as e:
+            self.plan(None, ("word.\n", "word.\n\n- a bullet under the notes\n"))
+        self.assertEqual(e.exception.args, ("list",))
+
+    def test_deleted_paragraphs_go_in_one_range_and_the_last_through_the_newline_before_it(self):
+        gone = "- [ ] T-002 Call the vendor (due 2026-10-24)\n    - [ ] sub-task with 4-space indent\n"
+        reqs = self.plan(None, (gone, ""))
+        self.assertEqual(reqs, [{"deleteContentRange": {"range": {"startIndex": 140, "endIndex": 208}}}])
+        reqs = self.plan(None, ("\nPlain paragraph with a - dash, an & ampersand, 50% and a_snake_case word.\n", "\n"))
+        self.assertEqual(reqs, [{"deleteContentRange": {"range": {"startIndex": 255, "endIndex": 329}}}])
+
+    def test_what_falls_back_and_why(self):
+        for why, old, new in (
+            ("tick", "- [ ] T-002", "- [x] T-002"),
+            ("tick", "and **bold**\n", "and **bold**\n- [x] T-004 born ticked\n"),
+            ("nesting", "sub-task with", "subtask with"),
+            ("nesting", "and **bold**\n", "and **bold**\n    - [ ] a new child\n"),
+            ("list", "- [ ] T-002", "* [ ] T-002"),
+            ("layout", "- [ ] T-002", "1. T-002"),
+            ("list", "Plain paragraph", "- [ ] Plain paragraph"),
+            ("blank", "## Notes", "- [ ] Notes"),
+            ("structure", "## Notes\n", "## Notes\n\n| a | b |\n| --- | --- |\n"),
+            ("structure", "## Notes\n", "## Notes\n\n```\ncode\n```\n"),
+            ("structure", "## Notes\n", "## Notes\n\n---\n"),
+            ("layout", "word.\n", "word.\nA second line of the same paragraph.\n"),
+            ("blank", "T-002 Call the vendor (due 2026-10-24)\n", "T-002 Call the vendor (due 2026-10-24)\n\n"),
+            ("inline", "Plain paragraph", "Plain _paragraph_"),
+        ):
+            with self.assertRaises(Fallback, msg=(old, new)) as e:
+                self.plan(None, (old, new))
+            self.assertEqual(e.exception.args, (why,), (old, new))
+
+    def test_a_doc_that_does_not_match_its_export_falls_back(self):
+        with self.assertRaises(Fallback) as e:
+            plan_edits(self.doc, self.old.replace("Call the vendor", "Ring the vendor"), self.old)
+        self.assertEqual(e.exception.args, ("mapping",))
+        doc = json.loads((FIXTURES / "13-list-kinds.doc.json").read_text(encoding="utf-8"))
+        with self.assertRaises(Fallback) as e:
+            plan_edits(doc, self.old, self.old)
+        self.assertEqual(e.exception.args, ("mapping",))
+
+    def test_the_list_kinds_of_fixture_13_map_and_a_text_edit_in_each_is_planned(self):
+        doc = json.loads((FIXTURES / "13-list-kinds.doc.json").read_text(encoding="utf-8"))
+        old = normalize((FIXTURES / "13-list-kinds.out.md").read_text(encoding="utf-8"))
+        for word in ("Star two", "Plus two", "Dash two", "Four", "Paren two", "open box", "struck"):
+            reqs = plan_edits(doc, old, old.replace(word, word.upper()))
+            self.assertEqual(self.kinds(reqs)[:2], ["deleteContentRange", "insertText"], word)
+        reqs = plan_edits(doc, old, old.replace("- [ ] open box\n", "- [ ] open box\n- [ ] second box\n"))
+        self.assertEqual(self.kinds(reqs), ["insertText", "updateTextStyle"])
+
+
+class Carry(unittest.TestCase):
+    """The comments read before a whole replace and written again after it."""
+
+    RESP = {"tabs": [{"documentTab": {
+        "body": {"content": [{"startIndex": 0, "endIndex": 1, "sectionBreak": {}},
+                             {"startIndex": 1, "endIndex": 12, "paragraph": {"elements": [
+                                 {"textRun": {"content": "First line\n"}}]}},
+                             {"startIndex": 12, "endIndex": 29, "paragraph": {"elements": [
+                                 {"textRun": {"content": "An ALPHA second\n"}}]}}]},
+        "commentAnchors": {"a1": {"ranges": [{"startIndex": 15, "endIndex": 20}]}}}}],
+        "comments": [
+            {"commentId": "c1", "status": "OPEN", "anchorId": "a1", "headPost": {"author": {"displayName": "Ann"},
+             "content": "why alpha?"}, "replies": [{"author": {"displayName": "Bob"}, "content": "because"}]},
+            {"commentId": "c2", "status": "OPEN", "anchorId": "gone", "headPost": {"author": {}, "content": "orphan"}},
+            {"commentId": "c3", "status": "RESOLVED", "anchorId": "a1", "headPost": {"author": {}, "content": "done"}}]}
+
+    def test_anchored_comments_read_the_text_its_paragraph_and_the_replies(self):
+        cs = anchored_comments(self.RESP)
+        self.assertEqual([(c["id"], c["anchored"], c["para"], c["offset"]) for c in cs],
+                         [("c1", "ALPHA", "An ALPHA second", 3), ("c2", None, None, None)])
+        self.assertEqual((cs[0]["author"], cs[0]["replies"]), ("Ann", [("Bob", "because")]))
+
+    def test_carry_over_writes_each_comment_again_and_deletes_the_orphan(self):
+        drive = FakeDrive()
+        drive.create("t", "First line\n\nAn ALPHA second\n", None)
+        drive.comment_in_ui("doc-1", "ALPHA", "why alpha?", author="Ann", replies=[("Bob", "because")])
+        drive.comment_in_ui("doc-1", "First", "a first comment", author="token user")
+        before = anchored_comments(drive.get_doc("doc-1", comments=True))
+        drive.update("doc-1", "First line\n\nAn ALPHA second, edited\n")
+        self.assertEqual([c["anchored"] for c in drive.comments["doc-1"]], [None, None])
+        result = carry_comments(drive, "doc-1", before)
+        self.assertEqual(result, {"carried": 2, "unplaced": [], "undeleted": 1})
+        kept = [(c["anchored"], c["content"], c["author"]) for c in drive.comments["doc-1"]]
+        self.assertEqual(kept, [(None, "why alpha?", "Ann"),
+                                ("ALPHA", "why alpha?\n\n(carried over a sync; by Ann)", "token user"),
+                                ("First", "a first comment\n\n(carried over a sync; by token user)", "token user")])
+        self.assertEqual(drive.comments["doc-1"][1]["replies"],
+                         [("token user", "because\n\n(carried over a sync; by Bob)")])
+
+    def test_a_repeated_word_goes_back_to_its_own_occurrence_and_an_image_keeps_the_count(self):
+        drive = FakeDrive()
+        drive.create("t", "echo echo\n\nAn echo here\n", None)
+        drive.comment_in_ui("doc-1", "echo", "the third one")
+        before = anchored_comments(drive.get_doc("doc-1", comments=True))
+        before[0].update(para="An echo here", offset=3)  # the fake anchors the first echo; a reader chose the third
+        drive.update("doc-1", "echo echo\n\nAn echo here\n")
+        drive.insert_comment = lambda doc_id, s, e, content: drive.calls.append(f"insert {s}-{e}") or "c9"
+        drive.delete_comment = lambda doc_id, cid: None
+        carry_comments(drive, "doc-1", before)
+        self.assertIn("insert 15-19", drive.calls)  # 1 + len("echo echo\n") + len("\n") + 3
+        resp = {"tabs": [{"documentTab": {"body": {"content": [
+            {"startIndex": 1, "endIndex": 5, "paragraph": {"elements": [
+                {"startIndex": 1, "endIndex": 2, "inlineObjectElement": {}}, {"textRun": {"content": "ab\n"}}]}},
+            {"startIndex": 5, "endIndex": 10, "paragraph": {"elements": [{"textRun": {"content": "WORD\n"}}]}}]},
+            "commentAnchors": {"a": {"ranges": [{"startIndex": 5, "endIndex": 9}]}}}}],
+            "comments": [{"commentId": "c", "anchorId": "a", "headPost": {"author": {}, "content": "x"}}]}
+        self.assertEqual(anchored_comments(resp)[0]["anchored"], "WORD")
+
+    def test_a_comment_on_changed_text_has_no_place(self):
+        drive = FakeDrive()
+        drive.create("t", "First line\n\nAn ALPHA second\n", None)
+        drive.comment_in_ui("doc-1", "ALPHA", "why alpha?")
+        before = anchored_comments(drive.get_doc("doc-1", comments=True))
+        drive.update("doc-1", "First line\n\nAn OMEGA second\n")
+        self.assertEqual(carry_comments(drive, "doc-1", before), {"carried": 0, "unplaced": ["ALPHA"], "undeleted": 0})
+
+
+class Writes(_WithDoc):
+    """push and sync through `write_doc`: edits where the diff allows, the whole replace with the comments carried
+    where it does not, and the guard on the Doc's revision."""
+
+    def setUp(self):
+        super().setUp()
+        self.run_cmd("init", str(self.md))
+        self.drive.calls.clear()
+
+    def edit_local(self, old, new):
+        self.md.write_text(self.md.read_text(encoding="utf-8").replace(old, new), encoding="utf-8")
+
+    def test_a_text_edit_is_pushed_as_edits_and_the_doc_reads_back_the_same(self):
+        self.drive.comment_in_ui("doc-1", "vendor", "which one?")
+        self.edit_local("Call the vendor", "Phone the vendor")
+        self.edit_local("## Notes", "## Notes\n\nA new paragraph.")
+        code, out, err = self.run_cmd("push", str(self.md))
+        self.assertEqual((code, err), (EXIT_OK, ""))
+        self.assertIn("pushed https://docs.google.com/document/d/doc-1/edit by 8 edits", out)
+        self.assertEqual(self.drive.calls, ["export", "get_doc", "batch_update", "export"])
+        self.assertIn("- [ ] T-002 Phone the vendor (due 2026-10-24)\n", self.drive.docs["doc-1"])
+        self.assertIn("## Notes\n\nA new paragraph.\n\nPlain paragraph", self.drive.docs["doc-1"])
+        self.assertEqual(self.drive.comments["doc-1"][0]["anchored"], "vendor")  # untouched: still anchored
+        state = json.loads(state_path(self.md).read_text(encoding="utf-8"))
+        self.assertEqual(state["snapshot"], state["local"])
+
+    def test_a_tick_replaces_the_doc_and_carries_the_comments(self):
+        self.drive.comment_in_ui("doc-1", "vendor", "which one?", author="Ann")
+        self.drive.comment_in_ui("doc-1", "Done item", "really?", author="token user")
+        self.edit_local("- [ ] T-002", "- [x] T-002")
+        self.edit_local("T-003 Done item", "T-003 Finished item")
+        code, out, err = self.run_cmd("sync", str(self.md), "--json")
+        result = json.loads(out)
+        self.assertEqual((code, result["write"], result["why"], result["carried"], result["unplaced"],
+                          result["undeleted"]), (EXIT_OK, "replace", "tick", 1, ["Done item"], 1))  # Ann's orphan
+        self.assertIn("by a whole replace (tick), 1 comments carried, 1 not placed", result["message"])
+        self.assertIn("could not be carried", result["message"])
+        self.assertEqual(self.drive.calls, ["export", "export", "get_doc", "get_doc", "update", "get_doc",
+                                            "insert_comment", "delete_comment", "export"])
+        self.assertEqual([(c["anchored"], c["author"]) for c in self.drive.comments["doc-1"]],
+                         [(None, "Ann"), (None, "token user"), ("vendor", "token user")])
+
+    def test_the_doc_moving_between_the_read_and_the_write_is_refused(self):
+        self.edit_local("Call the vendor", "Phone the vendor")
+        real = self.drive.get_doc
+
+        def moved(doc_id, comments=False):
+            doc = real(doc_id, comments)
+            self.drive.revisions[doc_id] = self.drive.revisions.get(doc_id, 0) + 1
+            return doc
+
+        self.drive.get_doc = moved
+        code, out, err = self.run_cmd("push", str(self.md))
+        self.assertEqual(code, EXIT_MOVED)
+        self.assertIn("push refused: the Doc changed while writing", err)
+
+    def test_without_the_docs_api_the_push_replaces_as_before(self):
+        self.drive.docs_api_enabled = False
+        self.edit_local("Call the vendor", "Phone the vendor")
+        code, out, err = self.run_cmd("push", str(self.md), "--json")
+        result = json.loads(out)
+        self.assertEqual((code, result["write"], result["why"]), (EXIT_OK, "replace", "docs_api"))
+        self.assertEqual(self.drive.calls, ["export", "get_doc", "update", "export"])
+
+    def test_write_doc_reports_edits_or_the_replace(self):
+        text = (FIXTURES / "04-task-list.in.md").read_text(encoding="utf-8")
+        old = normalize(self.drive.export("doc-1"))
+        self.assertEqual(write_doc(self.drive, "doc-1", old, text.replace("## Notes", "## Remarks")),
+                         {"write": "edits", "requests": 3})
+        old = normalize(self.drive.export("doc-1"))
+        self.assertEqual(write_doc(self.drive, "doc-1", old, text.replace("## Notes", "## Remarks\n\n---")),
+                         {"write": "replace", "why": "structure", "carried": 0, "unplaced": [], "undeleted": 0})
