@@ -182,6 +182,40 @@ class GfmListMarkers(unittest.TestCase):
         self.assertEqual(normalize(fixture("12-gfm-list-markers.out.md")), fixture("12-gfm-list-markers.in.md"))
 
 
+class GithubPlatform(unittest.TestCase):
+    """Fixture 14, GitHub's layer beyond GFM: a mermaid or math fence is a code run like any fence; an alert's
+    marker keeps its own line through the push form's hard break; math comes back escaped and the normalizer drops
+    the escapes; emoji shortcodes come back as characters; adjacent alerts merge into one quote; `<details>`
+    flattens into one paragraph; color chips, a mention, an issue reference and a SHA are plain text."""
+
+    def test_push_form_is_what_was_uploaded(self):
+        self.assertEqual(push_form(fixture("14-github-platform.src.md")), fixture("14-github-platform.in.md"))
+
+    def test_export_normalizes_to_the_source_but_for_the_losses(self):
+        src = fixture("14-github-platform.src.md")
+        expected = src
+        for lost, got in [
+            ("attention.\n\n> [!TIP]", "attention.\n>\n> [!TIP]"),  # two alerts back to back are one quote
+            (":+1: :tada: :heavy_check_mark:", "\U0001f44d \U0001f389 \u2714\ufe0f"),
+            ("<details>\n<summary>Collapsed section</summary>\n\nHidden paragraph with **bold** inside.\n\n</details>",
+             "Collapsed section Hidden paragraph with **bold** inside."),
+        ]:
+            self.assertIn(lost, expected)
+            expected = expected.replace(lost, got)
+        got = normalize(fixture("14-github-platform.out.md"), src)
+        self.assertEqual(got, expected)
+        for kept in ("```mermaid\ngraph TD;\n    A-->B;", "> [!NOTE]\n> Useful", "math $\\sqrt{3x-1}+(1+x)^2$ in",
+                     "and $5 for", "$$\n\\left( \\sum_{k=1}^n", "```math\n\\frac{a}{b} = c\n```", "`#0969DA`",
+                     "@octocat, issue #1 and commit 16c999e8"):
+            self.assertIn(kept, got)
+
+    def test_what_the_export_holds_raw(self):
+        out = fixture("14-github-platform.out.md")
+        for raw in ("> \\[\\!NOTE\\]  \n> Useful", "\\$\\\\sqrt{3x-1}+(1+x)^2\\$", "\\$\\$  \n\\\\left(",
+                    "`\\frac{a}{b} = c`", "issue \\#1"):
+            self.assertIn(raw, out)
+
+
 class Rules(unittest.TestCase):
     def test_normalize_is_idempotent_on_every_export(self):
         for path in sorted(FIXTURES.glob("*.out.md")):
@@ -198,7 +232,15 @@ class Rules(unittest.TestCase):
 
     def test_hard_breaks_go_where_the_doc_would_join_lines(self):
         self.assertEqual(push_form("one\ntwo\n\n- item\n  more\n# H\nthree\n> q\n> r\n| a |\n| b |\n"),
-                         "one  \ntwo\n\n- item  \n  more\n# H\nthree\n> q\n> r\n| a |\n| b |\n")
+                         "one  \ntwo\n\n- item  \n  more\n# H\nthree\n> q  \n> r\n| a |\n| b |\n")
+        self.assertEqual(push_form("> a\n>\n> b\n> > c\n> d\n\n> [!NOTE]\n> e\nf\n"),
+                         "> a\n>\n> b\n> > c\n> d\n\n> [!NOTE]  \n> e  \nf\n")  # quoted alike; f is lazy
+        self.assertEqual(push_form(">a\n> b\n"), ">a  \n> b\n")  # the same depth, spaced differently
+
+    def test_the_exports_escapes_of_math_and_alert_markers_are_dropped(self):
+        self.assertEqual(normalize("\\$\\\\sqrt{x}\\$ costs \\$5 \\[\\!NOTE\\]\n"), "$\\sqrt{x}$ costs $5 [!NOTE]\n")
+        # the loss the Math row names: a `\$` a person wrote inside a formula is dropped the same way
+        self.assertEqual(normalize("$\\sqrt{\\$4}$\n"), "$\\sqrt{$4}$\n")
 
     def test_one_line_block_gets_a_blank_line_and_backticks_are_padded(self):
         self.assertEqual(push_form("```\n`a`\n```\n"), "`` `a` ``  \n&nbsp;\n")

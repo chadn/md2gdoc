@@ -1,4 +1,4 @@
-# Round-trip fixtures (PT-002 and PT-013, 2026-10-21; PT-004, 2026-10-22; PT-023, 2026-10-25)
+# Round-trip fixtures (PT-002 and PT-013, 2026-10-21; PT-004, 2026-10-22; PT-023, 2026-10-25; PT-024, 2026-10-27)
 
 Each `.in.*` file was uploaded to Google Drive with conversion to a native Google Doc; each `.out.md` is the
 `text/markdown` export of the resulting Doc, byte for byte. Use them as normalizer test cases: normalize(out) must
@@ -41,9 +41,14 @@ below.
   through the script (PT-009, [build-probe-2.py](../../chadkit/work/PT-009/build-probe-2.py) and
   [build-probe-2b.py](../../chadkit/work/PT-009/build-probe-2b.py)); `.doc.json` is its `documents.get`, masked
   as 04's. A pair: normalize(out) == normalize(in).
+- 14-github-platform: GitHub's layer beyond GFM: a mermaid fence, alerts, inline and block math and a math fence,
+  emoji shortcodes, color chips, `<details>`, a mention, an issue reference and a commit SHA (PT-024); `.src.md`,
+  `.in.md` and `.out.md` as 05. Equalities: push_form(src) == in, and normalize(out, src) == src with two alerts
+  back to back merged into one quote, each shortcode as its character, and the `<details>` block as one paragraph.
 
 Trailing double spaces on list lines are part of Google's export; keep them when copying. PT-013's probes went
 through the same converter and are kept as evidence, not test cases (recovered from the session transcript), under
 [chadkit/work/PT-013/](../../chadkit/work/PT-013/).
 PT-023's fixtures went through the script's own `Drive.create` and `Drive.export` calls, by
-[chadkit/work/PT-023/probe.py](../../chadkit/work/PT-023/probe.py).
+[chadkit/work/PT-023/probe.py](../../chadkit/work/PT-023/probe.py); PT-024's by
+[chadkit/work/PT-024/probe.py](../../chadkit/work/PT-024/probe.py).

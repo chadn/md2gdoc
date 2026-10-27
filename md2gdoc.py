@@ -29,8 +29,9 @@ from pathlib import Path
 
 # A heading whose whole text the export wrapped in bold.
 _HEADING_BOLD = re.compile(r"^(#{1,6} )\*\*((?:(?!\*\*).)+)\*\*[ \t]*$")
-# Characters the export escapes in prose; `\`` is left alone, since no push sends a raw fence.
-_ESCAPE = re.compile(r"\\([-\[\]#_<>:*.])")
+# Characters the export escapes in prose (`!`, `$` and `\` since fixture 14's math and alerts); `\`` is left alone,
+# since no push sends a raw fence.
+_ESCAPE = re.compile(r"\\([-\[\]#_<>:*.!$\\])")
 # An escape that keeps a line from becoming a block: a bullet, heading, quote, or ordered item.
 _BLOCK_ESCAPE = re.compile(r"^[ \t]*\\[-#*+>]|^[ \t]*\d+\\\.")
 # A code span inside a line; what is inside it is left alone.
@@ -47,6 +48,8 @@ _SPAN_LINE = re.compile(r"^([ \t]*)(`+)(.*)\2[ \t]*$")
 _FENCE = re.compile(r"^(```+|~~~+)(.*)$")
 # Lines that start a block other than a paragraph, once their indent is removed.
 _BLOCK_START = re.compile(r"^(?:#{1,6} |>|\||[-*+][ \t]|\d+[.)][ \t]|```|~~~|\[\^|---|\*\*\*|=+$)")
+# Blockquote markers at the start of a line, as many as it has.
+_QUOTE = re.compile(r"^(?:[ \t]*>[ \t]?)*")
 # Lines that cannot take a hard break: blank, fence, heading, table, rule, or a code run's own line.
 _NO_BREAK = re.compile(r"^(?:$|#{1,6} |\||```|~~~|---|\*\*\*|=+$)")
 
@@ -106,13 +109,23 @@ def push_form(text: str) -> str:
                 i = close + 1
                 continue
         line = lines[i]
-        if _takes_break(line) and i + 1 < len(lines) and _continues(lines[i + 1]) and not (
-            _span_line(line) and (_span_line(lines[i + 1]) or lines[i + 1].strip(" \t") == "")
+        inner, following = _quoted(line, lines[i + 1] if i + 1 < len(lines) else "")
+        if _takes_break(inner) and _continues(following) and not (
+            _span_line(inner) and (_span_line(following) or following.strip(" \t") == "")
         ):
             line = line.rstrip(" \t") + "  "
         out.append(line)
         i += 1
     return "\n".join(out)
+
+
+def _quoted(line: str, following: str) -> tuple[str, str]:
+    """Two lines inside the same blockquote markers, so a quote's lines take hard breaks as a paragraph's do (an
+    alert's `[!NOTE]` line must stay its own line, fixture 14); lines quoted differently are themselves."""
+    marks = [_QUOTE.match(x) for x in (line, following)]
+    if marks[0].group(0).count(">") != marks[1].group(0).count(">"):
+        return line, following
+    return line[marks[0].end():], following[marks[1].end():]
 
 
 def _find_close(lines: list[str], start: int, opener: str) -> int | None:

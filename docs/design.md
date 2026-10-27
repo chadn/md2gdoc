@@ -105,7 +105,8 @@ how far the current state has got; where the two differ, the end state wins and 
   committed to git, so a clone syncs the same Doc; only the credentials and token stay out (decided 2026-10-21).
 - Normalizer (applied to both sides before any comparison; export noise observed in the fixtures and PT-013's
   probes, all reversible; a fence the text already holds and the inside of a code span are left as they are):
-  strip `**` wrapping a heading; unescape `\-`, `\[`, `\]`, `\#`, `\_`, `\<`, `\>`, `\:`, `\*`, `\.`, except
+  strip `**` wrapping a heading; unescape `\-`, `\[`, `\]`, `\#`, `\_`, `\<`, `\>`, `\:`, `\*`, `\.`, `\!`, `\$`
+  and `\\` (the last three since fixture 14's alerts and math), except
   an escape that keeps a line from becoming a bullet, heading, quote, or ordered item, which stays (so a
   deliberate escape elsewhere in a line is dropped on pull); collapse an autolink `[url](url)` to `url`; make a
   table delimiter row `| --- |`; drop trailing whitespace on every line (hard breaks included); re-indent list
@@ -131,10 +132,11 @@ how far the current state has got; where the two differ, the end state wins and 
   blank code line becomes `&nbsp;` with the hard break, and a one-line block gets one appended (it exports as a
   lone-space line, fixture 06). Trailing whitespace inside a code line is lost (the export moves it outside the
   span). A line the Doc would join onto the next (a paragraph line, list item, or continuation line followed by
-  another line of the same paragraph or item) gets a hard break, so the Doc keeps the file's lines (fixture 06),
-  except a span-only line before another span-only or blank line, which would read as a code run; a hard break
-  the file already had comes back as a soft one. Everything else passes through. Built in
-  [md2gdoc.py](../md2gdoc.py) as `push_form()` and `normalize()`, tested by
+  another line of the same paragraph or item, a quote's line before another line at the same quote depth or an
+  unquoted line that lazily continues it, fixture 14) gets a hard break, so the Doc keeps the file's lines (fixture
+  06), except a span-only line before another span-only or blank line, which would read as a code run; a hard break
+  the file already had comes back as a soft one. Everything else passes through. Built in [md2gdoc.py](../md2gdoc.py)
+  as `push_form()` and `normalize()`, tested by
   [tests/test_normalize.py](../tests/test_normalize.py).
 - Merge: three-way on normalized lines, base = snapshot, ours = local file, theirs = Doc export. Added lines on
   either side are kept; a line changed on one side only takes that change; a checkbox ticked on one side wins

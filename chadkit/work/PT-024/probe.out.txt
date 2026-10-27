@@ -1,0 +1,9 @@
+# Three runs of probe.py, 2026-10-27, each line as the probe printed it; the uv install line dropped.
+# Run 1: an earlier text of fixture 14 (two alerts, no paragraph between) under the push form before this task; its
+# bytes were overwritten by run 2 and are not kept. Run 2: the fixture as committed. Run 3: the fixture's push form
+# with the quote lines' hard breaks removed, the form the push form sent before this task; the probe reads and writes
+# tests/fixtures/<stem>, so the pair was run there as 14-alerts-no-breaks and then moved here as
+# alerts-no-breaks.in.md and .out.md.
+14-github-platform: 767 chars in, 686 chars out, version 4, Doc trashed
+14-github-platform: 859 chars in, 785 chars out, version 4, Doc trashed
+14-alerts-no-breaks: 853 chars in, 773 chars out, version 4, Doc trashed
