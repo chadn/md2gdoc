@@ -67,6 +67,10 @@ how far the current state has got; where the two differ, the end state wins and 
   (python-docx 1.2 `add_comment`) converts to a Doc that has them. Drive `comments.list` keeps listing a comment
   whose anchor a push removed; the `.docx` export (`files.export` as `.docx`, `word/comments.xml` plus the range
   marks in `word/document.xml`) and the Docs API's `commentsViewMode` show whether it is still anchored.
+- The markdown export cannot tell a pending suggestion from the text: it shows a suggested insertion and a
+  suggested style change as accepted and a suggested deletion as kept. `documents.get` marks each with its id under
+  a `suggested...` key wherever it sits; deleting a suggested insertion's text in the normal write mode clears that
+  suggestion (PT-028).
 - Quotas: Drive 325,000 units/min per user; Docs API 60 writes/min per user. Irrelevant at any sync cadence.
 - Docs API `batchUpdate` is the only way to edit part of a Doc. It addresses UTF-16 indexes that shift after every
   insert, so it is the expensive path; see "Whole-document replace" below.
@@ -145,12 +149,15 @@ how far the current state has got; where the two differ, the end state wins and 
 - True conflict (same line changed differently on both sides): keep both lines, marked
   `<<<<<<< api-edited` ... `=======` ... `>>>>>>> hand-edited`, written to the file, exit code 2, no push; a file
   that still holds a marker line is refused with exit 2 until it is resolved.
-- Push guard: before `files.update`, export and compare normalized text to the snapshot; abort (exit 3) if the
-  content moved. The Drive `version` is stored and shown but never trusted alone, since a match is not proof
-  ("What is not proven", item 2; PT-007 may let it skip the export once PT-018 reads the UI case). `pull` has the
-  mirror guard on the file, lifted by `--force`. Skip the push when the file's normalized text is what the last
-  sync sent, so no empty revisions. Do not use `revisionId` as the guard (see [similar.md](similar.md)); the edit
-  path sends it as the batch's write control, read seconds before, so a Doc that moved in between is refused.
+- Push guard: before `files.update`, export and compare normalized text to the snapshot; abort (exit 3) if the content
+  moved. The Drive `version` is stored and shown but never trusted alone, since a match is not proof ("What is not
+  proven", item 2; PT-007 may let it skip the export once PT-018 reads the UI case). `pull` has the mirror guard on
+  the file, lifted by `--force`. Before either reads the export, `pull`, `sync` and `init --doc` count the Doc's
+  pending suggestions through the Docs API and stop while there are any (exit 3), since the export cannot tell a
+  suggestion from the text (PT-028); without the Docs API, or for a profile Google shows no suggestions to, they warn
+  and read on. Skip the push when the file's normalized text is what the last sync sent, so no empty revisions. Do not
+  use `revisionId` as the guard (see [similar.md](similar.md)); the edit path sends it as the batch's write control,
+  read seconds before, so a Doc that moved in between is refused.
 - After a successful push, pull once more and store the new `version` and snapshot. In `sync` the guard is a
   second export right before the push, compared to the one the merge read: a Doc that changed meanwhile refuses the
   push with exit 3, and the merge already written to the file waits for the next run. The `version` is not

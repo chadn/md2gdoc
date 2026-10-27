@@ -13,12 +13,13 @@ without it. Fields:
 |---|---|---|
 | `command`, `file`, `dry_run` | every object | what ran, on which file, whether `--dry-run` was given; on an error, read from the arguments as given |
 | `exit` | every object | the exit code: 0 done, 1 error, 2 conflict or markers, 3 refused |
-| `reason` | every object | one fixed word: `created`, `attached`, `pulled`, `pushed`, `synced`, `status`, `in_sync`, `nothing_to_push`, `conflict`, `markers`, `refused_doc_changed`, `refused_file_changed`, `error` |
-| `message` | every object | the prose the command would have printed, stdout then stderr, joined by newlines |
+| `reason` | every object | one fixed word: `created`, `attached`, `pulled`, `pushed`, `synced`, `status`, `in_sync`, `nothing_to_push`, `conflict`, `markers`, `refused_doc_changed`, `refused_file_changed`, `refused_suggestions`, `error` |
+| `message` | every object | the prose the command would have printed, the stderr lines first, joined by newlines |
 | `doc_id`, `link` | once the state file is read | the Doc |
 | `written`, `pushed` | pull, push, sync, init, once past the refusals | whether the file was written, whether the Doc was; `pushed` is `false` on a dry run |
 | `version`, `version_at_sync` | status, and pull, push, sync, init once a push or pull happened | the Drive `version` now, and at the last sync (status) |
 | `local_changed`, `doc_changed` | status | which side changed since the last sync; `doc_changed` only without `--dry-run` |
+| `suggestions`, `warnings` | pull, sync and `init --doc`, once the Doc was read | how many suggestions are pending in the Doc, counted through the Docs API before the export is read, since the export cannot tell one from the text: any refuses the command (`refused_suggestions`, exit 3, nothing written); `null` when the Doc could not be read that way (the Docs API not enabled, or a profile Google shows no suggestions to), and then `warnings` holds the line that says the Doc went unchecked and why |
 | `conflicts` | sync | how many places changed differently on both sides; the markers are in the file |
 | `diff` | pull and push with `--dry-run` | the unified diff of what would change |
 | `diff_file`, `diff_doc` | sync with `--dry-run`; a conflict carries `diff_file` only | what the merge changes on each side |

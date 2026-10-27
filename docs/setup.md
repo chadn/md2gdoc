@@ -19,7 +19,8 @@ it created; nothing else in your Drive is visible to it. Uses 2 APIs
 2. Enable two APIs: [enable Drive API](https://console.cloud.google.com/flows/enableapi?apiid=drive.googleapis.com)
    and [enable Docs API](https://console.cloud.google.com/flows/enableapi?apiid=docs.googleapis.com). Drive reads
    and writes whole Docs; the Docs API edits part of one and carries the comments over a replace (PT-009); without
-   it the script replaces the whole Doc on every push, as before PT-009, and says so.
+   it the script replaces the whole Doc on every push, as before PT-009, and says so, and a pull cannot see a
+   pending suggestion (PT-028).
 3. Configure consent: [Google Auth platform > Branding](https://console.cloud.google.com/auth/branding). If it says
    the platform is not configured yet, click **Get started**:
    - App name `md2gdoc`, your email as support email, **Next**.

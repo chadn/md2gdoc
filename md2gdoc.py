@@ -742,6 +742,37 @@ def carry_comments(d, doc_id: str, comments: list[dict]) -> dict:
     return out
 
 
+def docs_api_off(e: Exception) -> bool:
+    """Google's 403 for a Cloud project where the Docs API is not enabled."""
+    return getattr(getattr(e, "resp", None), "status", None) == 403 and any(
+        word in str(e) for word in ("accessNotConfigured", "SERVICE_DISABLED", "has not been used"))
+
+
+def pending_suggestions(doc: dict) -> set[str]:
+    """The ids of the suggestions pending in a `documents.get`: every `suggested...` key names them, as one id (a
+    list's or an inline object's `suggestedInsertionId`), a list of ids or a map keyed by id, wherever it sits (a
+    run, a paragraph's style or bullet, a table cell, the document style). The markdown export cannot tell a
+    suggestion from the text, so a pull must look here first."""
+    ids: set[str] = set()
+
+    def walk(node) -> None:
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if key.startswith("suggested") and value:
+                    if isinstance(value, str):
+                        ids.add(value)
+                    else:
+                        ids.update(value)  # the keys of a map, the items of a list
+                else:
+                    walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+
+    walk(doc)
+    return ids
+
+
 def write_doc(d, doc_id: str, old_text: str, text: str) -> dict:
     """Push `text` over a Doc whose normalized export is `old_text`: by edits when `plan_edits` can, else by the
     whole replace with the comments carried over. Returns what `--json` and the prose report."""
@@ -751,8 +782,7 @@ def write_doc(d, doc_id: str, old_text: str, text: str) -> dict:
     except Fallback as e:
         why = e.args[0]
     except Exception as e:  # the Docs API not enabled in the Cloud project: the push as before PT-009
-        if getattr(getattr(e, "resp", None), "status", None) != 403 or not any(
-                word in str(e) for word in ("accessNotConfigured", "SERVICE_DISABLED", "has not been used")):
+        if not docs_api_off(e):
             raise
         why = "docs_api"
     else:
@@ -782,21 +812,25 @@ commands:
                  its text to FILE and the state file; a Doc the script did not make needs a `--scope drive`
                  profile; refused with --name or --folder, or when FILE holds text
   pull FILE      export the Doc, undo the converter's noise, write FILE; refused when FILE changed since the
-                 last sync, unless --force
+                 last sync (unless --force), and refused while the Doc holds a pending suggestion, which the
+                 export cannot tell from the text (sync and init --doc refuse it too; a dry run of init makes
+                 no call)
   push FILE      write FILE's changes to the Doc; refused when the Doc changed since the last sync. Changed
                  lines are edited in place through the Docs API, so comments and formatting elsewhere stay;
                  a diff that ticks a box, nests a list, or touches a table, code, an image or a rule replaces
                  the whole Doc, and the comments are written again at their text, by you, naming each author
   sync FILE      merge both sides' changes since the last sync, write FILE, push the Doc; a line changed
                  differently on both sides is written to FILE between <<<<<<< api-edited (FILE's version) and
-                 >>>>>>> hand-edited (the Doc's), nothing is pushed, and the exit code is 2
+                 >>>>>>> hand-edited (the Doc's), nothing is pushed, and the exit code is 2; refused while
+                 the Doc holds a pending suggestion, like pull
   status FILE    which side changed since the last sync
   --dry-run      on any command: say what would happen, change nothing (status: local side only, no network)
   --json         on any command: one JSON object on stdout and nothing else: command, file, exit, reason (a
                  fixed word: created, attached, pulled, pushed, synced, status, in_sync, nothing_to_push,
-                 conflict, markers, refused_doc_changed, refused_file_changed, error), message (the prose), and per
-                 command written, pushed, conflicts, version, link, the diffs, write (edits or replace, with
-                 requests, or why and the comments carried); for agents (docs/agents.md)
+                 conflict, markers, refused_doc_changed, refused_file_changed, refused_suggestions, error),
+                 message (the prose), and per command written, pushed, conflicts, version, link, the diffs,
+                 suggestions and warnings, write (edits or replace, with requests, or why and the comments
+                 carried); for agents (docs/agents.md)
   --account NAME on any command: the profile to use (default: $MD2GDOC_ACCOUNT, else `default`)
   --scope NAME   on any command: `drive.file` (default) or `drive`; chosen at a profile's first login, then
                  remembered in its token
@@ -827,7 +861,8 @@ exit codes:
   0  done            1  usage, setup, or Google error
   2  conflict: both sides changed one line (sync), or FILE still holds conflict markers (sync, push)
   3  refused: push when the Doc changed since the last sync, pull when FILE did (sync, or pull --force);
-     sync when the Doc changed between its export and its push (run it again)
+     sync when the Doc changed between its export and its push (run it again); pull, sync and init --doc
+     while the Doc holds a pending suggestion (accept or reject it in the Doc)
 """
 
 
@@ -904,8 +939,8 @@ class Drive:
     def get_doc(self, doc_id: str, comments: bool = False) -> dict:
         """The document JSON; with `comments`, the tabs form that carries the comment threads and their anchors (the
         API wants the three parameters together)."""
-        if not comments:
-            return self.docs.documents().get(documentId=doc_id).execute()
+        if not comments:  # the view named, since the default for a profile that cannot edit the Doc hides suggestions
+            return self.docs.documents().get(documentId=doc_id, suggestionsViewMode="SUGGESTIONS_INLINE").execute()
         return self.docs.documents().get(documentId=doc_id, includeTabsContent=True,
                                          suggestionsViewMode="SUGGESTIONS_INLINE",
                                          commentsViewMode="COMMENTS_VIEW_MODE_INCLUDED").execute()
@@ -995,11 +1030,12 @@ def _out(args, md: Path) -> dict:
 def _finish(args, out: dict, code: int, reason: str, *, lines=(), errors=(), **fields) -> int:
     """Print the result and return the exit code: prose lines (stdout, then stderr), or with `--json` one object
     holding `exit`, `reason`, `message` (the prose joined) and every field a command recorded."""
-    out.update(fields, exit=code, reason=reason, message="\n".join([*errors, *lines]))
+    warnings = out.get("warnings", [])
+    out.update(fields, exit=code, reason=reason, message="\n".join([*warnings, *errors, *lines]))
     if args.json:
         print(json.dumps(out, ensure_ascii=False))
     else:
-        for line in errors:  # first, as before: a warning sits above the line it qualifies on a terminal
+        for line in [*warnings, *errors]:  # first, as before: a warning sits above the line it qualifies
             print(line, file=sys.stderr)
         for line in lines:
             print(line)
@@ -1042,13 +1078,45 @@ def _attach(args, out: dict, md: Path, drive) -> int:
         return _finish(args, out, EXIT_OK, "attached", written=False, lines=[
             f"would write {md} from Doc {args.doc} and write {state_path(md)}"])
     d = drive(args.account, args.scope)
-    new = normalize(d.export(args.doc))
+    new = normalize(d.export(args.doc))  # first, for its error on a Doc the app may not open (setup.md, PT-022)
+    if (code := suggestions_held(args, out, d, args.doc, "init")) is not None:
+        return code
     state = d.lookup(args.doc)
     write_md(md, new)
     state.update(snapshot=new, local=new)
     save_state(md, state)
     return _finish(args, out, EXIT_OK, "attached", written=True, link=state["link"], version=state["version"],
                    lines=[f"attached {md} to {state['link']}"])
+
+
+UNCHECKED = "the Doc was not checked for pending suggestions, which its export cannot tell from its text: {}"
+NO_DOCS_API = "the Docs API is not enabled in the Cloud project (docs/setup.md)"
+NO_RIGHT = "this profile's access to the Doc shows none (Google refused the view that would, as for a viewer)"
+
+
+def suggestions_held(args, out: dict, d, doc_id: str, verb: str) -> int | None:
+    """Before `pull`, `sync` or `init --doc` writes the Doc's export: how many suggestions are pending in it, through
+    the Docs API, since the export cannot tell one from the text. With any, the exit code the command returns, after
+    the refusal is printed; else None, with `out["suggestions"]` the count, or null and a warning when the Doc
+    cannot be read that way: the Docs API not enabled, or a profile that may only view the Doc, to which Google
+    refuses the view that shows suggestions (403, per the SuggestionsViewMode reference; not measured)."""
+    try:
+        held = len(pending_suggestions(d.get_doc(doc_id)))
+    except Exception as e:
+        if docs_api_off(e):
+            reason = NO_DOCS_API
+        elif getattr(getattr(e, "resp", None), "status", None) == 403:
+            reason = NO_RIGHT
+        else:
+            raise
+        out["suggestions"], out["warnings"] = None, [UNCHECKED.format(reason)]
+        return None
+    out["suggestions"] = held
+    if not held:
+        return None
+    return _finish(args, out, EXIT_MOVED, "refused_suggestions", errors=[
+        f"{verb} refused: the Doc holds {held} pending suggestion{'s' if held > 1 else ''}, which its export "
+        f"cannot tell from its text; accept or reject {'them' if held > 1 else 'it'} in the Doc, then run again"])
 
 
 def cmd_pull(args, drive) -> int:
@@ -1061,6 +1129,8 @@ def cmd_pull(args, drive) -> int:
         return _finish(args, out, EXIT_MOVED, "refused_file_changed", errors=[
             f"pull refused: {md} changed since the last sync; sync, or pull --force to overwrite it"])
     d = drive(args.account, args.scope)
+    if (code := suggestions_held(args, out, d, state["doc_id"], "pull")) is not None:
+        return code
     new = normalize(d.export(state["doc_id"]), local)
     changes = diff(local, new, f"{md} (local)", f"{md} (Doc)")
     if args.dry_run:
@@ -1127,6 +1197,8 @@ def cmd_sync(args, drive) -> int:
             f"sync refused: {md} holds conflict markers from the last sync; resolve them first"])
     local = normalize(text)
     d = drive(args.account, args.scope)
+    if (code := suggestions_held(args, out, d, state["doc_id"], "sync")) is not None:
+        return code
     theirs = normalize(d.export(state["doc_id"]), text)
     version = d.version(state["doc_id"])
     if local == state["local"] and theirs == state["snapshot"]:

@@ -1,0 +1,79 @@
+
+$ md2gdoc init live.md --name PT-028 live proof --json
+{"command": "init", "file": "live.md", "dry_run": false, "pushed": true, "doc_id": "<live-doc-id>", "link": "https://docs.google.com/document/d/<live-doc-id>/edit?usp=drivesdk", "version": 5, "converter_diff": "", "exit": 0, "reason": "created", "message": "created https://docs.google.com/document/d/<live-doc-id>/edit?usp=drivesdk"}
+exit 0
+
+$ probe.py add
+pending suggestions: ['suggest.36lltrul6j27', 'suggest.6w6nmyuppa6g', 'suggest.h8r3v9qf85y6']
+  .body.content[2].paragraph.elements[0].textRun.suggestedInsertionIds = ['suggest.6w6nmyuppa6g']
+  .body.content[2].paragraph.elements[0].textRun.suggestedTextStyleChanges = ['suggest.6w6nmyuppa6g']
+  .body.content[4].paragraph.elements[1].textRun.suggestedDeletionIds = ['suggest.36lltrul6j27']
+  .body.content[6].paragraph.elements[1].textRun.suggestedTextStyleChanges = ['suggest.h8r3v9qf85y6']
+--- the export
+# **PT-028 live proof**
+
+SUGGESTED A paragraph the reviewer will suggest an insertion in.
+
+A paragraph with a word the reviewer will suggest deleting: REMOVEME here.
+
+A paragraph whose word the reviewer will suggest making **bold**.
+
+$ md2gdoc pull live.md
+pull refused: the Doc holds 3 pending suggestions, which its export cannot tell from its text; accept or reject them in the Doc, then run again
+exit 3
+
+$ md2gdoc pull live.md --dry-run
+pull refused: the Doc holds 3 pending suggestions, which its export cannot tell from its text; accept or reject them in the Doc, then run again
+exit 3
+
+$ md2gdoc pull live.md --force
+pull refused: the Doc holds 3 pending suggestions, which its export cannot tell from its text; accept or reject them in the Doc, then run again
+exit 3
+
+$ md2gdoc sync live.md
+sync refused: the Doc holds 3 pending suggestions, which its export cannot tell from its text; accept or reject them in the Doc, then run again
+exit 3
+
+$ md2gdoc sync live.md --dry-run
+sync refused: the Doc holds 3 pending suggestions, which its export cannot tell from its text; accept or reject them in the Doc, then run again
+exit 3
+
+$ md2gdoc sync live.md --json
+{"command": "sync", "file": "live.md", "dry_run": false, "doc_id": "<live-doc-id>", "link": "https://docs.google.com/document/d/<live-doc-id>/edit?usp=drivesdk", "suggestions": 3, "exit": 3, "reason": "refused_suggestions", "message": "sync refused: the Doc holds 3 pending suggestions, which its export cannot tell from its text; accept or reject them in the Doc, then run again"}
+exit 3
+
+$ md2gdoc init attached.md --doc <live-doc-id>
+init refused: the Doc holds 3 pending suggestions, which its export cannot tell from its text; accept or reject them in the Doc, then run again
+exit 3
+attached.md exists: no
+
+$ md2gdoc push live.md
+nothing to push: live.md matches the last sync
+exit 0
+
+--- the file is untouched:
+# PT-028 live proof
+
+A paragraph the reviewer will suggest an insertion in.
+
+A paragraph with a word the reviewer will suggest deleting: REMOVEME here.
+
+A paragraph whose word the reviewer will suggest making bold.
+
+$ probe.py resolve
+after deleting the suggested insertion's text in the normal write mode:
+pending suggestions: ['suggest.36lltrul6j27', 'suggest.h8r3v9qf85y6']
+  .body.content[4].paragraph.elements[1].textRun.suggestedDeletionIds = ['suggest.36lltrul6j27']
+  .body.content[6].paragraph.elements[1].textRun.suggestedTextStyleChanges = ['suggest.h8r3v9qf85y6']
+--- the export
+# **PT-028 live proof**
+
+A paragraph the reviewer will suggest an insertion in.
+
+A paragraph with a word the reviewer will suggest deleting: REMOVEME here.
+
+A paragraph whose word the reviewer will suggest making **bold**.
+
+$ md2gdoc pull live.md
+pull refused: the Doc holds 2 pending suggestions, which its export cannot tell from its text; accept or reject them in the Doc, then run again
+exit 3

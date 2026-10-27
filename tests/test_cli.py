@@ -15,7 +15,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from md2gdoc import (  # noqa: E402
     EXIT_CONFLICT, EXIT_MOVED, EXIT_OK, SCOPE_URL, Fallback, anchored_comments, carry_comments, config_dir,
-    error_object, inline, main, merge3, normalize, plan_edits, profile_dir, push_form, state_path, token_scope,
+    error_object, inline, main, merge3, normalize, pending_suggestions, plan_edits, profile_dir, push_form, state_path,
+    token_scope,
     write_doc,
 )
 
@@ -146,8 +147,10 @@ class FakeDrive:
         self.versions: dict[str, int] = {}
         self.revisions: dict[str, int] = {}
         self.comments: dict[str, list[dict]] = {}
+        self.suggestions: dict[str, list[tuple[str, str]]] = {}  # per Doc: (suggestion id, its text)
         self.calls: list[str] = []
         self.docs_api_enabled = True
+        self.viewer = False  # a profile that may only view the Doc: Google refuses the view that shows suggestions
 
     def create(self, name, markdown, folder):
         self.calls.append("create")
@@ -188,8 +191,14 @@ class FakeDrive:
         self.calls.append("get_doc")
         if not self.docs_api_enabled:
             raise FakeHttpError(403, "Google Docs API has not been used in project ... accessNotConfigured")
+        if self.viewer:
+            raise FakeHttpError(403, "The caller does not have permission")
         doc = FakeDoc(self.docs[doc_id]).json()
         doc["revisionId"] = f"rev-{self.revisions.get(doc_id, 0)}"
+        for sid, text in self.suggestions.get(doc_id, []):  # on the run that holds the text, as Google marks it
+            run = next(el["paragraph"]["elements"][0]["textRun"] for el in doc["body"]["content"]
+                       if "paragraph" in el and text in el["paragraph"]["elements"][0]["textRun"]["content"])
+            run.setdefault("suggestedInsertionIds", []).append(sid)
         if not comments:
             return doc
         body = "".join(el["paragraph"]["elements"][0]["textRun"]["content"] for el in doc["body"]["content"][1:])
@@ -248,6 +257,13 @@ class FakeDrive:
         self.versions[doc_id] += 1
         self.revisions[doc_id] = self.revisions.get(doc_id, 0) + 1
 
+    def suggest_in_ui(self, doc_id, old, new):
+        """A suggestion typed in the Doc's Suggesting mode: the export shows it as accepted, `documents.get` marks
+        its run with the suggestion's id."""
+        self.edit_in_ui(doc_id, old, new)
+        ids = self.suggestions.setdefault(doc_id, [])
+        ids.append((f"suggest.{len(ids) + 1}", new.replace(old, "").strip() or new))
+
 
 class _WithDoc(unittest.TestCase):
     def setUp(self):
@@ -298,7 +314,7 @@ class Commands(_WithDoc):
         self.assertEqual(code, EXIT_OK)
         self.assertIn(f"attached {new} to https://docs.google.com/document/d/{doc_id}/edit", out)
         self.assertEqual(err, "")
-        self.assertEqual(self.drive.calls, ["export", "lookup"])
+        self.assertEqual(self.drive.calls, ["export", "get_doc", "lookup"])
         state = json.loads(state_path(new).read_text(encoding="utf-8"))
         self.assertEqual((state["doc_id"], state["version"]), (doc_id, 2))
         self.assertEqual(new.read_text(encoding="utf-8"), state["snapshot"])
@@ -407,6 +423,58 @@ class Commands(_WithDoc):
         self.assertEqual(code, EXIT_OK)
         self.assertNotIn("T-006", self.md.read_text(encoding="utf-8"))
 
+    def test_init_doc_stops_while_the_doc_holds_a_pending_suggestion(self):
+        doc_id = self.drive.make_by_hand(self.md.read_text(encoding="utf-8"))
+        self.drive.suggest_in_ui(doc_id, "Call the vendor", "Call the vendor SUGGESTED")
+        new = Path(self.tmp.name) / "hand.md"
+        code, out, err = self.run_cmd("init", str(new), "--doc", doc_id)
+        self.assertEqual((code, out, self.drive.calls), (EXIT_MOVED, "", ["export", "get_doc"]))
+        self.assertIn("init refused: the Doc holds 1 pending suggestion", err)
+        self.assertFalse(new.exists())
+        self.assertFalse(state_path(new).exists())
+
+    def test_pull_and_sync_stop_while_the_doc_holds_a_pending_suggestion(self):
+        self.run_cmd("init", str(self.md))
+        self.drive.suggest_in_ui("doc-1", "Call the vendor", "Call the vendor SUGGESTED")
+        before = self.md.read_text(encoding="utf-8")
+        for argv in (("pull",), ("pull", "--dry-run"), ("pull", "--force"), ("sync",), ("sync", "--dry-run")):
+            self.drive.calls.clear()
+            code, out, err = self.run_cmd(*argv, str(self.md))
+            self.assertEqual((code, out, self.drive.calls), (EXIT_MOVED, "", ["get_doc"]), argv)
+            self.assertEqual(err, f"{argv[0]} refused: the Doc holds 1 pending suggestion, which its export cannot "
+                                  "tell from its text; accept or reject it in the Doc, then run again\n", argv)
+        self.assertEqual(self.md.read_text(encoding="utf-8"), before)
+        self.drive.suggest_in_ui("doc-1", "## Notes", "## Notes\n\nA second one.")
+        code, _, err = self.run_cmd("sync", str(self.md))
+        self.assertIn("holds 2 pending suggestions, which its export cannot tell from its text; accept or reject "
+                      "them", err)
+        self.drive.suggestions.clear()  # accepted in the Doc
+        code, out, _ = self.run_cmd("pull", str(self.md))
+        self.assertEqual(code, EXIT_OK)
+        self.assertIn("Call the vendor SUGGESTED", self.md.read_text(encoding="utf-8"))
+
+    def test_without_the_docs_api_a_pull_warns_that_suggestions_went_unchecked(self):
+        self.run_cmd("init", str(self.md))
+        self.drive.docs_api_enabled = False
+        self.drive.suggest_in_ui("doc-1", "Call the vendor", "Call the vendor SUGGESTED")
+        code, out, err = self.run_cmd("pull", str(self.md))
+        self.assertEqual((code, out), (EXIT_OK, f"pulled {self.md}: changed\n"))
+        self.assertEqual(err, "the Doc was not checked for pending suggestions, which its export cannot tell from "
+                              "its text: the Docs API is not enabled in the Cloud project (docs/setup.md)\n")
+        self.assertIn("SUGGESTED", self.md.read_text(encoding="utf-8"))
+        code, out, err = self.run_cmd("sync", str(self.md), "--json")
+        result = json.loads(out)
+        self.assertEqual((code, err, result["reason"], result["suggestions"]), (EXIT_OK, "", "in_sync", None))
+        self.assertEqual(result["warnings"], [result["message"].split("\n")[0]])
+        self.assertIn("not checked", result["message"])
+        self.drive.docs_api_enabled, self.drive.viewer = True, True
+        code, out, err = self.run_cmd("sync", str(self.md))
+        self.assertEqual((code, out),
+                         (EXIT_OK, f"in sync: neither {self.md} nor the Doc changed since the last sync\n"))
+        self.assertEqual(err, "the Doc was not checked for pending suggestions, which its export cannot tell from "
+                              "its text: this profile's access to the Doc shows none (Google refused the view that "
+                              "would, as for a viewer)\n")
+
     def test_pull_writes_the_normalized_export(self):
         self.run_cmd("init", str(self.md))
         self.drive.edit_in_ui("doc-1", "- [ ] T-002", "- [x] T-002")
@@ -482,7 +550,7 @@ class Sync(_WithDoc):
 
     def test_in_sync_touches_nothing(self):
         code, out, _ = self.run_cmd("sync", str(self.md))
-        self.assertEqual((code, self.drive.calls), (EXIT_OK, ["export"]))
+        self.assertEqual((code, self.drive.calls), (EXIT_OK, ["get_doc", "export"]))
         self.assertIn("in sync", out)
 
     def test_both_sides_edits_are_merged_written_and_pushed(self):
@@ -491,7 +559,7 @@ class Sync(_WithDoc):
         self.drive.edit_in_ui("doc-1", "- [ ] T-002", "- [x] T-002")
         self.drive.edit_in_ui("doc-1", "## Notes", "- [ ] T-004 typed in the Doc\n\n## Notes")
         code, out, err = self.run_cmd("sync", str(self.md), "--dry-run")
-        self.assertEqual((code, self.drive.calls), (EXIT_OK, ["export"]))
+        self.assertEqual((code, self.drive.calls), (EXIT_OK, ["get_doc", "export"]))
         self.assertIn("+- [x] T-002", out)
         self.assertIn("+- [x] T-001", out)
         code, out, err = self.run_cmd("sync", str(self.md))
@@ -500,8 +568,10 @@ class Sync(_WithDoc):
         for line in ("- [x] T-001", "- [x] T-002", "- [x] T-003 Reworded locally", "- [ ] T-004 typed in the Doc"):
             self.assertIn(line, text)
         self.assertEqual(self.drive.docs["doc-1"], push_form(text))
-        # the guard export, then the edit path reads the Doc, falls back on the tick and reads the comments
-        self.assertEqual(self.drive.calls, ["export", "export", "export", "get_doc", "get_doc", "update", "export"])
+        # each run reads the Doc for suggestions first; then the guard export, the edit path's read, the tick that
+        # sends it to the whole replace, the comments read, the replace and the re-pull
+        self.assertEqual(self.drive.calls, ["get_doc", "export", "get_doc", "export", "export", "get_doc", "get_doc",
+                                            "update", "export"])
         state = json.loads(state_path(self.md).read_text(encoding="utf-8"))
         self.assertEqual((state["version"], state["local"], state["snapshot"]), (8, text, text))
         code, out, _ = self.run_cmd("sync", str(self.md))
@@ -510,7 +580,7 @@ class Sync(_WithDoc):
     def test_a_doc_only_change_is_pulled_and_nothing_pushed(self):
         self.drive.edit_in_ui("doc-1", "- [ ] T-002", "- [x] T-002")
         code, out, _ = self.run_cmd("sync", str(self.md))
-        self.assertEqual((code, self.drive.calls), (EXIT_OK, ["export"]))
+        self.assertEqual((code, self.drive.calls), (EXIT_OK, ["get_doc", "export"]))
         self.assertIn("pulled, nothing to push", out)
         self.assertIn("- [x] T-002", self.md.read_text(encoding="utf-8"))
         self.assertEqual(json.loads(state_path(self.md).read_text(encoding="utf-8"))["version"], 6)
@@ -533,7 +603,7 @@ class Sync(_WithDoc):
         code, _, err = self.run_cmd("sync", str(self.md))
         self.assertEqual(code, EXIT_CONFLICT)
         self.assertIn("holds conflict markers", err)
-        self.assertEqual(self.drive.calls, ["export", "export"])
+        self.assertEqual(self.drive.calls, ["get_doc", "export", "get_doc", "export"])
 
     def test_the_converters_own_blank_line_is_never_a_conflict(self):
         self.md.write_text(self.md.read_text(encoding="utf-8") + "- [ ] T-004 right after the paragraph\n",
@@ -604,13 +674,20 @@ class Json(_WithDoc):
         code, obj = self.run_json("pull", str(self.md))
         self.assertEqual((code, obj["reason"]), (EXIT_MOVED, "refused_file_changed"))
         self.assertIn("pull refused", obj["message"])
+        self.drive.suggest_in_ui("doc-1", "## Notes", "## Notes\n\nSuggested paragraph.")
+        code, obj = self.run_json("sync", str(self.md))
+        self.assertEqual((code, obj["reason"], obj["suggestions"]), (EXIT_MOVED, "refused_suggestions", 1))
+        self.assertNotIn("written", obj)
+        self.drive.suggestions.clear()
+        self.drive.edit_in_ui("doc-1", "\n\nSuggested paragraph.", "")
         code, obj = self.run_json("sync", str(self.md), "--dry-run")
-        self.assertEqual((code, obj["reason"], obj["written"], obj["pushed"]), (EXIT_OK, "synced", False, False))
+        self.assertEqual((code, obj["reason"], obj["written"], obj["pushed"], obj["suggestions"]),
+                         (EXIT_OK, "synced", False, False, 0))
         self.assertIn("+- [x] T-002", obj["diff_file"])
         self.assertIn("+- [ ] T-006 local", obj["diff_doc"])
         code, obj = self.run_json("sync", str(self.md))
         self.assertEqual((code, obj["reason"], obj["written"], obj["pushed"], obj["version"]),
-                         (EXIT_OK, "synced", True, True, 7))
+                         (EXIT_OK, "synced", True, True, 9))  # the suggestion and its removal moved the version
         self.assertIn("+", obj["converter_diff"])  # the fake's blank line before T-006, reported, not an error
 
     def test_a_conflict_and_an_error_are_objects_too(self):
@@ -915,6 +992,30 @@ class Plan(unittest.TestCase):
         self.assertEqual(e.exception.args, ("list",))
 
 
+class Suggestions(unittest.TestCase):
+    """`pending_suggestions` over the shapes a `documents.get` uses for a suggestion."""
+
+    def test_every_suggested_key_names_the_suggestion_wherever_it_sits(self):
+        doc = {"suggestionsViewMode": "SUGGESTIONS_INLINE", "revisionId": "r", "documentStyle": {},
+               "body": {"content": [
+                   {"paragraph": {"elements": [{"textRun": {"content": "a\n", "textStyle": {},
+                                                             "suggestedInsertionIds": ["s1"]}}]}},
+                   {"paragraph": {"elements": [{"textRun": {"content": "b\n", "suggestedDeletionIds": ["s2"]}},
+                                               {"textRun": {"content": "c\n", "suggestedTextStyleChanges": {
+                                                   "s3": {"textStyle": {"bold": True}}}}}],
+                                  "paragraphStyle": {"suggestedParagraphStyleChanges": {}},
+                                  "suggestedBulletChanges": {"s1": {}}}},
+                   {"table": {"tableRows": [{"tableCells": [{"content": [{"paragraph": {"elements": [
+                       {"textRun": {"content": "d\n", "suggestedInsertionIds": ["s4"]}}]}}]}]}]}},
+                   {"paragraph": {"elements": [{"inlineObjectElement": {"inlineObjectId": "kix.1",
+                                                                         "suggestedInsertionIds": ["s5"]}}]}}]},
+               "inlineObjects": {"kix.1": {"suggestedInsertionId": "s5"}},  # one id, not a list: never its letters
+               "lists": {"kix.2": {"suggestedInsertionId": "s6", "suggestedDeletionIds": ["s7"]}}}
+        self.assertEqual(pending_suggestions(doc), {"s1", "s2", "s3", "s4", "s5", "s6", "s7"})
+        self.assertEqual(pending_suggestions(json.loads((FIXTURES / "04-task-list.doc.json").read_text("utf-8"))),
+                         set())
+
+
 class Carry(unittest.TestCase):
     """The comments read before a whole replace and written again after it."""
 
@@ -1019,7 +1120,7 @@ class Writes(_WithDoc):
                           result["undeleted"]), (EXIT_OK, "replace", "tick", 1, ["Done item"], 1))  # Ann's orphan
         self.assertIn("by a whole replace (tick), 1 comments carried, 1 not placed", result["message"])
         self.assertIn("could not be carried", result["message"])
-        self.assertEqual(self.drive.calls, ["export", "export", "get_doc", "get_doc", "update", "get_doc",
+        self.assertEqual(self.drive.calls, ["get_doc", "export", "export", "get_doc", "get_doc", "update", "get_doc",
                                             "insert_comment", "delete_comment", "export"])
         self.assertEqual([(c["anchored"], c["author"]) for c in self.drive.comments["doc-1"]],
                          [(None, "Ann"), (None, "token user"), ("vendor", "token user")])

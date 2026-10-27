@@ -19,6 +19,7 @@ model (`chadkit model` says where it is).
 | `edit path` | A push as Docs API requests on the changed paragraphs only, so comments and formatting elsewhere stay (PT-009) | - | targeted edits, hybrid | domain |
 | `whole replace` | A push as `files.update` with the file's push form, which re-imports the whole Doc and orphans its comments; the script then carries them over | - | full replace, fallback | domain |
 | `pull` | Doc to markdown file: export the Doc as markdown and normalize it | - | download, fetch | domain |
+| `pending suggestion` | A change proposed in the Doc's Suggesting mode and not yet accepted or rejected; the export cannot tell it from the text, so `pull`, `sync` and `init --doc` stop while one exists (PT-028) | - | tracked change, suggested edit | domain |
 | `attach` | `init FILE --doc ID`: bind a new or empty markdown file to a Doc that exists, writing the state file and a first pull; the only way to sync a Doc the script did not create | - | - | domain |
 | `sync` | Pull, three-way merge against the snapshot, then push; the only command that writes both sides | - | - | domain |
 | `normalizer` | Reversible rewrite applied to both sides before any comparison, undoing Google's export noise | - | cleaner | domain |

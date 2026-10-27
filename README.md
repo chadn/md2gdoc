@@ -52,10 +52,11 @@ is resolved.
 A push edits the changed lines in place, so comments and formatting elsewhere in the Doc stay. A diff that ticks a
 box, nests a list item, or touches a table, code, an image or a rule replaces the whole Doc instead, and the comments
 are written again at their text, by you, each naming its author ([docs/design.md](docs/design.md), "Whole-document
-replace", says what falls back and why).
+replace", says what falls back and why). `pull`, `sync` and `init --doc` stop while the Doc holds a pending suggestion,
+since the export cannot tell one from the text; accept or reject it in the Doc first.
 
 Exit codes: 0 done; 1 usage, setup or Google error; 2 conflict; 3 refused, the other side changed since the last
-sync.
+sync, or a suggestion is pending in the Doc.
 
 Files:
 
