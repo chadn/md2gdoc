@@ -25,7 +25,7 @@ overrides:
 # gate (see the model's Workflows section; `chadkit model` says where) reads checks, paths, since.
 workflows:
   qa-gate:
-    from: user-ck@f95f135      # the shared qa-gate workflow, at that user-ck commit
+    from: user-ck@main         # the shared qa-gate workflow as merged into user-ck's main (user-ck/PD-003)
     checks: scripts/gate-checks.sh
     # Where a change can alter what the tool promises or how the gate works; the rest is caught by the
     # line count (the shared qa-gate workflow, Tiers).
@@ -37,3 +37,5 @@ workflows:
       - chadkit/workflows/qa-gate.md
       - scripts/gate-checks.sh
     since: main                # audit dev_tasks commits not yet merged onto main
+  docs-gate:
+    from: user-ck@main         # the shared documentation focus as merged into user-ck's main (user-ck/PD-003)
