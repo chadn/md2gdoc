@@ -19,6 +19,7 @@ chadkit-version: 0.7.0
 #   - path: chadkit/decisions/
 
 overrides:
+  # This project should stand on its own, so if someone forks it they can still build on it.
   - Greenfield: every artifact reads as native to this repository and cites no other project's records.
 
 # Settings by workflow name; the CLI checks only the entries it knows. The QA
