@@ -33,9 +33,14 @@ other error is `{"exit": 1, "reason": "error", "message": ...}`.
 
 ## Claude Code hooks
 
-The pattern gdoc ships as code ([similar.md](similar.md)): sync before the agent reads the file, sync after it
-writes. In Claude Code that is two hooks in the project's `.claude/settings.json`, here for this repository's
-[task list](../chadkit/tasks.md) with the command installed by `uv tool install` ([README](../README.md), Install):
+The pattern gdoc ships as code ([similar.md](similar.md)): sync when the session starts, sync after the agent
+writes. In Claude Code that is two hooks in `.claude/settings.local.json`, the personal settings file, which goes
+in `.gitignore` when a person creates it by hand (Claude Code ignores it only when it wrote the file), here for
+this repository's [task list](../chadkit/tasks.md) with the command installed by `uv tool install`
+([README](../README.md), Install). Not the project's `.claude/settings.json`: tracked, it would run the sync against
+the owner's Doc at the start of every session on every clone, once trusted, a browser login or an exit 1 for
+whoever has no token. This repository runs the same two hooks with [md2gdoc.py](../md2gdoc.py) through
+`uv run --script` in place of `md2gdoc`, the code under change ([chadkit/work/PT-030.md](../chadkit/work/PT-030.md)).
 
 ```json
 {
@@ -60,7 +65,8 @@ What happens, per Claude Code's hooks reference (read 2026-10-22,
 
 - At session start, the sync runs and its stdout (`synced ...` or `in sync ...`) is added to the agent's context on
   exit 0. A conflict exits 2: for `SessionStart` the stderr goes to the user only, and the agent meets the
-  markers when it reads the file. `"matcher": "startup"` on that group limits it to new sessions, skipping resume.
+  markers when it reads the file. Without a `matcher` the group also runs on resume, `clear`, `compact` and `fork`;
+  `"matcher": "startup"` limits it to new sessions.
 - After every `Edit` or `Write` of that file, the sync pushes the agent's change. The `if` field takes permission
   rules, and an `Edit(path)` rule covers every built-in tool that edits files, `Write` included, while a
   `Write(path)` rule never matches; the leading `/` anchors the path at the project root
@@ -70,7 +76,14 @@ What happens, per Claude Code's hooks reference (read 2026-10-22,
 - The prose output is what the hooks relay, so the recipe does not pass `--json`; a wrapper script that parses the
   object would.
 - `$CLAUDE_PROJECT_DIR` is the project root where the session started; the default hook timeout is 600 seconds.
-  The recipe is checked against the two references, not yet against a run in a Claude Code session.
+- `PostToolUse` fires after every tool, `Bash` included; the recipe's `Edit|Write` matcher is what keeps it to the
+  agent's file tools. A change made through the shell, `chadkit task add`, `sed`, a script, fires nothing under
+  it; the next `SessionStart` sync carries it, or the agent runs the sync itself after such a command. A second
+  group with the `Bash` matcher and `"if": "Bash(chadkit task *)"` would catch the CLI; untried.
+- Checked against the two references and against one day of this repository's own sessions, 2026-10-30
+  ([chadkit/work/PT-030.md](../chadkit/work/PT-030.md)): each hook was seen firing once, `PostToolUse` on an `Edit` and
+  `SessionStart` at a context compaction. Not seen in a session: a `Write`, a conflict, a refusal, a sync near
+  the 60 second timeout (syncs by hand took 3 to 6 seconds; the hook runs were not timed).
 
 Any unattended runner is the same shape: a cron line or a git `post-commit` hook running `md2gdoc sync FILE` on a
 machine that logged in once ([setup.md](setup.md)).
