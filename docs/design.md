@@ -103,31 +103,29 @@ how far the current state has got; where the two differ, the end state wins and 
   the normalized snapshot of what the Doc held after the last sync (the merge base), and the normalized text the
   file held then (`local`, so a converter change in the Doc does not read as a local edit, PT-006). It is
   committed to git, so a clone syncs the same Doc; only the credentials and token stay out (decided 2026-10-21).
-- Normalizer (applied to both sides before any comparison; export noise observed in the fixtures and PT-013's
-  probes, all reversible; a fence the text already holds and the inside of a code span are left as they are):
-  strip `**` wrapping a heading; unescape `\-`, `\[`, `\]`, `\#`, `\_`, `\<`, `\>`, `\:`, `\*`, `\.`, `\!`, `\$`,
-  `\\` (the last three since fixture 14's alerts and math), `\+`, `\~`, `\(` and `\)` (fixture 16, PT-035: the export
-  escapes a literal `+` or `~` in prose, each tilde of a literal `~~~`, and a `)` after digits before a space, and it
-  consumes a `\(` or `\)` the file holds), except an escape that keeps a line from becoming a block, which stays where
-  the character would make one: a `-`, `+` or `*` followed by a space or the end, `#` marks followed by a space or
-  the end, a `>`, an ordered marker of up to nine digits with `.` or `)` before a space, and the rule or fence
-  openers `---`, `***`, `___` and `~~~` (the export writes the last `\~\~\~`); so a deliberate escape elsewhere is
-  dropped on pull, which can turn text into markup (`\***x***`), and `\+1` or `\#tag` at a line's start is unescaped (fixture 16
+- Normalizer (applied to both sides before any comparison; export noise observed in the fixtures and PT-013's probes,
+  all reversible; a fence the text already holds and the inside of a code span are left as they are): strip `**`
+  wrapping a heading; unescape `\-`, `\[`, `\]`, `\#`, `\_`, `\<`, `\>`, `\:`, `\*`, `\.`, `\!`, `\$`, `\\` (the last
+  three since fixture 14's alerts and math), `\+`, `\~`, `\(` and `\)` (fixture 16, PT-035: the export escapes a
+  literal `+` or `~` in prose, each tilde of a literal `~~~`, and a `)` after digits before a space, and it consumes a
+  `\(` or `\)` the file holds), except an escape that keeps a line from becoming a block, which stays where the
+  character would make one: a `-`, `+` or `*` followed by a space or the end, `#` marks followed by a space or the
+  end, a `>`, an ordered marker of up to nine digits with `.` or `)` before a space, and the rule or fence openers
+  `---`, `***`, `___` and `~~~` (the export writes the last `\~\~\~`); so a deliberate escape elsewhere is dropped on
+  pull, which can turn text into markup (`\***x***`), and `\+1` or `\#tag` at a line's start is unescaped (fixture 16
   and the `ExportEscapes` tests). The rules are not all reversible: that is what the loss rows in
-  [features.md](features.md) record; collapse an autolink `[url](url)` to `url`; make a
-  table delimiter row `| --- |`; drop trailing whitespace on every line (hard breaks included); re-indent list
-  items to 4 spaces per level, the level read from the item's indent relative to the open items above it
-  (the export indents a child to its parent's content column: 2 under a bullet, 3 under an ordered item, 6
-  under a checkbox; fixture 08); restore the final newline; join nothing (soft
-  line breaks are already joined by Docs, which is why the push form sends them as hard breaks). Fold a code
-  run back into a fence: two or more consecutive lines that are each one code span, with optional leading
-  whitespace outside the span and a hard break (two or more trailing spaces) after every line but the last,
-  become a backtick fence whose lines are the spans' text (one pad space stripped from each end when both are
-  present) with that leading whitespace kept; a whitespace-only line in the run, first lines included, is a blank
-  code line, and a trailing blank line is dropped (the push form adds one to a one-line block, so a lone span is
-  never a run). The fence's info string and style are not in the
-  Doc: the n-th run takes the info string of the n-th fenced block in the local file when the counts match, else
-  none; a tilde fence comes back as a backtick fence.
+  [features.md](features.md) record; collapse an autolink `[url](url)` to `url`; make a table delimiter row `| --- |`;
+  drop trailing whitespace on every line (hard breaks included); re-indent list items to 4 spaces per level, the level
+  read from the item's indent relative to the open items above it (the export indents a child to its parent's content
+  column: 2 under a bullet, 3 under an ordered item, 6 under a checkbox; fixture 08); restore the final newline; join
+  nothing (soft line breaks are already joined by Docs, which is why the push form sends them as hard breaks). Fold a
+  code run back into a fence: two or more consecutive lines that are each one code span, with optional leading
+  whitespace outside the span and a hard break (two or more trailing spaces) after every line but the last, become a
+  backtick fence whose lines are the spans' text (one pad space stripped from each end when both are present) with
+  that leading whitespace kept; a whitespace-only line in the run, first lines included, is a blank code line, and a
+  trailing blank line is dropped (the push form adds one to a one-line block, so a lone span is never a run). The
+  fence's info string and style are not in the Doc: the n-th run takes the info string of the n-th fenced block in the
+  local file when the counts match, else none; a tilde fence comes back as a backtick fence.
 - Push form (applied to the file just before a push, never written back; fixture 05 `.in.md` is the reference):
   a fenced or tilde-fenced block at the left margin (one indented under a list item is sent as it is and loses
   its shape, the `idea` row in [features.md](features.md)) becomes a code run, one line per code line, each
