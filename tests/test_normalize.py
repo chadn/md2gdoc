@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from md2gdoc import normalize, push_form  # noqa: E402
+from md2gdoc import doc_view, normalize, push_form  # noqa: E402
 
 FIXTURES = ROOT / "tests" / "fixtures"
 
@@ -51,6 +51,24 @@ class Spans(unittest.TestCase):
         self.assertEqual(normalize(fixture("07-spans.out.md")), normalize(src))
         # The one loss: the upload's deliberate escape outside a span is dropped on both sides.
         self.assertEqual(normalize(src), src.replace("\\_x\\_", "_x_"))
+
+
+class HtmlComment(unittest.TestCase):
+    """Fixture 15: Google's import drops a whole-line HTML comment and makes an open box of a resolved `[-]` line;
+    the export indents a lazy continuation line and puts a blank line before a list that follows a paragraph."""
+
+    def test_push_form_is_what_was_uploaded(self):
+        self.assertEqual(push_form(fixture("15-html-comment.src.md")), fixture("15-html-comment.in.md"))
+
+    def test_the_export_is_the_source_without_the_comments_but_for_three_rewrites(self):
+        src = fixture("15-html-comment.src.md")
+        self.assertIn("<!--", src)
+        self.assertNotIn("<!--", fixture("15-html-comment.out.md"))
+        expected = (doc_view(normalize(src))
+                    .replace("- [-] 2026-09-01", "- [ ] 2026-09-01")
+                    .replace("\nPat will", "\n  Pat will").replace("\nSam will", "\n  Sam will")
+                    .replace("Also:\n- offer", "Also:\n\n- offer"))
+        self.assertEqual(normalize(fixture("15-html-comment.out.md"), src), expected)
 
 
 class TaskList(unittest.TestCase):

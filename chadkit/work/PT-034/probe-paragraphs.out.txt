@@ -1,0 +1,19 @@
+# One run of probe-paragraphs.py, 2026-10-30, as printed: Google puts an empty paragraph between a paragraph and the
+# list that follows it, so the export's blank line before a list is a paragraph the edit path can map; the structure
+# fallback here is the soft breaks inside paragraphs (U+000B), the known Shift+Enter case in docs/features.md.
+14 paragraphs; 20 export lines
+'Notes with comments\n' 
+'Log\n' 
+'An entry starts with a date, then free text; blank\x0blines are fine. 
+'\n' 
+'2026-07-06 Service area: one city, two locations\n' bullet
+'2026-09-01 An entry resolved and kept\n' bullet
+'2026-10-29 Call notes:\x0bPat will update the listing\x0bSam will upd bullet
+'\n' 
+'Also:\n' 
+'\n' 
+'offer workshops\n' bullet
+'track retention\n' bullet
+'\n' 
+'Retention after the first month:\x0b40% stay with the full package\n' 
+plan_edits: Fallback structure

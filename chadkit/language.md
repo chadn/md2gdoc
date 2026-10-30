@@ -21,10 +21,13 @@ model (`chadkit model` says where it is).
 | `pull` | Doc to markdown file: export the Doc as markdown and normalize it | - | download, fetch | domain |
 | `pending suggestion` | A change proposed in the Doc's Suggesting mode and not yet accepted or rejected; the export cannot tell it from the text, so `pull`, `sync` and `init --doc` stop while one exists (PT-028) | - | tracked change, suggested edit | domain |
 | `attach` | `init FILE --doc ID`: bind a new or empty markdown file to a Doc that exists, writing the state file and a first pull; the only way to sync a Doc the script did not create | - | - | domain |
-| `sync` | Pull, three-way merge against the snapshot, then push; the only command that writes both sides | - | - | domain |
+| `footer` | The three paragraphs at the end of a synced file and its Doc, `md2gdoc sync last change: <date time>`, the file's path from the repository root, the Doc's link; never a change; off with `--no-footer` (PT-034) | - | - | domain |
+| `Doc-only change` | A sync or pull where the file has not changed since the last sync and the Doc has; the file keeps its own form and the Doc's changes are carried onto it (PT-034) | - | one-sided pull, Doc-side change | domain |
+| `two forms` | The file's form, `local`, the normalized file with its HTML comments and its own shape, and the Doc's form, `snapshot`, the normalized export; never compared, a change on one side is carried onto the other by `replay()` (PT-034) | the file's form, the Doc's form | - | domain |
+| `sync` | Pull, three-way merge in the file's form, then push; the only command that writes both sides | - | - | domain |
 | `normalizer` | Reversible rewrite applied to both sides before any comparison, undoing Google's export noise | - | cleaner | domain |
-| `snapshot` | Normalized content at the last successful sync, kept in the state file; the merge base | - | baseline, cache | domain |
-| `state file` | JSON next to the markdown file: Doc id, link, Drive `version`, snapshot, and the file's normalized text at the last sync | - | sidecar | domain |
+| `snapshot` | The Doc's form at the last successful sync, kept in the state file: the normalized export, from which the Doc's changes are read (`two forms`) | - | baseline, cache, merge base | domain |
+| `state file` | JSON next to the markdown file: Doc id, link, Drive `version`, snapshot, the file's normalized text at the last sync (`local`, the file's form), and `footer: false` after `--no-footer` | - | sidecar | domain |
 | `api-edited` | Conflict-marker label for the markdown side, the side the script writes; `local` was ruled out | - | ours | domain |
 | `code run` | A Doc paragraph of monospace lines, one per code line, standing in for a fenced code block; a push sends one, a pull folds it back into a fence | - | monospace block, code paragraph | domain |
 | `push form` | The markdown the script sends to Google in place of the file: the file plus the rewrites that keep Google's import from losing content (code runs, entity indents); never written back to the file | - | wire format, upload form | domain |

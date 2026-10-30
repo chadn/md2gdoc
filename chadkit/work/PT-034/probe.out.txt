@@ -1,0 +1,6 @@
+# Three runs of probe.py, 2026-10-30, each line as the probe printed it; the uv install lines dropped. Run 1 sent the
+# source as it is, and the export joined every soft break, as fixture 03 shows; its bytes are not kept. Run 2 sent the
+# push form without the `[-]` line; run 3 the push form as committed, .in.md, the pair as committed.
+15-html-comment: 541 chars in, 348 chars out, version 4, Doc trashed
+15-html-comment: 551 chars in, 360 chars out, version 4, Doc trashed
+15-html-comment: 595 chars in, 406 chars out, version 5, Doc trashed

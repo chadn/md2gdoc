@@ -1,4 +1,4 @@
-# Round-trip fixtures (PT-002 and PT-013, 2026-10-21; PT-004, 2026-10-22; PT-023, 2026-10-25; PT-024, 2026-10-27)
+# Fixtures (PT-002, PT-013, 2026-10-21; PT-004, 2026-10-22; PT-023, 2026-10-25; PT-024, 2026-10-27; PT-034, 2026-10-30)
 
 Each `.in.*` file was uploaded to Google Drive with conversion to a native Google Doc; each `.out.md` is the
 `text/markdown` export of the resulting Doc, byte for byte. Use them as normalizer test cases: normalize(out) must
@@ -45,10 +45,15 @@ below.
   emoji shortcodes, color chips, `<details>`, a mention, an issue reference and a commit SHA (PT-024); `.src.md`,
   `.in.md` and `.out.md` as 05. Equalities: push_form(src) == in, and normalize(out, src) == src with two alerts
   back to back merged into one quote, each shortcode as its character, and the `<details>` block as one paragraph.
+- 15-html-comment: two whole-line HTML comments, a resolved task line `- [-]`, a lazy continuation line under a
+  list item and a list right after a paragraph (PT-034); `.src.md`, `.in.md` and `.out.md` as 05. Equalities:
+  push_form(src) == in, and normalize(out, src) == doc_view(normalize(src)) with the `[-]` an open box, the
+  continuation lines indented by two and a blank line before the list; no export holds a comment.
 
 Trailing double spaces on list lines are part of Google's export; keep them when copying. PT-013's probes went
 through the same converter and are kept as evidence, not test cases (recovered from the session transcript), under
 [chadkit/work/PT-013/](../../chadkit/work/PT-013/).
 PT-023's fixtures went through the script's own `Drive.create` and `Drive.export` calls, by
 [chadkit/work/PT-023/probe.py](../../chadkit/work/PT-023/probe.py); PT-024's by
-[chadkit/work/PT-024/probe.py](../../chadkit/work/PT-024/probe.py).
+[chadkit/work/PT-024/probe.py](../../chadkit/work/PT-024/probe.py); PT-034's by
+[chadkit/work/PT-034/probe.py](../../chadkit/work/PT-034/probe.py).

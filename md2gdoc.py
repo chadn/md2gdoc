@@ -20,6 +20,7 @@ without them.
 from __future__ import annotations
 
 import argparse
+import datetime
 import difflib
 import json
 import os
@@ -344,6 +345,212 @@ def _sync_regions(a: list[str], b: list[str], c: list[str]) -> list[tuple[int, i
 
 def has_markers(text: str) -> bool:
     return any(_MARKER.match(line) for line in text.split("\n"))
+
+
+# The two forms (PT-034). The file's form, `local` in the state file, is the normalized file: it keeps what Google's
+# import drops (an HTML comment) and the file's own shape of a line the converter rewrites (a blank line before a
+# list, a code span's trailing space). The Doc's form, `snapshot`, is the normalized export. A change made on one
+# side is carried onto the other side's form by `replay`, so a Doc-only change leaves the file's form and a file-only
+# change pushes nothing but the file's hunks; the two forms are never compared to each other.
+
+_COMMENT_OPEN = re.compile(r"^ {0,3}<!--")
+_RESOLVED_BOX = re.compile(r"^((?:    )*- )\[-\] ")
+
+
+def _comment_lines(lines: list[str]) -> set[int]:
+    """The indexes of the lines inside whole-line HTML comment blocks: a line starting with `<!--` (up to three spaces
+    in), through the line holding `-->`; a comment that starts mid-line, one never closed, or one inside a fenced
+    block is prose or code and stays."""
+    skip: set[int] = set()
+    fence: str | None = None
+    i = 0
+    while i < len(lines):
+        m = _FENCE.match(lines[i])
+        if fence is None and m and m.group(1)[0] in "`~":
+            fence = m.group(1)
+        elif fence is not None and m and m.group(1)[0] == fence[0] and len(m.group(1)) >= len(fence):
+            fence = None
+        elif fence is None and _COMMENT_OPEN.match(lines[i]):
+            j = next((k for k in range(i, len(lines)) if "-->" in lines[k]), None)
+            if j is not None:
+                skip.update(range(i, j + 1))
+                i = j + 1
+                continue
+        i += 1
+    return skip
+
+
+def doc_view(text: str) -> str:
+    """The file's form as the Doc can hold it: the HTML comment blocks gone, as Google's import drops them, and the
+    blank line that would double up with them; a file that opened with a comment opens with its first line."""
+    lines = text.split("\n")
+    skip = _comment_lines(lines)
+    if not skip:
+        return text
+    out: list[str] = []
+    for i, line in enumerate(lines):
+        if i in skip:
+            continue
+        if line == "" and i - 1 in skip and (not out or out[-1] == ""):
+            continue
+        out.append(line)
+    while len(out) > 1 and out[-1] == "" and out[-2] == "":
+        out.pop()
+    return "\n".join(out)
+
+
+def _key(line: str) -> str:
+    """What a line is for aligning the two forms: its text without the converter's rewrites of shape, a continuation
+    line's indent and a resolved box shown open."""
+    return _RESOLVED_BOX.sub(r"\1[ ] ", line.strip())
+
+
+def replay(base: str, new: str, target: str) -> str:
+    """The hunks of `base` to `new` carried onto `target`, the same text as `base` in the other form.
+
+    The two forms are aligned line by line on `_key`, so a line the converter only reshaped (a continuation line it
+    indented, a `[-]` it shows as `[ ]`) pairs with its other form, and the runs left unpaired are the lines one form
+    alone has: the blank the converter puts before a list, an HTML comment. A hunk's edge inside such a run, or an
+    insertion at its edge, takes the whole run, carrying the run's unchanged lines along in `new`'s form, so nothing
+    is lost; a hunk that spans a comment of `target` keeps the comment, after the hunk's lines, between blank lines.
+    """
+    a, c, b = base.split("\n"), new.split("\n"), target.split("\n")
+    comments = _comment_lines(b)
+    keys_b = [object() if i in comments else _key(line) for i, line in enumerate(b)]
+    blocks = difflib.SequenceMatcher(None, [_key(x) for x in a], keys_b, autojunk=False).get_matching_blocks()
+    in_block = [False] * (len(a) + 1)
+    for ai, _, n in blocks:
+        for i in range(ai, ai + n):
+            in_block[i] = True
+    in_block[len(a)] = True
+
+    def gap(i: int) -> tuple[int, int]:  # the unpaired run of `a` holding position i
+        lo = hi = i
+        while lo > 0 and not in_block[lo - 1]:
+            lo -= 1
+        while hi < len(a) and not in_block[hi]:
+            hi += 1
+        return lo, hi
+
+    hunks: list[list[int]] = []
+    for tag, i1, i2, k1, k2 in difflib.SequenceMatcher(None, a, c, autojunk=False).get_opcodes():
+        if tag == "equal":
+            continue
+        if i1 == i2 and (not in_block[i1] or (i1 and not in_block[i1 - 1])):  # an insertion touching a run
+            lo, hi = gap(i1 if not in_block[i1] else i1 - 1)
+        else:
+            lo = gap(i1)[0] if not in_block[i1] else i1
+            hi = gap(i2 - 1)[1] if i2 > i1 and not in_block[i2 - 1] else i2
+        k1, k2 = k1 - (i1 - lo), k2 + (hi - i2)
+        if hunks and lo <= hunks[-1][1]:  # the widened hunk reaches the one before: one hunk
+            hunks[-1][1], hunks[-1][3] = hi, k2
+        else:
+            hunks.append([lo, hi, k1, k2])
+
+    def to_b(i: int, end: bool) -> int:
+        """A position of `a` in `b`: inside a block, or at the edge of one; a start edge takes the block it opens, an
+        end edge the block it closes, so a run only `b` has stays outside the hunk."""
+        for ai, bj, n in blocks:
+            if (ai < i <= ai + n) if end else (ai <= i < ai + n):
+                return bj + i - ai
+        for ai, bj, n in blocks:
+            if ai <= i <= ai + n:
+                return bj + i - ai
+        return len(b)
+
+    out: list[str] = []
+    pos = 0
+    for lo, hi, k1, k2 in hunks:
+        j1, j2 = to_b(lo, False), to_b(hi, True)
+        if hi == lo:
+            j2 = j1
+        j1 = max(j1, pos)
+        j2 = max(j2, j1)
+        out.extend(b[pos:j1])
+        kept = [b[j] for j in range(j1, j2) if j in comments]
+        out.extend(c[k1:k2])
+        if kept:
+            if out and out[-1] != "":
+                out.append("")
+            out.extend(kept)
+            if j2 < len(b) and b[j2] != "":
+                out.append("")
+        pos = j2
+    out.extend(b[pos:])
+    return "\n".join(out)
+
+
+# The footer (PT-031, built by PT-034): three paragraphs at the end of both the file and the Doc, the time of the
+# last sync that wrote that side, the file's path from the repository root as a code span, the Doc's link. Stripped
+# from both sides before they are compared or merged, written after; `--no-footer` on a writing command turns it
+# off, and the state file remembers.
+
+FOOTER_MARK = "md2gdoc sync last change: "
+
+
+def split_footer(text: str) -> tuple[str, list[str] | None]:
+    """The text without its footer, and the footer's three lines, or None when the text holds no footer. The footer
+    is the last line starting with the mark whose next two non-blank lines are a path (a code span, or bare since a
+    Doc may lose the span, then a file name with its dot or a folder's slash) and a link, wherever it sits; lines
+    appended after it (a task line `chadkit task add` wrote) stay body, so the next write moves the footer back to the
+    end."""
+    lines = text.rstrip("\n").split("\n")
+    kept = [i for i, line in enumerate(lines) if line.strip()]
+    for n in range(len(kept) - 3, -1, -1):
+        first, path, link = (lines[i] for i in kept[n:n + 3])
+        span = path.startswith("`") and path.endswith("`")
+        if first.startswith(FOOTER_MARK) and (span or "." in path or "/" in path) and link.startswith("http"):
+            body = lines[:kept[n]] + lines[kept[n + 2] + 1:]
+            while body and body[-1] == "":
+                body.pop()
+            while len(body) > 1 and body[-1] == "" and body[-2] == "":
+                body.pop()
+            return "\n".join(body) + "\n", [first, path, link]
+    return text, None
+
+
+def with_footer(body: str, footer: list[str] | None) -> str:
+    if footer is None:
+        return body
+    return (body + "\n" if body.strip() else "") + "\n\n".join(footer) + "\n"
+
+
+def footer_now(md: Path, link: str) -> list[str]:
+    now = datetime.datetime.now().astimezone()
+    when = f"{now:%Y-%m-%d %I:%M}{now.strftime('%p').lower()} {now.tzname() or ''}".rstrip()
+    return [FOOTER_MARK + when, f"`{repo_path(md)}`", link]  # a span, so a `_` in the path is never italics
+
+
+def repo_path(md: Path) -> str:
+    """The file's path from the repository root, so the footer reads the same in every clone; the path as given
+    outside a repository."""
+    full = md.resolve()
+    for parent in [full.parent, *full.parent.parents]:
+        if (parent / ".git").exists():
+            return full.relative_to(parent).as_posix()
+    return md.as_posix()
+
+
+def footer_wanted(args, state: dict, md: Path | None = None) -> bool:
+    """Whether this file carries the footer: off once `--no-footer` was given, which the state file remembers, from
+    that command on even when it writes nothing else."""
+    if getattr(args, "no_footer", False) and state.get("footer", True):
+        state["footer"] = False
+        if md is not None and state_path(md).exists():
+            save_state(md, state)
+    return state.get("footer", True)
+
+
+def footer_for(want: bool, *present: list[str] | None, md: Path, link: str, fresh: bool) -> list[str] | None:
+    """The footer a side gets: none when off; new when a body was written (`fresh`); else the footer a side already
+    has, so an in-sync run adds a missing footer without changing the other side's time."""
+    if not want:
+        return None
+    if not fresh:
+        for footer in present:
+            if footer is not None:
+                return footer
+    return footer_now(md, link)
 
 
 # ---- Targeted edits (PT-009, PD-001 option C'): a push edits the Doc's paragraphs when it can, replaces it when
@@ -824,10 +1031,12 @@ commands:
   init FILE --doc ID  attach FILE, new or empty, to the Doc with id ID (the /d/ID/ part of its link): write
                  its text to FILE and the state file; a Doc the script did not make needs a `--scope drive`
                  profile; refused with --name or --folder, or when FILE holds text
-  pull FILE      export the Doc, undo the converter's noise, write FILE; refused when FILE changed since the
-                 last sync (unless --force), and refused while the Doc holds a pending suggestion, which the
-                 export cannot tell from the text (sync and init --doc refuse it too; a dry run of init makes
-                 no call)
+  pull FILE      export the Doc, undo the converter's noise, carry the Doc's changes onto FILE, which keeps
+                 its own shape and its HTML comments away from the changed lines; refused when FILE changed
+                 since the last sync; --force writes the Doc's text as it is, changed or not; refused while
+                 the Doc holds a pending suggestion, which
+                 the export cannot tell from the text (sync and init --doc refuse it too; a dry run of init
+                 makes no call)
   push FILE      write FILE's changes to the Doc; refused when the Doc changed since the last sync. Changed
                  lines are edited in place through the Docs API, so comments and formatting elsewhere stay;
                  a diff that ticks a box, nests a list, or touches a table, code, an image or a rule replaces
@@ -837,6 +1046,11 @@ commands:
                  >>>>>>> hand-edited (the Doc's), nothing is pushed, and the exit code is 2; refused while
                  the Doc holds a pending suggestion, like pull
   status FILE    which side changed since the last sync
+  --no-footer    on init, pull, push, sync: no footer; by default every synced file and its Doc end with three
+                 paragraphs, `md2gdoc sync last change: 2026-10-30 09:43am PDT` (this machine's clock and
+                 zone), FILE's path from the repository root in backticks, and the Doc's link, refreshed by
+                 whichever command writes that side and never read as a change; remembered in the state
+                 file, so one --no-footer is enough
   --dry-run      on any command: say what would happen, change nothing (status: local side only, no network)
   --json         on any command: one JSON object on stdout and nothing else: command, file, exit, reason (a
                  fixed word: created, attached, pulled, pushed, synced, status, in_sync, nothing_to_push,
@@ -862,8 +1076,8 @@ setup (once per profile; the full walkthrough is docs/setup.md at github.com/cha
 
 files:
   FILE{STATE_SUFFIX}       the state file next to FILE: Doc id, link, Drive version, the normalized snapshot of
-                       what the Doc held after the last sync (the merge base) and of what FILE held; commit it,
-                       so a clone syncs the same Doc
+                       what the Doc held after the last sync and of what FILE held (the merge base), and
+                       `footer: false` after --no-footer; commit it, so a clone syncs the same Doc
   <config>/NAME/       one folder per profile, NAME the account name, holding that profile's {CLIENT_FILE}
                        (the OAuth client, from a Cloud project under that Google account) and {TOKEN_FILE} (the
                        cached token, which remembers the scope); neither is ever in a repository
@@ -1076,7 +1290,17 @@ def cmd_init(args, drive) -> int:
         return _finish(args, out, EXIT_OK, "created", name=name, lines=[
             f"would create Doc {name!r} from {md} ({len(text.splitlines())} lines) and write {state_path(md)}"])
     d = drive(args.account, args.scope)
-    return _record(args, out, md, text, d.create(name, push_form(text), args.folder), d, "created")
+    state = {}
+    want = footer_wanted(args, state)
+    body, _ = split_footer(normalize(text))
+    state.update(d.create(name, push_form(doc_view(body)), args.folder))
+    footer = footer_for(want, md=md, link=state["link"], fresh=True)
+    if footer is not None:  # the file gets its footer, and the Doc, which the create could not name, gets it by edits
+        raw, _ = split_footer(text)
+        write_md(md, with_footer(raw if raw.endswith("\n") else raw + "\n", footer))
+        doc_full = normalize(d.export(state["doc_id"]), body)
+        write_doc(d, state["doc_id"], doc_full, with_footer(doc_full, footer))
+    return _record(args, out, md, body, doc_view(body), state, d, "created")
 
 
 def _attach(args, out: dict, md: Path, drive) -> int:
@@ -1095,8 +1319,11 @@ def _attach(args, out: dict, md: Path, drive) -> int:
     if (code := suggestions_held(args, out, d, args.doc, "init")) is not None:
         return code
     state = d.lookup(args.doc)
-    write_md(md, new)
-    state.update(snapshot=new, local=new)
+    want = footer_wanted(args, state)
+    body, doc_footer = split_footer(new)
+    footer = footer_for(want, doc_footer, md=md, link=state["link"], fresh=doc_footer is None)
+    write_md(md, with_footer(body, footer))  # the Doc, a first pull's source, is not written; its first push adds one
+    state.update(snapshot=body, local=body)
     save_state(md, state)
     return _finish(args, out, EXIT_OK, "attached", written=True, link=state["link"], version=state["version"],
                    lines=[f"attached {md} to {state['link']}"])
@@ -1136,24 +1363,31 @@ def cmd_pull(args, drive) -> int:
     md = Path(args.file)
     out = _out(args, md)
     state = load_state(md)
-    local = read_md(md) if md.is_file() else ""
+    text = read_md(md) if md.is_file() else ""
+    local, file_footer = split_footer(normalize(text))
+    want = footer_wanted(args, state, md)
     out.update(doc_id=state["doc_id"], link=state["link"])
-    if normalize(local) != state["local"] and not args.force and not args.dry_run:
+    if local != state["local"] and not args.force and not args.dry_run:
         return _finish(args, out, EXIT_MOVED, "refused_file_changed", errors=[
             f"pull refused: {md} changed since the last sync; sync, or pull --force to overwrite it"])
     d = drive(args.account, args.scope)
     if (code := suggestions_held(args, out, d, state["doc_id"], "pull")) is not None:
         return code
-    new = normalize(d.export(state["doc_id"]), local)
-    changes = diff(local, new, f"{md} (local)", f"{md} (Doc)")
+    theirs, doc_footer = split_footer(normalize(d.export(state["doc_id"]), text))
+    # The Doc's changes carried onto the file's form; with --force, the Doc's text as it is
+    new = theirs if args.force else replay(state["snapshot"], theirs, state["local"])
+    footer = footer_for(want, file_footer, doc_footer, md=md, link=state["link"], fresh=new != local)
+    new_text = with_footer(new, footer)
+    changes = diff(text, new_text, f"{md} (local)", f"{md} (Doc)")
     if args.dry_run:
         return _finish(args, out, EXIT_OK, "pulled", diff=changes, written=False,
                        lines=[changes or f"{md} already matches the Doc"])
-    write_md(md, new)
-    state.update(version=d.version(state["doc_id"]), snapshot=new, local=new)
+    if new_text != text:
+        write_md(md, new_text)
+    state.update(version=d.version(state["doc_id"]), snapshot=theirs, local=new)
     save_state(md, state)
-    return _finish(args, out, EXIT_OK, "pulled", written=new != local, version=state["version"],
-                   lines=[f"pulled {md}: {'changed' if new != local else 'unchanged'}"])
+    return _finish(args, out, EXIT_OK, "pulled", written=new_text != text, version=state["version"],
+                   lines=[f"pulled {md}: {'changed' if new_text != text else 'unchanged'}"])
 
 
 def cmd_push(args, drive) -> int:
@@ -1165,33 +1399,37 @@ def cmd_push(args, drive) -> int:
     if has_markers(text):
         return _finish(args, out, EXIT_CONFLICT, "markers", errors=[
             f"push refused: {md} holds conflict markers from the last sync; resolve them first"])
-    local = normalize(text)
+    local, _ = split_footer(normalize(text))
+    want = footer_wanted(args, state, md)
     if local == state["local"]:
         return _finish(args, out, EXIT_OK, "nothing_to_push", pushed=False,
                        lines=[f"nothing to push: {md} matches the last sync"])
     d = drive(args.account, args.scope)
     # The guard exports and compares every time: a matching Drive version is not proof (design.md, item 2).
-    doc_text = normalize(d.export(state["doc_id"]), text)
-    if doc_text != state["snapshot"]:
+    doc_full = normalize(d.export(state["doc_id"]), text)
+    theirs, doc_footer = split_footer(doc_full)
+    if theirs != state["snapshot"]:
         return _finish(args, out, EXIT_MOVED, "refused_doc_changed", pushed=False, errors=[
             "push refused: the Doc changed since the last sync; pull or sync first"])
     if args.dry_run:
         changes = diff(state["local"], local, f"{md} (last sync)", f"{md} (local)")
         return _finish(args, out, EXIT_OK, "pushed", pushed=False, diff=changes, lines=[changes])
-    return _write(args, out, md, text, state, d, doc_text, "pushed")
+    new_doc = replay(doc_view(state["local"]), doc_view(local), theirs)
+    footer = footer_for(want, md=md, link=state["link"], fresh=True)
+    return _write(args, out, md, with_footer(new_doc, footer), local, state, d, doc_full, "pushed")
 
 
 def cmd_status(args, drive) -> int:
     md = Path(args.file)
     out = _out(args, md)
     state = load_state(md)
-    local = normalize(read_md(md)) if md.is_file() else ""
+    local = split_footer(normalize(read_md(md)))[0] if md.is_file() else ""
     out.update(doc_id=state["doc_id"], link=state["link"], local_changed=local != state["local"])
     lines = [f"{md}: {'changed' if out['local_changed'] else 'unchanged'} since the last sync"]
     if args.dry_run:
         return _finish(args, out, EXIT_OK, "status", lines=lines)
     d = drive(args.account, args.scope)
-    doc_text = normalize(d.export(state["doc_id"]))
+    doc_text = split_footer(normalize(d.export(state["doc_id"])))[0]
     version = d.version(state["doc_id"])
     out.update(doc_changed=doc_text != state["snapshot"], version=version, version_at_sync=state["version"])
     lines.append(f"Doc {state['link']}: {'changed' if out['doc_changed'] else 'unchanged'}"
@@ -1208,58 +1446,74 @@ def cmd_sync(args, drive) -> int:
     if has_markers(text):
         return _finish(args, out, EXIT_CONFLICT, "markers", errors=[
             f"sync refused: {md} holds conflict markers from the last sync; resolve them first"])
-    local = normalize(text)
+    local, file_footer = split_footer(normalize(text))
+    want = footer_wanted(args, state, md)
     d = drive(args.account, args.scope)
     if (code := suggestions_held(args, out, d, state["doc_id"], "sync")) is not None:
         return code
-    theirs = normalize(d.export(state["doc_id"]), text)
+    doc_full = normalize(d.export(state["doc_id"]), text)
+    theirs, doc_footer = split_footer(doc_full)
     version = d.version(state["doc_id"])
-    if local == state["local"] and theirs == state["snapshot"]:
+    file_changed, doc_changed = local != state["local"], theirs != state["snapshot"]
+    footer_ok = (file_footer is None) == (not want)  # the Doc's footer moves with its next write for a change
+    if not file_changed and not doc_changed and footer_ok:
         return _finish(args, out, EXIT_OK, "in_sync", written=False, pushed=False,
                        lines=[f"in sync: neither {md} nor the Doc changed since the last sync"])
-    # One side unchanged: the other side is the result, so the converter's own differences between the two
-    # texts of the last sync (features.md, the blank line before a list) never read as a conflict.
-    if local == state["local"]:
-        merged, conflicts = theirs, 0
-    elif theirs == state["snapshot"]:
+    # The Doc's changes in the file's form, then the merge in that form; the two forms are never compared, so the
+    # converter's own differences between the two texts of the last sync never read as a conflict.
+    carried = replay(state["snapshot"], theirs, state["local"]) if doc_changed else state["local"]
+    if not file_changed:
+        merged, conflicts = carried, 0
+    elif not doc_changed:
         merged, conflicts = local, 0
     else:
-        merged, conflicts = merge3(state["snapshot"], local, theirs)
+        merged, conflicts = merge3(state["local"], local, carried)
+    footer = footer_for(want, file_footer, doc_footer, md=md, link=state["link"],
+                        fresh=file_changed or doc_changed)
     if conflicts:
         changes = diff(local, merged, f"{md} (local)", f"{md} (merged, with markers)")
         if not args.dry_run:
-            write_md(md, merged)
+            write_md(md, with_footer(merged, footer))
         return _finish(args, out, EXIT_CONFLICT, "conflict", conflicts=conflicts, written=not args.dry_run,
                        pushed=False, diff_file=changes, lines=[changes] if args.dry_run else [], errors=[
                            f"conflict: {conflicts} place{'s' if conflicts > 1 else ''} changed differently on both "
                            f"sides; {'would write' if args.dry_run else 'wrote'} both versions to {md} between "
                            f"<<<<<<< {OURS} and >>>>>>> {THEIRS}; nothing pushed"])
+    new_doc = replay(doc_view(carried), doc_view(merged), theirs) if file_changed else theirs
+    # The Doc is written for a change it would show, and takes or loses its footer then; never for the footer alone,
+    # since a Doc-only change, a comment-only edit or an attached Doc would then write the Doc, by the whole replace
+    # where a line forces it, with the comments that costs.
+    doc_text = with_footer(new_doc, footer) if new_doc != theirs else doc_full
     if args.dry_run:
-        diff_file = diff(local, merged, f"{md} (local)", f"{md} (merged)")
-        diff_doc = diff(theirs, merged, f"{md} (Doc)", f"{md} (merged)")
+        diff_file = diff(with_footer(local, file_footer), with_footer(merged, footer), f"{md} (local)",
+                         f"{md} (merged)")
+        diff_doc = diff(doc_full, doc_text, f"{md} (Doc)", f"{md} (merged)")
         return _finish(args, out, EXIT_OK, "synced", written=False, pushed=False, diff_file=diff_file,
                        diff_doc=diff_doc, lines=[diff_file or f"{md} would not change",
                                                  diff_doc or "the Doc would not change"])
-    if merged != local:
-        write_md(md, merged)
-    out["written"] = merged != local
-    if merged == theirs:
+    file_text = with_footer(merged, footer)
+    out["written"] = file_text != text
+    if out["written"]:
+        write_md(md, file_text)
+    if doc_text == doc_full:
         state.update(version=version, snapshot=theirs, local=merged)
         save_state(md, state)
         return _finish(args, out, EXIT_OK, "synced", pushed=False, version=version,
                        lines=[f"synced {state['link']}: pulled, nothing to push"])
     # The push guard is a fresh export, as in push: the version is no proof of anything (design.md, item 2).
-    if normalize(d.export(state["doc_id"]), text) != theirs:
+    if normalize(d.export(state["doc_id"]), text) != doc_full:
         return _finish(args, out, EXIT_MOVED, "refused_doc_changed", pushed=False, errors=[
             "push refused: the Doc changed while syncing; run sync again"])
-    return _write(args, out, md, merged, state, d, theirs, "synced")
+    return _write(args, out, md, doc_text, merged, state, d, doc_full, "synced")
 
 
-def _write(args, out: dict, md: Path, text: str, state: dict, d: Drive, doc_text: str, verb: str) -> int:
+def _write(args, out: dict, md: Path, doc_text: str, body: str, state: dict, d: Drive, old_doc: str,
+           verb: str) -> int:
     """The write of push and sync: edits when the diff allows, else the whole replace with the comments carried,
-    then the record; `doc_text` is the Doc's normalized export the guard just compared."""
+    then the record; `old_doc` is the Doc's normalized export the guard just compared, footer and all, `doc_text`
+    what the Doc is to hold, and `body` the file's form the state keeps as `local`."""
     try:
-        wrote = write_doc(d, state["doc_id"], doc_text, text)
+        wrote = write_doc(d, state["doc_id"], old_doc, doc_text)
     except Exception as e:
         if "revision" not in str(e).lower():
             raise
@@ -1272,17 +1526,18 @@ def _write(args, out: dict, md: Path, text: str, state: dict, d: Drive, doc_text
             how += f", {len(wrote['unplaced'])} not placed (their text changed)"
     errors = [f"{len(wrote['unplaced'])} comments could not be carried; they stay in the Doc's comment list "
               f"without an anchor: {'; '.join(repr(t) for t in wrote['unplaced'])}"] if wrote.get("unplaced") else []
-    return _record(args, out, md, text, {"doc_id": state["doc_id"], "link": state["link"]}, d, verb, how, errors,
-                   **wrote)
+    return _record(args, out, md, body, split_footer(doc_text)[0], state, d, verb, how, errors, **wrote)
 
 
-def _record(args, out: dict, md: Path, text: str, state: dict, d: Drive, verb: str, how: str = "",
+def _record(args, out: dict, md: Path, body: str, sent: str, state: dict, d: Drive, verb: str, how: str = "",
             errors: list[str] = (), **fields) -> int:
-    """After a create or a write: export once more and store what the Doc now holds as the snapshot."""
-    snapshot = normalize(d.export(state["doc_id"]), text)
-    state.update(version=d.version(state["doc_id"]), snapshot=snapshot, local=normalize(text))
+    """After a create or a write: export once more and store what the Doc now holds as the snapshot, beside the
+    file's form `body` as `local`; the footer is in neither. `sent` is the text the Doc was given, so what the
+    converter changed shows against it."""
+    snapshot, _ = split_footer(normalize(d.export(state["doc_id"]), body))
+    state.update(version=d.version(state["doc_id"]), snapshot=snapshot, local=body)
     save_state(md, state)
-    lost = diff(normalize(text), snapshot, f"{md} (local)", f"{md} (Doc)")
+    lost = diff(sent, snapshot, f"{md} (sent)", f"{md} (Doc)")
     errors = [*errors] + ([f"the Doc holds a different text; `pull --force` would write it back (docs/features.md "
                            f"lists what the converter loses):\n{lost}"] if lost else [])
     return _finish(args, out, EXIT_OK, verb, pushed=True, doc_id=state["doc_id"], link=state["link"],
@@ -1301,7 +1556,7 @@ def main(argv: list[str] | None = None, drive=connect) -> int:
     parser = _Parser(prog=prog, description=HELP, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True, metavar="command")
     for name, fn, what in (("init", cmd_init, "create the Doc and the state file"),
-                           ("pull", cmd_pull, "write the Doc's content to the file"),
+                           ("pull", cmd_pull, "carry the Doc's changes onto the file"),
                            ("push", cmd_push, "write the file's changes to the Doc"),
                            ("sync", cmd_sync, "merge both sides' changes, write the file, push the Doc"),
                            ("status", cmd_status, "which side changed")):
@@ -1319,6 +1574,9 @@ def main(argv: list[str] | None = None, drive=connect) -> int:
             p.add_argument("--doc", metavar="ID", help="attach FILE to the Doc with this id instead of creating one")
         if name == "pull":
             p.add_argument("--force", action="store_true", help="overwrite the file even if it changed")
+        if name != "status":
+            p.add_argument("--no-footer", action="store_true",
+                           help="no footer naming the other side at the end of the file and the Doc; remembered")
         p.set_defaults(fn=fn)
     args = parser.parse_args(argv)
     try:

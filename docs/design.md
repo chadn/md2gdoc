@@ -138,16 +138,33 @@ how far the current state has got; where the two differ, the end state wins and 
   the file already had comes back as a soft one. Everything else passes through. Built in [md2gdoc.py](../md2gdoc.py)
   as `push_form()` and `normalize()`, tested by
   [tests/test_normalize.py](../tests/test_normalize.py).
-- Merge: three-way on normalized lines, base = snapshot, ours = local file, theirs = Doc export. Added lines on
-  either side are kept; a line changed on one side only takes that change; a checkbox ticked on one side wins
-  over an untouched box. A line deleted on one side and edited on the other is a conflict, not a silent delete.
+- Two forms (PT-034): the file's form, the normalized file, keeps what Google's import drops (a whole-line HTML
+  comment) and the file's own shape of a line the converter rewrites (a blank line before a list, a lazy
+  continuation line's indent, a resolved `[-]` box); the Doc's form is the normalized export. The state file holds
+  one of each, `local` and `snapshot`, and the two are never compared. A change on one side is carried onto the
+  other side's form by `replay()`: the two forms are aligned line by line on each line's text stripped of the
+  converter's reshaping (indent, `[-]` shown `[ ]`), so the runs left unpaired are the lines one form alone has, the
+  converter's blank, a comment; the hunks between the two texts of the changed side have their edges mapped through
+  the paired lines, and an edge inside an unpaired run, or an insertion at its edge, takes the whole run and carries
+  its unchanged lines along in the changed side's form, so nothing is lost and the lines right around a change take
+  that side's shape; a comment the hunk spans is kept after the hunk's lines, between blank lines. A Doc-only change
+  thus leaves the file's form and its comments; a file-only change pushes nothing but the file's hunks, carried
+  through `doc_view()`, the file's form without the comments, which would otherwise go to the Doc as paragraphs
+  (`init` sends `doc_view()` whole). Pinned by fixture 15 (what the converter rewrites), the `Forms` and `FileSide`
+  tests (what the file keeps) and the live run in [chadkit/work/PT-034/](../chadkit/work/PT-034/), whose paragraph
+  probe shows the import puts an empty paragraph before a list that follows a paragraph, so the export's blank line
+  there is a paragraph the edit path can map.
+- Merge: three-way in the file's form, base = `local` at the last sync, the file's side = the file, the Doc's side =
+  the Doc's changes carried onto that base. Added lines on either side are kept; a line changed on one side only takes
+  that change; a checkbox ticked on one side wins over an untouched box. A line deleted on one side and edited on the
+  other is a conflict, not a silent delete.
   Lines added at the same place on both sides are all kept, the file's first, since nothing is lost that way; git
   would call that a conflict. Nothing in the Doc outside the markdown's content needs to survive a push (PD-001).
   Recovery when a merge goes wrong is history on each side: git for the file, Drive version history for the Doc,
   which is what PG-01 rests on. The merge is `merge3()` in [md2gdoc.py](../md2gdoc.py): pure Python on
   `difflib` matching blocks, no `git merge-file` (gdoc-sync's first choice, below), so it runs the same on every
   desktop with nothing installed (PT-007). The file is written only when the merge changed it, and then in
-  normalized form, as `pull` writes it.
+  the file's own form, as `pull` writes it since PT-034.
 - True conflict (same line changed differently on both sides): keep both lines, marked
   `<<<<<<< api-edited` ... `=======` ... `>>>>>>> hand-edited`, written to the file, exit code 2, no push; a file
   that still holds a marker line is refused with exit 2 until it is resolved.
@@ -163,9 +180,25 @@ how far the current state has got; where the two differ, the end state wins and 
 - After a successful push, pull once more and store the new `version` and snapshot. In `sync` the guard is a
   second export right before the push, compared to the one the merge read: a Doc that changed meanwhile refuses the
   push with exit 3, and the merge already written to the file waits for the next run. The `version` is not
-  consulted, since a UI edit moves it late (item 2). When one side is unchanged since the last sync the other side
-  is the result without a merge, so the converter's own difference between the two stored texts (the blank line
-  before a list, [features.md](features.md)) never reads as a conflict.
+  consulted, since a UI edit moves it late (item 2). The converter's own difference between the two stored texts
+  (the blank line before a list, [features.md](features.md)) never reads as a conflict, since the two forms are
+  never compared (above); before PT-034 the shortcut was to take the changed side whole, which wrote the Doc's form
+  over the file.
+- Footer (PT-031, PT-034): three paragraphs at the end of both sides, separated by blank lines since two prose lines
+  in a row send the edit path to the whole replace: `md2gdoc sync last change: <date time>` in the machine's zone,
+  the file's path from the repository root (the folder holding `.git` above it, else the path as given) as a code
+  span, so a `_` in it is never italics, and the Doc's link. Split off both sides before the compare and the merge,
+  written after: the file's at every write of the file, with a new time when a body changed; the Doc's only when
+  the Doc is written for a change it would show, never for the footer alone, since a Doc-only change, a comment-only
+  edit or an attached Doc would then write the Doc, by the whole replace where a line forces it, with the comments
+  that costs. A footer is recognized as the last line starting with the mark whose next two non-blank lines are a
+  path (a code span, or bare since a Doc may lose the span, then a name with its dot or a folder's slash, spaces
+  allowed) and a link, wherever it sits: a line a tool appends after it (`chadkit task add` appends to the file) is
+  body, and the footer moves back to the end at the next write; a footer line edited past recognition is body too,
+  and a fresh footer follows it. `init` writes the file as it was with the footer appended, and gives the Doc its
+  footer by edits after the create; the attach writes the file's only, and the Doc gets one with its first push for
+  a change. `--no-footer` on a writing command sets `footer: false` in the state file at once; the file loses its
+  footer at its next write, the Doc at its next write for a change.
 
 - The *write path* (PT-009): `write_doc` reads the document JSON and `plan_edits` maps its paragraphs to the lines
   of the Doc's normalized export, one to one, an empty paragraph to a blank line except the blank the export writes

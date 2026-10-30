@@ -33,5 +33,11 @@
 - [-] PT-031 [PG-02,PG-01] A footer at the end of both the file and the Doc naming the other side, kept current by every sync, with a CLI option to leave it out. Shape and open points in chadkit/work/PT-031.md. Resolved: 2026-10-30 duplicate of PT-034
 - [x] PT-032 [PG-03,PG-04] Adopt the shared documentation gate by reference: the config names it, the local gate file gains a Documentation heading, the next prose change is the first run. Mechanism in chadkit/work/PT-032.md. Completed: 2026-10-28
 - [ ] PT-033 [PG-03] [#qa-gate] Take user-ck's fixed block of the linked-references check into scripts/gate-checks.sh: the failure guard this copy lacks, the leading dots of a relative reference kept, a reference-style link not reported; the defects are PLR-20261028-01.
-- [ ] PT-034 [PG-01,PG-04,PG-02] On a Doc-only change, sync and pull put the Doc's changes into the file instead of the export over it, so an HTML comment survives; plus PT-031's footer on both sides, with an option to leave it out. Mechanism in chadkit/work/PT-034.md.
+- [x] PT-034 [PG-01,PG-04,PG-02] On a Doc-only change, sync and pull put the Doc's changes into the file instead of the export over it, so an HTML comment survives; plus PT-031's footer on both sides, with an option to leave it out. Mechanism in chadkit/work/PT-034.md. Completed: 2026-10-30
 - [ ] PT-035 [PG-04] Unescape `\+`, `\~` and a `\)` after digits that the export adds and the normalizer leaves in the file today; a fixture pins them, with a `\(` and `\)` the file holds (the import returns them plain) and a line-start `\+` that stops a bullet.
+
+md2gdoc sync last change: 2026-10-30 10:02am PDT
+
+`chadkit/tasks.md`
+
+https://docs.google.com/document/d/1ysytVxj8o1iu-KwezfWRNJnZ7n7JPzBWgNJBbUiujtA/edit?usp=drivesdk

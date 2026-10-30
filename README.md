@@ -45,6 +45,19 @@ of prose, for agents and scripts ([docs/agents.md](docs/agents.md) has the field
 a profile's first login. `init` also takes `--name` (the Doc's title) and `--folder` (a Drive folder id); `pull`
 takes `--force`.
 
+Every synced file and its Doc end with a footer of three paragraphs: `md2gdoc sync last change: 2026-10-30 09:43am
+PDT` (the machine's clock and zone), the file's path from the repository root in backticks (the path as given when no
+repository holds it), and the Doc's link; a search for `md2gdoc sync` finds every synced file. Whichever command
+writes a side for a change refreshes that side's footer (a renamed file's path line too), so after a change made only
+in the Doc the file's time is the newer; the footer never counts as a change, and a line a tool appends after it is
+kept and the footer moves back to the end.
+`--no-footer` on `init`, `pull`, `push` or `sync` turns it off for that file, which the state file remembers.
+
+A sync keeps the file's own text where the Doc did not change it: the Doc's changes are carried onto the file, so an
+HTML comment, which the Doc cannot hold, and the file's own line breaks and blank lines stay, except in the lines
+right around a change, which take the Doc's shape; a change made in the file is carried onto the Doc the same way.
+`pull --force` writes the Doc's text as it is.
+
 A conflict, the same line changed differently on both sides, is written to the file between `<<<<<<< api-edited`
 (the file's version) and `>>>>>>> hand-edited` (the Doc's); nothing is pushed, and `sync` and `push` exit 2 until it
 is resolved.

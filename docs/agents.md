@@ -23,7 +23,7 @@ without it. Fields:
 | `conflicts` | sync | how many places changed differently on both sides; the markers are in the file |
 | `diff` | pull and push with `--dry-run` | the unified diff of what would change |
 | `diff_file`, `diff_doc` | sync with `--dry-run`; a conflict carries `diff_file` only | what the merge changes on each side |
-| `converter_diff` | after a push or init | how the Doc's text differs from the file after Google's import, empty when it does not ([features.md](features.md) lists what the converter changes) |
+| `converter_diff` | after a push or init | how the Doc's text differs from what the push sent after Google's import, empty when it does not ([features.md](features.md) lists what the converter changes) |
 | `name` | init | the Doc's title |
 | `write`, `requests` | push and sync after a push | how the Doc was written: `edits`, with the number of `batchUpdate` requests, or `replace` |
 | `why`, `carried`, `unplaced`, `undeleted` | push and sync after a `replace` | why the whole Doc was replaced, one word: `tick`, `nesting`, `list`, `structure`, `layout`, `blank`, `inline`, `mapping`, `suggestion`, `docs_api` ([design.md](design.md), "Whole-document replace"); the comments written again after it, the anchored texts of those with no place left, and the orphans Google refused to delete |

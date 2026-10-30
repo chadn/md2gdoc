@@ -14,10 +14,9 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from md2gdoc import (  # noqa: E402
-    EXIT_CONFLICT, EXIT_MOVED, EXIT_OK, SCOPE_URL, Fallback, anchored_comments, carry_comments, config_dir,
-    error_object, inline, main, merge3, normalize, pending_suggestions, plan_edits, profile_dir, push_form, state_path,
-    token_scope,
-    write_doc,
+    EXIT_CONFLICT, EXIT_MOVED, EXIT_OK, FOOTER_MARK, SCOPE_URL, Fallback, anchored_comments, carry_comments,
+    config_dir, doc_view, error_object, inline, main, merge3, normalize, pending_suggestions, plan_edits, profile_dir,
+    push_form, replay, split_footer, state_path, token_scope, with_footer, write_doc,
 )
 
 FIXTURES = ROOT / "tests" / "fixtures"
@@ -152,25 +151,36 @@ class FakeDrive:
         self.docs_api_enabled = True
         self.viewer = False  # a profile that may only view the Doc: Google refuses the view that shows suggestions
 
+    @staticmethod
+    def imported(markdown):
+        """What Google's import makes of the markdown (fixture 15): an HTML comment block is dropped, a resolved task
+        line `- [-]` is an open box, and an empty paragraph goes between a paragraph and the list that follows it."""
+        text = re.sub(r"^((?:    )*- )\[-\] ", r"\1[ ] ", doc_view(markdown), flags=re.M)
+        out: list[str] = []
+        for line in text.split("\n"):
+            if line.startswith("- ") and out and out[-1] and not out[-1].startswith(("-", " ", "#")):
+                out.append("")
+            elif line and not line.startswith(("-", " ", "#", "`")) and out and out[-1].startswith(("- ", "  ")):
+                line = "  " + line  # a lazy continuation line under an item comes back indented (fixture 15)
+            out.append(line)
+        return "\n".join(out)
+
     def create(self, name, markdown, folder):
         self.calls.append("create")
         doc_id = f"doc-{len(self.docs) + 1}"
-        self.docs[doc_id], self.versions[doc_id] = markdown, 5
+        self.docs[doc_id], self.versions[doc_id] = self.imported(markdown), 5
         return {"doc_id": doc_id, "link": f"https://docs.google.com/document/d/{doc_id}/edit", "version": 5}
 
     def export(self, doc_id):
-        """Two of the converter's habits: a bold heading, and a blank line put before a list after a paragraph."""
+        """The converter's habit on the way out: a bold heading; the blank line before a list is put in on the way in
+        (`imported`), where Google puts it (chadkit/work/PT-034/probe-paragraphs.out.txt)."""
         self.calls.append("export")
-        out: list[str] = []
-        for line in self.docs[doc_id].split("\n"):
-            if line.startswith("- ") and out and out[-1] and not out[-1].startswith(("-", " ", "#")):
-                out.append("")
-            out.append(f"# **{line[2:]}**" if line.startswith("# ") else line)
-        return "\n".join(out)
+        return "\n".join(f"# **{line[2:]}**" if line.startswith("# ") else line
+                          for line in self.docs[doc_id].split("\n"))
 
     def update(self, doc_id, markdown):
         self.calls.append("update")
-        self.docs[doc_id] = markdown
+        self.docs[doc_id] = self.imported(markdown)
         self.versions[doc_id] += 1
         self.revisions[doc_id] = self.revisions.get(doc_id, 0) + 1
         for c in self.comments.get(doc_id, []):
@@ -266,6 +276,8 @@ class FakeDrive:
 
 
 class _WithDoc(unittest.TestCase):
+    footer = False  # the footer is on by default; these tests pin the rest of the commands without it (Footer has it)
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.md = Path(self.tmp.name) / "tasks.md"
@@ -276,6 +288,8 @@ class _WithDoc(unittest.TestCase):
         self.tmp.cleanup()
 
     def run_cmd(self, *argv):
+        if not self.footer and argv[0] in ("init", "pull", "push", "sync") and "--no-footer" not in argv:
+            argv = (*argv, "--no-footer")
         out, err = io.StringIO(), io.StringIO()
         with redirect_stdout(out), redirect_stderr(err):
             code = main(list(argv), drive=lambda account, scope: self.drive)
@@ -373,8 +387,8 @@ class Commands(_WithDoc):
 
     def test_push_is_skipped_again_after_the_converter_changed_the_text(self):
         self.run_cmd("init", str(self.md))
-        self.md.write_text(self.md.read_text(encoding="utf-8") + "- [ ] T-004 right after the paragraph\n",
-                           encoding="utf-8")
+        self.md.write_text(self.md.read_text(encoding="utf-8").replace("- [ ] T-001", "- [x] T-001")
+                           + "- [ ] T-004 right after the paragraph\n", encoding="utf-8")  # the tick: a whole replace
         code, _, err = self.run_cmd("push", str(self.md))
         self.assertEqual(code, EXIT_OK)
         self.assertIn("the Doc holds a different text", err)
@@ -489,7 +503,7 @@ class Commands(_WithDoc):
         state = json.loads(state_path(self.md).read_text(encoding="utf-8"))
         text = self.md.read_text(encoding="utf-8")
         self.assertEqual((state["version"], state["snapshot"], state["local"]), (6, text, text))
-        self.assertEqual(sorted(state), ["doc_id", "link", "local", "snapshot", "version"])
+        self.assertEqual(sorted(state), ["doc_id", "footer", "link", "local", "snapshot", "version"])
 
     def test_help_covers_setup_files_and_exit_codes(self):
         out = io.StringIO()
@@ -606,8 +620,8 @@ class Sync(_WithDoc):
         self.assertEqual(self.drive.calls, ["get_doc", "export", "get_doc", "export"])
 
     def test_the_converters_own_blank_line_is_never_a_conflict(self):
-        self.md.write_text(self.md.read_text(encoding="utf-8") + "- [ ] T-004 right after the paragraph\n",
-                           encoding="utf-8")
+        self.md.write_text(self.md.read_text(encoding="utf-8").replace("- [ ] T-001", "- [x] T-001")
+                           + "- [ ] T-004 right after the paragraph\n", encoding="utf-8")  # the tick: a whole replace
         self.run_cmd("sync", str(self.md))
         state = json.loads(state_path(self.md).read_text(encoding="utf-8"))
         self.assertNotEqual(state["snapshot"], state["local"])  # the Doc gained a blank line before T-004
@@ -645,6 +659,244 @@ class Sync(_WithDoc):
         self.assertIn("- [x] T-001", self.md.read_text(encoding="utf-8"))  # written; the next sync pushes it
 
 
+class FileSide(_WithDoc):
+    """PT-034: a Doc-only change leaves the file's form and its HTML comment; a file-only change pushes its hunks
+    alone; a resolved `[-]` line survives the Doc's `[ ]`."""
+
+    text = ("# Plan\n\n<!-- Only people write this file.\n     Entries run to the next dated line. -->\n\n"
+            "Also:\n- [ ] T-001 First\n- [-] T-002 Resolved, kept\n- [ ] T-003 Third\n\nNotes\n")
+
+    def setUp(self):
+        super().setUp()
+        self.md.write_text(self.text, encoding="utf-8")
+        self.run_cmd("init", str(self.md))
+        self.drive.calls.clear()
+
+    def test_the_doc_never_holds_the_comment_and_the_state_keeps_both_forms(self):
+        self.assertNotIn("<!--", self.drive.docs["doc-1"])
+        self.assertIn("- [ ] T-002", self.drive.docs["doc-1"])
+        state = json.loads(state_path(self.md).read_text(encoding="utf-8"))
+        self.assertEqual(state["local"], self.text)
+        self.assertEqual(state["snapshot"], "# Plan\n\nAlso:\n\n- [ ] T-001 First\n- [ ] T-002 Resolved, kept\n"
+                                            "- [ ] T-003 Third\n\nNotes\n")
+
+    def test_a_doc_only_change_keeps_the_comment_the_shape_and_the_resolved_line(self):
+        self.drive.edit_in_ui("doc-1", "- [ ] T-003 Third", "- [x] T-003 Third")
+        code, out, err = self.run_cmd("sync", str(self.md))
+        self.assertEqual((code, err), (EXIT_OK, ""))
+        self.assertIn("pulled, nothing to push", out)
+        self.assertEqual(self.md.read_text(encoding="utf-8"), self.text.replace("[ ] T-003", "[x] T-003"))
+        self.assertEqual(self.drive.calls, ["get_doc", "export"])
+        code, out, _ = self.run_cmd("sync", str(self.md))
+        self.assertIn("in sync", out)
+
+    def test_a_doc_only_change_keeps_a_lazy_continuation_line_as_written(self):
+        text = self.text.replace("T-003 Third\n", "T-003 Third\nlazily continued\n")
+        self.md.write_text(text, encoding="utf-8")
+        self.run_cmd("sync", str(self.md))  # pushes the line; the fake, like Google, indents it in the Doc
+        self.assertIn("\n  lazily continued\n", self.drive.docs["doc-1"])
+        self.drive.edit_in_ui("doc-1", "Notes", "Notes, edited")
+        code, out, err = self.run_cmd("sync", str(self.md))
+        self.assertEqual((code, err), (EXIT_OK, ""))
+        self.assertEqual(self.md.read_text(encoding="utf-8"), text.replace("Notes", "Notes, edited"))
+
+    def test_a_pull_keeps_the_comment_and_the_shape_unless_forced(self):
+        self.drive.edit_in_ui("doc-1", "Notes", "Notes, edited")
+        code, out, _ = self.run_cmd("pull", str(self.md))
+        self.assertEqual(code, EXIT_OK)
+        self.assertEqual(self.md.read_text(encoding="utf-8"), self.text.replace("Notes", "Notes, edited"))
+        code, _, _ = self.run_cmd("pull", str(self.md), "--force")  # on an unchanged file too
+        self.assertEqual(code, EXIT_OK)
+        self.assertNotIn("<!--", self.md.read_text(encoding="utf-8"))  # the Doc's text as it is, as asked
+        self.assertIn("Also:\n\n- [ ] T-001", self.md.read_text(encoding="utf-8"))
+
+    def test_a_file_only_change_pushes_its_hunks_and_not_the_files_shape(self):
+        self.md.write_text(self.text.replace("T-001 First", "T-001 First, reworded"), encoding="utf-8")
+        code, out, err = self.run_cmd("sync", str(self.md))
+        self.assertEqual((code, err), (EXIT_OK, ""))
+        self.assertIn(" edits", out)  # the edit path, not the whole replace
+        self.assertEqual(self.drive.docs["doc-1"], "# Plan\n\nAlso:\n\n- [ ] T-001 First, reworded\n"
+                                                   "- [ ] T-002 Resolved, kept\n- [ ] T-003 Third\n\nNotes\n")
+        self.assertIn("<!--", self.md.read_text(encoding="utf-8"))
+
+    def test_both_sides_changed_merges_in_the_files_form(self):
+        self.md.write_text(self.text.replace("T-001 First", "T-001 First, reworded"), encoding="utf-8")
+        self.drive.edit_in_ui("doc-1", "- [ ] T-003 Third", "- [x] T-003 Third")
+        code, out, err = self.run_cmd("sync", str(self.md))
+        self.assertEqual((code, err), (EXIT_OK, ""))
+        text = self.md.read_text(encoding="utf-8")
+        self.assertEqual(text, self.text.replace("T-001 First", "T-001 First, reworded").replace("[ ] T-003",
+                                                                                                "[x] T-003"))
+        self.assertIn("- [ ] T-001 First, reworded\n- [ ] T-002 Resolved, kept\n- [x] T-003 Third",
+                      self.drive.docs["doc-1"])
+        state = json.loads(state_path(self.md).read_text(encoding="utf-8"))
+        self.assertEqual(state["local"], text)
+
+    def test_a_comment_only_edit_writes_nothing_to_the_doc(self):
+        self.md.write_text(self.text.replace("Only people", "Only humans"), encoding="utf-8")
+        code, out, err = self.run_cmd("sync", str(self.md))
+        self.assertEqual((code, err), (EXIT_OK, ""))
+        self.assertIn("pulled, nothing to push", out)
+        self.assertNotIn("batch_update", self.drive.calls)
+        self.assertNotIn("update", self.drive.calls)
+        self.assertEqual(json.loads(state_path(self.md).read_text(encoding="utf-8"))["local"],
+                         self.text.replace("Only people", "Only humans"))
+
+
+class Footer(_WithDoc):
+    """The footer (PT-031, PT-034): on by default at the end of both sides, never a change, off with --no-footer."""
+
+    footer = True
+
+    def lines(self, text):
+        footer = split_footer(text)[1]
+        return footer and [footer[0], footer[1].strip("`"), footer[2]]  # the fake keeps no markup on an inserted line
+
+    def test_init_writes_the_footer_to_both_sides(self):
+        code, out, err = self.run_cmd("init", str(self.md))
+        self.assertEqual((code, err), (EXIT_OK, ""))
+        text = self.md.read_text(encoding="utf-8")
+        footer = self.lines(text)
+        self.assertEqual(len(footer), 3)
+        self.assertTrue(footer[0].startswith(FOOTER_MARK + "20"))
+        self.assertEqual(footer[1], self.md.as_posix())  # no repository root above the temp folder
+        self.assertEqual(footer[2], "https://docs.google.com/document/d/doc-1/edit")
+        self.assertEqual(text, split_footer(text)[0] + "\n" + "\n\n".join(split_footer(text)[1]) + "\n")
+        self.assertEqual(split_footer(text)[1][1], f"`{footer[1]}`")
+        self.assertEqual(self.lines(self.drive.docs["doc-1"]), footer)
+        state = json.loads(state_path(self.md).read_text(encoding="utf-8"))
+        self.assertNotIn("footer", state)
+        self.assertNotIn(FOOTER_MARK, state["local"] + state["snapshot"])
+        code, out, _ = self.run_cmd("sync", str(self.md))
+        self.assertIn("in sync", out)
+
+    def test_a_sync_refreshes_the_written_sides_time_and_a_missing_footer_comes_back(self):
+        self.run_cmd("init", str(self.md))
+        before = self.lines(self.md.read_text(encoding="utf-8"))
+        self.drive.edit_in_ui("doc-1", "- [ ] T-002", "- [x] T-002")
+        self.drive.calls.clear()
+        code, out, _ = self.run_cmd("sync", str(self.md))
+        self.assertEqual((code, self.drive.calls), (EXIT_OK, ["get_doc", "export"]))  # the Doc is not written
+        after = self.lines(self.md.read_text(encoding="utf-8"))
+        self.assertEqual((after[1], after[2]), (before[1], before[2]))
+        self.assertEqual(self.lines(self.drive.docs["doc-1"]), before)
+        body, _ = split_footer(self.md.read_text(encoding="utf-8"))
+        self.md.write_text(body, encoding="utf-8")  # someone deletes the file's footer
+        code, out, _ = self.run_cmd("sync", str(self.md))
+        self.assertEqual(code, EXIT_OK)
+        self.assertEqual(self.lines(self.md.read_text(encoding="utf-8")), before)  # the Doc's, no new time
+
+    def test_push_and_pull_carry_the_footer_too(self):
+        self.run_cmd("init", str(self.md))
+        before = self.lines(self.md.read_text(encoding="utf-8"))
+        self.md.write_text(self.md.read_text(encoding="utf-8").replace("- [ ] T-001", "- [x] T-001"), encoding="utf-8")
+        code, out, _ = self.run_cmd("push", str(self.md))
+        self.assertEqual(code, EXIT_OK)
+        self.assertEqual(self.lines(self.drive.docs["doc-1"])[1:], before[1:])
+        self.assertIn("- [x] T-001", self.drive.docs["doc-1"])
+        self.drive.edit_in_ui("doc-1", "- [ ] T-002", "- [x] T-002")
+        code, out, _ = self.run_cmd("pull", str(self.md))
+        self.assertEqual(code, EXIT_OK)
+        text = self.md.read_text(encoding="utf-8")
+        self.assertIn("- [x] T-002", text)
+        self.assertEqual(self.lines(text)[1:], before[1:])
+        self.assertEqual(split_footer(text)[0], split_footer(normalize(text))[0])
+        code, out, _ = self.run_cmd("sync", str(self.md))
+        self.assertIn("in sync", out)
+
+    def test_the_files_time_moves_with_a_doc_only_change_and_the_docs_does_not(self):
+        times = iter(["10:00am", "10:01am", "10:02am", "10:03am"])
+
+        def stamp(md, link):
+            return [FOOTER_MARK + "2026-10-30 " + next(times) + " UTC", f"`{md.as_posix()}`", link]
+
+        with patch("md2gdoc.footer_now", stamp):
+            self.run_cmd("init", str(self.md))
+            self.assertEqual(self.lines(self.drive.docs["doc-1"])[0], FOOTER_MARK + "2026-10-30 10:00am UTC")
+            self.drive.edit_in_ui("doc-1", "- [ ] T-002", "- [x] T-002")
+            self.run_cmd("sync", str(self.md))
+            self.assertEqual(self.lines(self.md.read_text(encoding="utf-8"))[0], FOOTER_MARK + "2026-10-30 10:01am UTC")
+            self.assertEqual(self.lines(self.drive.docs["doc-1"])[0], FOOTER_MARK + "2026-10-30 10:00am UTC")
+            self.md.write_text(self.md.read_text(encoding="utf-8").replace("- [ ] T-001", "- [x] T-001"),
+                               encoding="utf-8")
+            self.run_cmd("sync", str(self.md))
+            self.assertEqual(self.lines(self.drive.docs["doc-1"])[0], FOOTER_MARK + "2026-10-30 10:02am UTC")
+            self.assertEqual(self.lines(self.md.read_text(encoding="utf-8"))[0], FOOTER_MARK + "2026-10-30 10:02am UTC")
+
+    def test_a_line_appended_after_the_footer_is_body_and_the_footer_moves_back_to_the_end(self):
+        self.run_cmd("init", str(self.md))
+        self.md.write_text(self.md.read_text(encoding="utf-8") + "- [ ] T-009 appended by a tool\n", encoding="utf-8")
+        code, out, err = self.run_cmd("sync", str(self.md))
+        self.assertEqual((code, err), (EXIT_OK, ""))
+        text = self.md.read_text(encoding="utf-8")
+        body, footer = split_footer(text)
+        self.assertTrue(body.endswith("- [ ] T-009 appended by a tool\n"))
+        self.assertEqual(text, with_footer(body, footer))
+        self.assertEqual(text.count(FOOTER_MARK), 1)
+        self.assertEqual(self.drive.docs["doc-1"].count(FOOTER_MARK), 1)
+        self.assertIn("- [ ] T-009 appended by a tool", self.drive.docs["doc-1"])
+        code, out, _ = self.run_cmd("sync", str(self.md))
+        self.assertIn("in sync", out)
+
+    def test_no_footer_is_remembered_even_when_nothing_else_is_written(self):
+        self.run_cmd("init", str(self.md))
+        code, out, _ = self.run_cmd("push", str(self.md), "--no-footer")
+        self.assertIn("nothing to push", out)
+        self.assertFalse(json.loads(state_path(self.md).read_text(encoding="utf-8"))["footer"])
+        code, out, _ = self.run_cmd("sync", str(self.md))
+        self.assertEqual(code, EXIT_OK)
+        self.assertIsNone(self.lines(self.md.read_text(encoding="utf-8")))
+        self.assertIsNotNone(self.lines(self.drive.docs["doc-1"]))  # the Doc loses it with its next write for a change
+        self.md.write_text(self.md.read_text(encoding="utf-8").replace("- [ ] T-001", "- [x] T-001"), encoding="utf-8")
+        self.run_cmd("sync", str(self.md))
+        self.assertIsNone(self.lines(self.drive.docs["doc-1"]))
+
+    def test_a_file_name_with_spaces_has_one_footer_on_each_side(self):
+        md = Path(self.tmp.name) / "My Notes.md"
+        md.write_text(self.md.read_text(encoding="utf-8"), encoding="utf-8")
+        self.run_cmd("init", str(md))
+        self.drive.edit_in_ui("doc-1", "- [ ] T-002", "- [x] T-002")
+        code, out, err = self.run_cmd("sync", str(md))
+        self.assertEqual((code, err), (EXIT_OK, ""))
+        self.assertEqual(md.read_text(encoding="utf-8").count(FOOTER_MARK), 1)
+        self.assertEqual(self.drive.docs["doc-1"].count(FOOTER_MARK), 1)
+        self.assertEqual(self.lines(md.read_text(encoding="utf-8"))[1], md.as_posix())
+        code, out, _ = self.run_cmd("sync", str(md))
+        self.assertIn("in sync", out)
+
+    def test_an_attached_doc_is_not_written_for_the_footer(self):
+        doc_id = self.drive.make_by_hand(self.md.read_text(encoding="utf-8"))
+        new = Path(self.tmp.name) / "hand.md"
+        self.run_cmd("init", str(new), "--doc", doc_id)
+        self.assertEqual(len(self.lines(new.read_text(encoding="utf-8"))), 3)
+        self.assertIsNone(self.lines(self.drive.docs[doc_id]))
+        self.drive.calls.clear()
+        code, out, _ = self.run_cmd("sync", str(new))
+        self.assertEqual((code, self.drive.calls), (EXIT_OK, ["get_doc", "export"]))
+        self.assertIn("in sync", out)
+        new.write_text(new.read_text(encoding="utf-8").replace("- [ ] T-001", "- [x] T-001"), encoding="utf-8")
+        self.run_cmd("sync", str(new))
+        self.assertEqual(len(self.lines(self.drive.docs[doc_id])), 3)  # the first push for a change brings it
+
+    def test_no_footer_turns_it_off_and_the_state_remembers(self):
+        self.run_cmd("init", str(self.md), "--no-footer")
+        self.assertIsNone(self.lines(self.md.read_text(encoding="utf-8")))
+        self.assertIsNone(self.lines(self.drive.docs["doc-1"]))
+        self.assertFalse(json.loads(state_path(self.md).read_text(encoding="utf-8"))["footer"])
+        self.drive.edit_in_ui("doc-1", "- [ ] T-002", "- [x] T-002")
+        self.run_cmd("sync", str(self.md))
+        self.assertIsNone(self.lines(self.md.read_text(encoding="utf-8")))
+
+    def test_no_footer_later_removes_it_from_both_sides(self):
+        self.run_cmd("init", str(self.md))
+        self.md.write_text(self.md.read_text(encoding="utf-8").replace("- [ ] T-001", "- [x] T-001"), encoding="utf-8")
+        code, out, _ = self.run_cmd("sync", str(self.md), "--no-footer")
+        self.assertEqual(code, EXIT_OK)
+        self.assertIsNone(self.lines(self.md.read_text(encoding="utf-8")))
+        self.assertIsNone(self.lines(self.drive.docs["doc-1"]))
+        self.assertIn("- [x] T-001", self.drive.docs["doc-1"])
+
+
 class Json(_WithDoc):
     """`--json`: one object on stdout, nothing on stderr, the same exit codes."""
 
@@ -667,7 +919,8 @@ class Json(_WithDoc):
         self.assertEqual((code, obj["reason"], obj["pushed"]), (EXIT_OK, "nothing_to_push", False))
         code, obj = self.run_json("sync", str(self.md))
         self.assertEqual((code, obj["reason"]), (EXIT_OK, "in_sync"))
-        self.md.write_text(self.md.read_text(encoding="utf-8") + "- [ ] T-006 local\n", encoding="utf-8")
+        self.md.write_text(self.md.read_text(encoding="utf-8").replace("- [ ] T-001", "- [x] T-001")
+                           + "- [ ] T-006 local\n", encoding="utf-8")  # the tick sends the push to the whole replace
         self.drive.edit_in_ui("doc-1", "- [ ] T-002", "- [x] T-002")
         code, obj = self.run_json("status", str(self.md))
         self.assertEqual((obj["local_changed"], obj["doc_changed"], obj["version"]), (True, True, 6))
@@ -756,6 +1009,64 @@ class Merge(unittest.TestCase):
     def test_the_same_deletion_on_both_sides_is_not_a_conflict(self):
         gone = self.base.replace("- [ ] b\n", "")
         self.assertEqual(merge3(self.base, gone, gone), (gone, 0))
+
+
+class Forms(unittest.TestCase):
+    """The two forms (PT-034): `replay` carries one side's hunks onto the other side's form, `doc_view` is the file
+    without what the Doc cannot hold, and the footer is split off before either is compared."""
+
+    file = "# T\n\n<!-- a note\n     for people -->\n\nAlso:\n- a\n- b\n\nEnd\n"
+    doc = "# T\n\nAlso:\n\n- a\n- b\n\nEnd\n"  # the export: the comment gone, a blank line before the list
+
+    def test_doc_view_drops_comment_blocks_and_the_blank_they_leave(self):
+        self.assertEqual(doc_view(self.file), "# T\n\nAlso:\n- a\n- b\n\nEnd\n")
+        self.assertEqual(doc_view("x <!-- inline --> y\n"), "x <!-- inline --> y\n")
+        self.assertEqual(doc_view("<!-- never closed\nline\n"), "<!-- never closed\nline\n")  # prose, not a comment
+        self.assertEqual(doc_view("```\n<!-- c -->\ncode\n```\n"), "```\n<!-- c -->\ncode\n```\n")
+        self.assertEqual(doc_view("<!-- c -->\n\n# T\n"), "# T\n")
+
+    def test_replay_carries_a_doc_change_onto_the_file_form(self):
+        edited = self.doc.replace("- b", "- b, edited").replace("End", "End\n\nMore")
+        self.assertEqual(replay(self.doc, edited, self.file),
+                         self.file.replace("- b", "- b, edited").replace("End", "End\n\nMore"))
+
+    def test_replay_carries_a_file_change_onto_the_doc_form(self):
+        edited = self.file.replace("- a", "- a, edited").replace("for people", "for everyone")
+        self.assertEqual(replay(doc_view(self.file), doc_view(edited), self.doc),
+                         self.doc.replace("- a", "- a, edited"))
+
+    def test_replay_on_the_same_form_is_the_new_text(self):
+        new = self.doc.replace("Also:", "Also, now:").replace("- b\n", "")
+        self.assertEqual(replay(self.doc, new, self.doc), new)
+
+    def test_replay_at_a_converter_only_run_carries_the_run_and_loses_nothing(self):
+        edited = self.doc.replace("Also:\n\n- a", "Also:\n\n- a0\n- a")  # the Doc adds a line after its blank
+        self.assertEqual(replay(self.doc, edited, self.file), self.file.replace("Also:\n- a", "Also:\n\n- a0\n- a"))
+        edited = self.doc.replace("Also:\n\n- a", "Also, a list:\n\n- a")
+        self.assertEqual(replay(self.doc, edited, self.file), self.file.replace("Also:", "Also, a list:"))
+        # a Doc paragraph inserted between a paragraph and a list keeps its blank lines in the file
+        self.assertEqual(replay("Intro\n\nPara\n\n- x\n- y\n", "Intro\n\nPara\n\nNew\n\n- x\n- y\n",
+                                "Intro\n\nPara\n- x\n- y\n"), "Intro\n\nPara\n\nNew\n\n- x\n- y\n")
+
+    def test_replay_keeps_a_comment_a_hunk_spans_and_the_lines_of_a_reshaped_run(self):
+        # the Doc deletes the paragraph after the comment: the comment stays, between blank lines
+        self.assertEqual(replay(self.doc, self.doc.replace("Also:\n\n", ""), self.file),
+                         "# T\n\n<!-- a note\n     for people -->\n\n- a\n- b\n\nEnd\n")
+        # the Doc ticks a box the file holds as [-]: the comment and the [-] line's neighbours stay
+        self.assertEqual(replay("# T\n\n- [ ] x\n- [ ] y\n", "# T\n\n- [x] x\n- [ ] y\n",
+                                "# T\n\n<!-- c -->\n\n- [-] x\n- [ ] y\n"), "# T\n\n<!-- c -->\n\n- [x] x\n- [ ] y\n")
+        # the Doc edits one of two continuation lines it indented: the other stays, the edited one in the Doc's form
+        file, doc = "- item\nlazy one\nlazy two\n\nP\n", "- item\n  lazy one\n  lazy two\n\nP\n"
+        self.assertEqual(replay(doc, doc.replace("lazy one", "lazy one, edited"), file),
+                         "- item\n  lazy one, edited\nlazy two\n\nP\n")
+
+    def test_split_footer_takes_the_last_three_paragraphs_when_marked(self):
+        footer = [FOOTER_MARK + "2026-10-30 09:00am PDT", "`notes/a.md`", "https://docs.google.com/document/d/x/edit"]
+        text = "# T\n\nbody\n\n" + "\n\n".join(footer) + "\n"
+        self.assertEqual(split_footer(text), ("# T\n\nbody\n", footer))
+        self.assertEqual(split_footer("# T\n\nbody\n"), ("# T\n\nbody\n", None))
+        self.assertEqual(split_footer(FOOTER_MARK + "x\n\na\n"), (FOOTER_MARK + "x\n\na\n", None))
+        self.assertEqual(split_footer("a\nb\nc\n"), ("a\nb\nc\n", None))
 
 
 class Profiles(unittest.TestCase):

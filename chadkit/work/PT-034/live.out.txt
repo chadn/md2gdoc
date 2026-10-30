@@ -1,0 +1,15 @@
+# PT-034 live run on this repository's task list, 2026-10-30, each line as printed; the uv install lines dropped.
+# 1. the first sync with the footer code, before the gate's fixes:
+synced https://docs.google.com/document/d/<live-doc-id>/edit?usp=drivesdk by 16 edits
+in sync: neither chadkit/tasks.md nor the Doc changed since the last sync
+# 2. chadkit task complete PT-034, then sync:
+synced https://docs.google.com/document/d/<live-doc-id>/edit?usp=drivesdk by a whole replace (tick)
+# 3. after the gate's fixes: a Doc-side edit through the Docs API (live-edit.py), then sync, then the file edited back and synced:
+inserted ' (live edit)' at the end of the PT-029 paragraph; version now 71
+[-] PT-031 lines in the file before: 1
+synced https://docs.google.com/document/d/<live-doc-id>/edit?usp=drivesdk: pulled, nothing to push
+"live edit" in the file: 1
+[-] PT-031 lines in the file after: 1
+footers in the file: 1
+synced https://docs.google.com/document/d/<live-doc-id>/edit?usp=drivesdk by 8 edits
+in sync: neither chadkit/tasks.md nor the Doc changed since the last sync
