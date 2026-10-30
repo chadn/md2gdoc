@@ -30,11 +30,18 @@ from pathlib import Path
 
 # A heading whose whole text the export wrapped in bold.
 _HEADING_BOLD = re.compile(r"^(#{1,6} )\*\*((?:(?!\*\*).)+)\*\*[ \t]*$")
-# Characters the export escapes in prose (`!`, `$` and `\` since fixture 14's math and alerts); `\`` is left alone,
-# since no push sends a raw fence.
-_ESCAPE = re.compile(r"\\([-\[\]#_<>:*.!$\\])")
-# An escape that keeps a line from becoming a block: a bullet, heading, quote, or ordered item.
-_BLOCK_ESCAPE = re.compile(r"^[ \t]*\\[-#*+>]|^[ \t]*\d+\\\.")
+# Characters the export escapes in prose (`!`, `$` and `\` since fixture 14's math and alerts; `+`, `~` and `)` since
+# fixture 16, PT-035: a literal `+` or `~` in prose, each tilde of a literal `~~~`, a `)` after digits before a space;
+# `(` because the import consumes a `\(` the file holds). `\`` is left alone, since no push sends a raw fence. A
+# deliberate escape of one of these in the file is dropped too, as fixture 07's `\_`, which can turn text into markup
+# (`\***x***`, `\~\~x\~\~`).
+_ESCAPE = re.compile(r"\\([-\[\]#_<>:*.!$\\+~()])")
+# An escape that keeps a line from becoming a block, where the character would make one: a bullet or heading marker
+# followed by a space or the end, a quote mark, an ordered marker of up to nine digits before a space, a rule or
+# fence opener (`\---`, `\***`, `\___`, `\~~~`, which the export writes `\~\~\~`); `\+1` or `\#tag` is prose and is
+# unescaped (fixture 16).
+_BLOCK_ESCAPE = re.compile(r"^[ \t]*\\(?:[-*+](?=[ \t]|$)|-(?=-)|\*(?=\*)|_(?=_)|~(?=(?:\\?~){2})|#(?=#*(?:[ \t]|$))|>)"
+                           r"|^[ \t]*\d{1,9}\\[.)](?=[ \t]|$)")
 # A code span inside a line; what is inside it is left alone.
 _SPAN = re.compile(r"(`+)(?!`)(.+?)(?<!`)\1(?!`)")
 # A link whose text is its own URL.

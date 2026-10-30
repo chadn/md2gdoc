@@ -1,10 +1,11 @@
-# Fixtures (PT-002, PT-013, 2026-10-21; PT-004, 2026-10-22; PT-023, 2026-10-25; PT-024, 2026-10-27; PT-034, 2026-10-30)
+# Fixtures
 
-Each `.in.*` file was uploaded to Google Drive with conversion to a native Google Doc; each `.out.md` is the
-`text/markdown` export of the resulting Doc, byte for byte. Use them as normalizer test cases: normalize(out) must
-equal normalize(in) for pair 04 and, with the losses [tests/test_normalize.py](../test_normalize.py) lists, for
-01 and 03; the task-list pair must preserve checkbox state; 05, 06, 07 and 09 to 12 have their own equalities
-below.
+Made by PT-002 and PT-013 (2026-10-21), PT-004 (2026-10-22), PT-023 (2026-10-25), PT-024 (2026-10-27), PT-034 and
+PT-035 (2026-10-30). Each `.in.*` file was uploaded to Google Drive with conversion to a native Google Doc; each
+`.out.md` is the `text/markdown` export of the resulting Doc, byte for byte. Use them as normalizer test cases:
+normalize(out) must equal normalize(in) for pair 04 and, with the losses
+[tests/test_normalize.py](../test_normalize.py) lists, for 01 and 03; the task-list pair must preserve checkbox state;
+05, 06, 07 and 09 to 12 have their own equalities below.
 
 - 01-markdown-import: markdown with every feature; `.round2.out.md` is the export after feeding `.out.md` back in.
 - 02-html-import: the same content as HTML; shows what HTML conversion keeps.
@@ -49,6 +50,11 @@ below.
   list item and a list right after a paragraph (PT-034); `.src.md`, `.in.md` and `.out.md` as 05. Equalities:
   push_form(src) == in, and normalize(out, src) == doc_view(normalize(src)) with the `[-]` an open box, the
   continuation lines indented by two and a blank line before the list; no export holds a comment.
+- 16-export-escapes: a `+`, a `~` and a `)` after digits in prose, a `~~strike~~`, a deliberate `\(`, `\)`, `\+` and
+  `\~`, and at a line's start `+1`, `~`, `\+ `, `\#tag`, `\---` and `\~~~` (PT-035). A pair: normalize(out) ==
+  normalize(in), which is `in` with its six deliberate escapes of `(`, `)`, `+` and `~` dropped and `\#tag` unescaped;
+  the export escapes a literal `+` or `~`, each tilde of `~~~` and a `)` after digits before a space, consumes the
+  file's `\(` and `\)`, and writes back the file's `\+`, `\~`, `\---` and the line-start `\+ ` and `\#`.
 
 Trailing double spaces on list lines are part of Google's export; keep them when copying. PT-013's probes went
 through the same converter and are kept as evidence, not test cases (recovered from the session transcript), under
@@ -56,4 +62,5 @@ through the same converter and are kept as evidence, not test cases (recovered f
 PT-023's fixtures went through the script's own `Drive.create` and `Drive.export` calls, by
 [chadkit/work/PT-023/probe.py](../../chadkit/work/PT-023/probe.py); PT-024's by
 [chadkit/work/PT-024/probe.py](../../chadkit/work/PT-024/probe.py); PT-034's by
-[chadkit/work/PT-034/probe.py](../../chadkit/work/PT-034/probe.py).
+[chadkit/work/PT-034/probe.py](../../chadkit/work/PT-034/probe.py); PT-035's by
+[chadkit/work/PT-035/probe.py](../../chadkit/work/PT-035/probe.py).

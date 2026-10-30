@@ -1,0 +1,4 @@
+# Two runs of probe.py, 2026-10-30, as printed; the uv install lines dropped. Run 1 sent an earlier text of the
+# fixture, its bytes not kept; run 2 the pair as committed.
+16-export-escapes: 508 chars in, 521 chars out, version 5, Doc trashed
+16-export-escapes: 651 chars in, 667 chars out, version 4, Doc trashed

@@ -71,6 +71,38 @@ class HtmlComment(unittest.TestCase):
         self.assertEqual(normalize(fixture("15-html-comment.out.md"), src), expected)
 
 
+class ExportEscapes(unittest.TestCase):
+    """Fixture 16 (PT-035): the export escapes a literal `+` or `~` in prose, each tilde of a literal `~~~` and a `)`
+    after digits before a space, and consumes the file's own `\(`, `\)`, `\+`, `\~`; the normalizer drops them all,
+    and keeps a line-start escape only where the character would make a block."""
+
+    def test_the_export_normalizes_like_the_upload(self):
+        src = fixture("16-export-escapes.in.md")
+        out = fixture("16-export-escapes.out.md")
+        for escaped in ("north \\+ south", "2013\\) and", "since 2013\\) too", "\\~\\$10", "Reading \\+ writing",
+                        "\\+15550100", "\\~85 at the start", "\\~\\~\\~ not a fence", "a \\+ plus, a \\~ tilde"):
+            self.assertIn(escaped, out)
+        for plain in ("(front desk)", "(parens)", "~~struck~~", "2013)."):
+            self.assertIn(plain, out)
+        self.assertEqual(normalize(out), normalize(src))
+        expected = (src.replace("\\(parens\\)", "(parens)").replace("a \\+ plus", "a + plus")
+                    .replace("a \\~ tilde", "a ~ tilde").replace("a \\) after 2013\\).", "a ) after 2013).")
+                    .replace("\n\\#tag at", "\n#tag at"))
+        self.assertEqual(normalize(src), expected)
+        kept = normalize(out)
+        for line in ("\n+15550100 is", "\n\\+ not a bullet", "\n\\--- not a rule", "\n\\~~~ not a fence",
+                     "\n~85 at the start"):
+            self.assertIn(line, kept)
+
+    def test_a_line_start_escape_stays_where_the_character_would_make_a_block(self):
+        for kept in ("\\- a", "\\+ a", "\\* a", "\\#", "\\# h", "\\## h", "\\>q", "1\\. a", "1\\) a", "\\---", "\\***",
+                     "\\___", "\\~~~py"):
+            self.assertEqual(normalize(kept), kept + "\n")
+        for dropped, plain in (("\\+1 a", "+1 a"), ("\\#tag", "#tag"), ("\\##tag", "##tag"), ("a \\~ b", "a ~ b"),
+                               ("15105550100\\) x", "15105550100) x"), ("a \\+ b", "a + b"), ("(x\\)", "(x)")):
+            self.assertEqual(normalize(dropped), plain + "\n")
+
+
 class TaskList(unittest.TestCase):
     """Fixture 04: a task list round-trips exactly, and a UI edit shows up as the edit alone."""
 
