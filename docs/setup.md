@@ -230,8 +230,6 @@ reverse.
 Every **To verify:** claim in this file, for whoever tests them. Remove a line once tested, and fix the text it
 points to if the test disagrees.
 
-- [Recommended setup](#recommended-setup) step 6: the token issued on 2026-10-22 under In production still
-  refreshes after 2026-10-29, which is the 7-day mark.
 - [Service-account setup](#service-account-setup): updating a shared Doc counts against the owner's quota.
 - [Service-account setup](#service-account-setup): a personal Gmail account can share a Doc with a service account.
 

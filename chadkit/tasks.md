@@ -15,7 +15,7 @@
 - [x] PT-013 [PG-04] [#spike] Code blocks, single backtick and triple backtick: find a treatment better than not possible; candidates and edge cases in PT-013.md. Close by promotion. Completed: 2026-10-22
 - [x] PT-014 [PG-02] [#docs] Document the two kinds of Google access in docs/setup.md: the claude.ai Drive connector behind the fixtures versus the script's own OAuth client. Completed: 2026-10-21
 - [x] PT-015 [PG-03,PG-04] [#qa-gate] Evidence-citation check in the gate script: every fixture docs/features.md cites exists and each tested converter row cites one; mis-cited evidence was confirmed twice (PLR-20261021-05, PLR-20261021-07). Completed: 2026-10-22
-- [ ] PT-016 [PG-02] After 2026-10-29, prove the In-production token of 2026-10-22 still refreshes with no browser login (PT-003/probe.py), then close the To verify line in docs/setup.md and record the result in PT-003.md.
+- [x] PT-016 [PG-02] After 2026-10-29, prove the In-production token of 2026-10-22 still refreshes with no browser login (PT-003/probe.py), then close the To verify line in docs/setup.md and record the result in PT-003.md. Completed: 2026-10-30
 - [x] PT-017 [PG-02] [#docs] Review benstein/md2gdoc (same name; one-way md to Doc through the Drive importer, drive.file, multi-account, 5 stars) as a column in docs/similar.md: what it does that this tool should borrow or avoid, and how the two coexist by name. Completed: 2026-10-22
 - [x] PT-018 [PG-01] [needs:PT-004] Read the Drive version after a cosmetic edit made in the Docs UI on PT-004's kept Doc (PT-004.md, the command at its end), at once and a minute later; settle design.md item 2 either way and trash the Doc. Completed: 2026-10-22
 - [x] PT-019 [PG-02,PG-01,PG-04] Set the architecture direction: the end state the script is built toward, every assumption in the docs and code reviewed against it; PD-002 and PT-019.md. Completed: 2026-10-22
@@ -36,7 +36,7 @@
 - [x] PT-034 [PG-01,PG-04,PG-02] On a Doc-only change, sync and pull put the Doc's changes into the file instead of the export over it, so an HTML comment survives; plus PT-031's footer on both sides, with an option to leave it out. Mechanism in chadkit/work/PT-034.md. Completed: 2026-10-30
 - [x] PT-035 [PG-04] Unescape `\+`, `\~` and a `\)` after digits that the export adds and the normalizer leaves in the file today; a fixture pins them, with a `\(` and `\)` the file holds (the import returns them plain) and a line-start `\+` that stops a bullet. Completed: 2026-10-30
 
-md2gdoc sync last change: 2026-10-30 10:15am PDT
+md2gdoc sync last change: 2026-10-30 12:31pm PDT
 
 `chadkit/tasks.md`
 

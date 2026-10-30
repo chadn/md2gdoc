@@ -1,0 +1,15 @@
+$ date -u
+Fri Oct 30 19:30:09 UTC 2026
+# the default profile's token.json: created 2026-10-22, access token expiry 2026-10-30T19:24:11Z, so expired
+$ uv run --script chadkit/work/PT-003/probe.py ~/.config/md2gdoc/default
+auth ok: token.json written, refresh_token present: True, scopes: ['https://www.googleapis.com/auth/drive.file']
+drive files.create ok: id <probe-doc-id> version 4 link <probe-doc-link>
+docs documents.get ok: title 'md2gdoc PT-003 probe', 4 structural elements
+docs batchUpdate ok: 1 reply
+drive files.export ok, first lines: ["# **Inserted by batchUpdate under drive.file**", "", "# **PT-003 probe**"]
+drive files.update ok: same id True, version 4 -> 7, export now starts '# **PT-003 probe, replaced**', T-003 present: True
+trashed the probe Doc
+exit 0
+$ date -u
+Fri Oct 30 19:30:19 UTC 2026
+# no browser opened; token.json after the run: expiry 2026-10-30T20:30:09Z, mtime 2026-10-30 12:30:10 PDT

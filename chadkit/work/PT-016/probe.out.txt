@@ -1,0 +1,6 @@
+$ uv run --script chadkit/work/PT-016/probe.py ~/.config/md2gdoc/default chadkit/tasks.md.gdoc.json
+token.json created 2026-10-22 13:05 local, last written 2026-10-30 12:30 local
+before: scopes ['https://www.googleapis.com/auth/drive.file'], access token expiry 2026-10-30T20:30:49Z, expired False, refresh token present True
+after:  access token expiry 2026-10-30T20:31:36Z, valid True, refresh token unchanged True
+drive files.get ok on the task list's Doc: name 'md2gdoc tasks', version 78
+exit 0
